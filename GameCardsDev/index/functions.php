@@ -1158,7 +1158,7 @@ function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg
 		}
 		
 		//we need to return the url for the gc card
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $iPortrait);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg, $iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$sOP.='<gcurl>'.$imageUrlQuery[0]['description'].$height.$dir.'gc'.$ext.'</gcurl>'.$sCRLF;
 		$sOP.='<gcurlflip>'.$imageUrlQuery[0]['description'].$height.$dir.'gcFlip'.$ext.'</gcurlflip>'.$sCRLF;
