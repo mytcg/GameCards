@@ -771,7 +771,8 @@ void ShopDetailsScreen::buyNow()
 void ShopDetailsScreen::drawPostBid(String message)
 {
 	String bid = editBidBox->getCaption();
-
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	if (mainLayout == NULL) {
 		mainLayout = Util::createMainLayout("", "Back", true);
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
@@ -868,7 +869,8 @@ void ShopDetailsScreen::drawPostBid(String message)
 }
 void ShopDetailsScreen::drawBuyNow()
 {
-
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	if (mainLayout == NULL) {
 		mainLayout = Util::createMainLayout("Confirm", "Back", true);
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
