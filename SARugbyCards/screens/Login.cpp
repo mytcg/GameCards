@@ -249,7 +249,7 @@ void Login::pointerMoveEvent(MAPoint2d point)
 
 void Login::pointerReleaseEvent(MAPoint2d point)
 {
-	if (moved <= 9) {
+	if (moved <= 8) {
 		if (right) {
 			keyPressEvent(MAK_SOFTRIGHT);
 		} else if (left) {
