@@ -338,8 +338,11 @@ if ($_GET['buyproduct']){
 	if (!($purchase=$_GET['purchase'])) {
 		$purchase = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$product = $_GET['buyproduct'];
-	buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product, $root, $iBBHeight, $jpg, $purchase);
+	buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product, $root, $iBBHeight, $jpg, $purchase, $iPortrait);
 	
 	checkAchis($iUserID, 1);
 	
@@ -605,8 +608,11 @@ if ($boosterid=$_GET['cardsinbooster']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	
-	$sOP = getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeight, $jpg);
+	$sOP = getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeight, $jpg, $iPortrait);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;
@@ -637,12 +643,15 @@ if ($iCategory=$_GET['cardsincategory']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$lastCheckSeconds = "";
 	if (!($lastCheckSeconds = $_GET['seconds'])) {
 		$lastCheckSeconds = "0";
 	}
 	
-	$sOP = cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$userId, -1,$root, $iBBHeight, $jpg, $iFriendID);
+	$sOP = cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$userId, -1,$root, $iBBHeight, $jpg, $iFriendID, $iPortrait);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;
@@ -660,6 +669,9 @@ if ($_GET['categoryauction']){
 	}
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
+	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
 	}
 	
 	$categoryId = $_GET['category_id'];
@@ -735,7 +747,7 @@ if ($_GET['categoryauction']){
 		$sOP.=$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
 		
 		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg);
+		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
 		$sFound='';
 		$iCountServer=0;
@@ -751,6 +763,10 @@ if ($_GET['categoryauction']){
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
 		}
+		if ($iPortrait=='2') {
+			$dir.="landscape/";
+		}
+		
 		$sOP.=$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
 		$sOP.=$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
 		
@@ -999,8 +1015,11 @@ if ($_GET['loadgame']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	
-	$sOP = loadGame($gameId, $iUserID, $iHeight, $iWidth, $root, $iBBHeight, $jpg);
+	$sOP = loadGame($gameId, $iUserID, $iHeight, $iWidth, $root, $iBBHeight, $jpg, $iPortrait);
 	
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
@@ -1027,6 +1046,9 @@ if ($_GET['continuegame']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	
 	//continue the game, if needed selecting a stat for the ai
 	continueGame($gameId, $iUserID, $iHeight, $iWidth);
@@ -1045,7 +1067,7 @@ if ($_GET['continuegame']) {
 	
 	if ($sOP == '') {
 		//load the game for the user
-		$sOP = loadGame($gameId, $iUserID, $iHeight, $iWidth, $root, $iBBHeight, $jpg);
+		$sOP = loadGame($gameId, $iUserID, $iHeight, $iWidth, $root, $iBBHeight, $jpg, $iPortrait);
 	}
 	
 	header('xml_length: '.strlen($sOP));
@@ -1068,6 +1090,9 @@ if ($_GET['selectstat']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 
 	$cardStatId = $_GET['statid'];
 	$gameId = $_GET['gameid'];
@@ -1089,7 +1114,7 @@ if ($_GET['selectstat']) {
 	selectStat($iUserID, $oppId, $gameId, $categoryStatId);
 	
 	//load the game for the user
-	$sOP = loadGame($gameId, $iUserID, $iHeight, $iWidth, $root, $iBBHeight, $jpg);
+	$sOP = loadGame($gameId, $iUserID, $iHeight, $iWidth, $root, $iBBHeight, $jpg, $iPortrait);
 	
 	//send xml with results back to the user
 	header('xml_length: '.strlen($sOP));
@@ -1138,6 +1163,9 @@ if ($_GET['declinegame']) {
 	}
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
+	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
 	}
 	
 	$newGame = false;
@@ -1218,12 +1246,15 @@ if ($_GET['declinegame']) {
 	$sOP.=$sTab.'<gameid>'.$gameId.'</gameid>'.$sCRLF;
 	//if a new game was created, for pvp, we need to return the url of the gc card, for display purposes
 	if ($newGame) {
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg,$iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$dir = '/cards/';
 		$ext = '.png';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
 		if ($jpg) {
 			$ext = '.jpg';
@@ -1263,6 +1294,9 @@ if ($_GET['confirmgame']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	
 	//we are going to need the incomplete status id
 	$incompleteStatusQuery = myqu("SELECT gamestatus_id 
@@ -1294,12 +1328,15 @@ if ($_GET['confirmgame']) {
 	$sOP.=$sTab.'<phase>stat</phase>'.$sCRLF;
 	//if a new game was created, for pvp, we need to return the url of the gc card, for display purposes
 	if ($newGame) {
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg,$iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$ext = '.png';
 		$dir = '/cards/';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
 		if ($jpg) {
 			$ext = '.jpg';
@@ -1344,7 +1381,9 @@ if ($_GET['newgame']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
-	
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$gameId = "";
 	$opponentId = "";
 	$newGame = false;
@@ -1535,12 +1574,15 @@ if ($_GET['newgame']) {
 	$sOP.=$sTab.'<gameid>'.$gameId.'</gameid>'.$sCRLF;
 	//if a new game was created, for pvp, we need to return the url of the gc card, for display purposes
 	if ($newGame) {
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg,$iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$dir = '/cards/';
 		$ext = '.png';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
 		if ($jpg) {
 			$ext = '.jpg';
@@ -1577,7 +1619,9 @@ if ($_GET['hostgame']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
-	
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$gameId = "";
 	$newGame = false;
 	
@@ -1627,12 +1671,15 @@ if ($_GET['hostgame']) {
 	$sOP.=$sTab.'<gameid>'.$gameId.'</gameid>'.$sCRLF;
 	//if a new game was created, for pvp, we need to return the url of the gc card, for display purposes
 	if ($newGame) {
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg,$iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$dir = '/cards/';
 		$ext = '.png';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
 		if ($jpg) {
 			$ext = '.jpg';
@@ -1671,7 +1718,9 @@ if ($_GET['joingame']) {
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
-	
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$opponentId = "";
 	$newGame = false;
 	
@@ -1748,12 +1797,15 @@ if ($_GET['joingame']) {
 	$sOP.=$sTab.'<gameid>'.$gameId.'</gameid>'.$sCRLF;
 	//if a new game was created, for pvp, we need to return the url of the gc card, for display purposes
 	if ($newGame) {
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $jpg,$iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$dir = '/cards/';
 		$ext = '.png';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
 		if ($jpg) {
 			$ext = '.jpg';
@@ -2509,12 +2561,15 @@ if ($iCategory=$_GET['cardsincategorynotdeck']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$lastCheckSeconds = "";
 	if (!($lastCheckSeconds = $_GET['seconds'])) {
 		$lastCheckSeconds = "0";
 	}
 	
-	$sOP = cardsincategorynotdeck($iCategory,$iHeight,$iWidth,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight, $jpg);
+	$sOP = cardsincategorynotdeck($iCategory,$iHeight,$iWidth,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight, $jpg, $iPortrait);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;
@@ -2535,6 +2590,9 @@ if ($_GET['getcardsindeck']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
+	}
 	$lastCheckSeconds = "";
 	if (!($lastCheckSeconds = $_GET['seconds'])) {
 		$lastCheckSeconds = "0";
@@ -2545,7 +2603,7 @@ if ($_GET['getcardsindeck']){
 		WHERE deck_id='.$iDeckID);
 	
 	$sOP = "<deck>";
-	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg);
+	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
 	$sOP .= "</deck>";
 	header('xml_length: '.strlen($sOP));
@@ -2596,6 +2654,9 @@ if ($searchstring=$_GET['search']) {
 	}
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
+	}
+	if (!($iPortrait=$_GET['portrait'])) {
+		$iPortrait = 1;
 	}
 	$lastCheckSeconds = "";
 	if (!($lastCheckSeconds = $_GET['seconds'])) {
@@ -2666,13 +2727,15 @@ if ($searchstring=$_GET['search']) {
 		$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
 		
 		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight,$jpg);
+		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight,$jpg,$iPortrait);
 		
 		$dir = '/cards/';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
 		}
-		
+		if ($iPortrait==2) {
+			$dir.="landscape/";
+		}
 		$sFound='';
 		$iCountServer=0;
 		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
