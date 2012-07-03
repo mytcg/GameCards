@@ -21,7 +21,7 @@ function resizeThumbs($root) {
 		$iImage++;
 	}
 }
-function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
+function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1, $iPortrait=1) {
 
 	//we need to check if the width after scaling would be too wide for the screen.
 	$ext = '.png';
@@ -55,6 +55,12 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 		//for now, max = 520
 		$iWidth = 520;
 	}
+	$fliprotate='90';
+	$landscape="";
+	if ($iPortrait==2) {
+		$fliprotate='-90';
+		$landscape="/landscape";
+	}
 	
 	//Check directory for resized version
 	chmod($root.'img',0777);
@@ -73,8 +79,18 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			die('Failed to create folders -> '.$dir);
 		}
 	}
+	
+	$dir .= $landscape;
+	if (!is_dir($dir)){
+		if (!mkdir($dir, 0777, true)) {
+			die('Failed to create folders -> '.$dir);
+		}
+	}
+	
 	$dir .= "/";
 	
+	$iLandscapeRotateWidth = $iWidth;
+	$iLandscapeRotateHeight = $iHeight*1.40625;
 	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
 	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
 	$iBBRotateHeight =  ($iBBHeight-20<=0)?$iBBHeight:$iBBHeight-20;
@@ -84,8 +100,21 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 	if((!file_exists($filenameResized)) && (file_exists($filename))){
 		$image = new Upload($filename);
 		$image->image_resize = true;
-		$image->image_ratio_x = true;
-		$image->image_y = $iHeight;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight;
+		} else {
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
 		$image->Process($dir);
 	}
 	
@@ -106,7 +135,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		} else {
 			$ratio = $iRotateWidth / $image->image_src_y;
 			$cardwidth = $image->image_src_x * $ratio;
@@ -118,7 +147,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		}
 		$image->Process($dir);
 	}
@@ -129,8 +158,21 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 	if((!file_exists($filenameResized)) && (file_exists($filename))){
 		$image = new Upload($filename);
 		$image->image_resize = true;
-		$image->image_ratio_x = true;
-		$image->image_y = $iHeight;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight;
+		} else {
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
 		$image->Process($dir);
 	}
 	
@@ -151,7 +193,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		} else {
 			$ratio = $iRotateWidth / $image->image_src_y;
 			$cardwidth = $image->image_src_x * $ratio;
@@ -163,7 +205,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		}
 		$image->Process($dir);
 	}
@@ -174,8 +216,21 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 	if((!file_exists($filenameResized)) && (file_exists($filename))){
 		$image = new Upload($filename);
 		$image->image_resize = true;
-		$image->image_ratio_x = true;
-		$image->image_y = $iHeight - 60;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight - 60;
+		} else {
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
 		$image->Process($dir);
 	}
 	
@@ -196,7 +251,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		} else {
 			$ratio = $iRotateWidth / $image->image_src_y;
 			$cardwidth = $image->image_src_x * $ratio;
@@ -208,7 +263,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		}
 		$image->Process($dir);
 	}
@@ -216,7 +271,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1) {
 	return $iHeight;
 }
 
-function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
+function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1, $iPortrait=1) {
 	//we need to check if the width after scaling would be too wide for the screen.
 	$ext = '.png';
 	$image_type=IMAGETYPE_PNG;
@@ -250,6 +305,13 @@ function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 		$iWidth = 520;
 	}
 	
+	$fliprotate='90';
+	$landscape="";
+	if ($iPortrait==2) {
+		$fliprotate='-90';
+		$landscape="/landscape";
+	}
+	
 	//Check directory for resized version
 	chmod($root.'img',0777);
 	$dir = $root.'img/'.$iHeight;
@@ -267,8 +329,16 @@ function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 			die('Failed to create folders -> '.$dir);
 		}
 	}
+	$dir .= $landscape;
+	if (!is_dir($dir)){
+		if (!mkdir($dir, 0777, true)) {
+			die('Failed to create folders -> '.$dir);
+		}
+	}
 	$dir .= "/";
 	
+	$iLandscapeRotateWidth = $iWidth;
+	$iLandscapeRotateHeight = $iHeight*1.40625;
 	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
 	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
 	$iBBRotateHeight =  ($iBBHeight-20<=0)?$iBBHeight:$iBBHeight-20;
@@ -279,8 +349,21 @@ function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 	if((!file_exists($filenameResized)) && (file_exists($filename))){
 		$image = new Upload($filename);
 		$image->image_resize = true;
-		$image->image_ratio_x = true;
-		$image->image_y = $iHeight - 60;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight - 60;
+		}else{
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
 		$image->Process($dir);
 	}
 	
@@ -301,7 +384,7 @@ function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		} else {
 			$ratio = $iRotateWidth / $image->image_src_y;
 			$cardwidth = $image->image_src_x * $ratio;
@@ -313,7 +396,7 @@ function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 			$image->image_x = $cardwidth;
 			$image->image_y = $iRotateWidth;
 			
-			$image->image_rotate = '90';
+			$image->image_rotate = $fliprotate;
 		}
 		$image->Process($dir);
 	}
@@ -804,7 +887,7 @@ function chooseStat($cardId, $difficultyId=1, $showCheat=false) {
 }
 
 //load a game and return relevant xml
-function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
+function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1, $iPortrait=1) {
 	//get the game phase
 	$gamePhaseQuery = myqu('SELECT g.gamephase_id, g.lobby, lower(gp.description) as description
 		FROM mytcg_game g
@@ -897,7 +980,7 @@ function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg
 		);
 		
 		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $selectedGameCardIdQuery[0]['image'], $root, $iBBHeight, jpg);
+		$iHeight = resizeCard($iHeight, $iWidth, $selectedGameCardIdQuery[0]['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
 		$sFound='';
 		$iCountServer=0;
@@ -912,6 +995,9 @@ function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg
 		$dir = '/cards/';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
 		$ext = '.png';
 		if ($jpg) {
@@ -970,7 +1056,7 @@ function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg
 		);
 		
 		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $selectedGameCardIdQuery[0]['image'], $root, $iBBHeight, $jpg);
+		$iHeight = resizeCard($iHeight, $iWidth, $selectedGameCardIdQuery[0]['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
 		$sFound='';
 		$iCountServer=0;
@@ -1063,14 +1149,16 @@ function loadGame($gameId, $userId, $iHeight, $iWidth, $root, $iBBHeight=0, $jpg
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
 		}
-		
+		if ($iPortrait==2) {
+			$dir.="landscape/";
+		}
 		$ext = '.png';
 		if ($jpg) {
 			$ext = '.jpg';
 		}
 		
 		//we need to return the url for the gc card
-		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight);
+		$height = resizeGCCard($iHeight, $iWidth, $root, $iBBHeight, $iPortrait);
 		$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 		$sOP.='<gcurl>'.$imageUrlQuery[0]['description'].$height.$dir.'gc'.$ext.'</gcurl>'.$sCRLF;
 		$sOP.='<gcurlflip>'.$imageUrlQuery[0]['description'].$height.$dir.'gcFlip'.$ext.'</gcurlflip>'.$sCRLF;
@@ -1981,7 +2069,7 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 	exit;
 }
 
-function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product, $root, $iBBHeight=0, $jpg=1, $purchase=1) {
+function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product, $root, $iBBHeight=0, $jpg=1, $purchase=1, $iPortrait=1) {
 
   //GET PRODUCT DETAILS
   $aDetails=myqu('SELECT A.product_id, A.description, '
@@ -2104,7 +2192,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 			$sOP.= $sTab.$sTab.'<value>'.$aCardDetails[0]['value'].'</value>'.$sCRLF;
 			
 			//before setting the front and back urls, make sure the card is resized for the height
-			$iHeight = resizeCard($iHeight, $iWidth, $aCardDetails[0]['image'], $root, $iBBHeight, $jpg);
+			$iHeight = resizeCard($iHeight, $iWidth, $aCardDetails[0]['image'], $root, $iBBHeight, $jpg, $iPortrait);
 			
 			$sFound='';
 			$iCountServer=0;
@@ -2137,7 +2225,9 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 			if ($iBBHeight) {
 				$dir = '/cardsbb/';
 			}
-			
+			if ($iPortrait==2) {
+				$dir.="landscape/";
+			}
 			$sOP.=$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aCardDetails[0]['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
 			$sOP.=$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aCardDetails[0]['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
 
@@ -3206,7 +3296,7 @@ usercardstatus = 3: Deleted
 usercardstatus = 4: Newly Received
 */
 //cardsincategory 
-function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$iUserID,$iDeckID, $root, $iBBHeight=0, $jpg=1, $iFriendID='0') {
+function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$iUserID,$iDeckID, $root, $iBBHeight=0, $jpg=1, $iFriendID='0', $iPortrait=1) {
 	if (!($iHeight)) {
 		$iHeight = '350';
 	}
@@ -3446,12 +3536,12 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 		$aCards=myqu($qu);
 	}
 	
-	$sOP = buildCardListXML($aCards, $iHeight, $iWidth, $root, $iBBHeight, $jpg, $iUserID, $iFriendID);
+	$sOP = buildCardListXML($aCards, $iHeight, $iWidth, $root, $iBBHeight, $jpg, $iUserID, $iFriendID, $iPortrait);
 	
 	return $sOP;
 }
 
-function cardsincategorynotdeck($iCategory,$iHeight,$iWidth,$lastCheckSeconds,$iUserID,$iDeckID,$root, $iBBHeight=0, $jpg=1) {
+function cardsincategorynotdeck($iCategory,$iHeight,$iWidth,$lastCheckSeconds,$iUserID,$iDeckID,$root, $iBBHeight=0, $jpg=1, $iPortrait=1) {
 	if (!($iHeight)) {
 		$iHeight = '350';
 	}
@@ -3493,12 +3583,12 @@ function cardsincategorynotdeck($iCategory,$iHeight,$iWidth,$lastCheckSeconds,$i
 				AND A.deck_id IS NULL 
 				GROUP BY B.card_id ');
 	
-	$sOP = buildCardListXML($aCards, $iHeight, $iWidth, $root, $iBBHeight, $jpg);
+	$sOP = buildCardListXML($aCards, $iHeight, $iWidth, $root, $iBBHeight, $jpg, $iUserID,'0', $iPortrait);
 	
 	return $sOP;
 }
 
-function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1, $iUserID, $iFriendID='0') {
+function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1, $iUserID, $iFriendID='0', $iPortrait=1) {
 	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
 		.'FROM mytcg_imageserver b '
 		.'ORDER BY b.description DESC '
@@ -3536,7 +3626,7 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
 		
 		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg);
+		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
 		$sFound='';
 		$iCountServer=0;
@@ -3551,6 +3641,10 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$dir = '/cards/';
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
+		}
+		
+		if ($iPortrait==2) {
+			$dir.="landscape/";
 		}
     
 		$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
@@ -3598,7 +3692,7 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 	return $sOP;
 }
 
-function getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeight=0, $jpg=1) {
+function getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeight=0, $jpg=1, $iPortrait=1) {
 	
 	$qu = 'SELECT A.card_id, count(*) quantity, B.image, A.usercard_id,  B.value, 
 					B.description, B.thumbnail_phone_imageserver_id, B.front_phone_imageserver_id, B.back_phone_imageserver_id, B.ranking, D.description quality,
@@ -3688,7 +3782,7 @@ function getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeig
 		$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
 		
 		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg);
+		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
 		$sFound='';
 		$iCountServer=0;
@@ -3704,7 +3798,10 @@ function getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeig
 		if ($iBBHeight) {
 			$dir = '/cardsbb/';
 		}
-    
+		if ($iPortrait==2) {
+			$dir.="landscape/";
+		}
+		
 		$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
 

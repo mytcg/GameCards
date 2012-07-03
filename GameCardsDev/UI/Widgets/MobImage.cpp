@@ -2,6 +2,7 @@
 #include <conprint.h>
 
 #include "../../MAHeaders.h"
+#include "../../utils/Util.h"
 #include "MobImage.h"
 
 MobImage::MobImage(int x, int y, int width, int height,
@@ -68,18 +69,33 @@ void MobImage::selectStat(int x, int y, int width, int height, int red, int gree
 	//Gfx_clearMatrix();
 	//drawRectangle((x*this->getWidth()/250),(y*this->getHeight()/350),width*this->getWidth()/250,height*this->getHeight()/350);
 	//code for portrait
-	switch(_orientation) {
-		case LANDSCAPE:
-			drawRectangle((((paddedBounds.width >> 1) + (imageWidth >> 1))-((y*imageWidth/350)+height*imageWidth/350))+3
-				,(((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y)+(x*imageHeight/250),
-				height*imageWidth/350,
-				width*imageHeight/250);
-			break;
-		case PORTRAIT:
-			drawRectangle((5 + (paddedBounds.width >> 1) - (imageWidth >> 1))+(x*imageWidth/250),
-				((paddedBounds.height >> 1) - (imageHeight >> 1))+(y*imageHeight/350),
-				width*imageWidth/250,height*imageHeight/350);
-			break;
+	if(portrait==1){
+		switch(_orientation) {
+			case LANDSCAPE:
+				drawRectangle((((paddedBounds.width >> 1) + (imageWidth >> 1))-((y*imageWidth/350)+height*imageWidth/350))+3
+					,(((paddedBounds.height >> 1) - (imageHeight >> 1))+paddedBounds.y)+(x*imageHeight/250),
+					height*imageWidth/350,
+					width*imageHeight/250);
+				break;
+			case PORTRAIT:
+				drawRectangle((5 + (paddedBounds.width >> 1) - (imageWidth >> 1))+(x*imageWidth/250),
+					((paddedBounds.height >> 1) - (imageHeight >> 1))+(y*imageHeight/350),
+					width*imageWidth/250,height*imageHeight/350);
+				break;
+		}
+	}else{
+		switch(_orientation) {
+			case LANDSCAPE:
+				drawRectangle(((paddedBounds.width >> 1) - (imageWidth >> 1))+(x*imageWidth/250)+paddedBounds.x,
+					((paddedBounds.height >> 1) - (imageHeight >> 1))+(y*imageHeight/350)+paddedBounds.y,
+					width*imageWidth/250,height*imageHeight/350);
+				break;
+			case PORTRAIT:
+				drawRectangle((((paddedBounds.width >> 1) + (imageWidth >> 1))-((y*imageWidth/350)+height*imageWidth/350))+3
+					,(((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y)+(x*imageHeight/250),
+					height*imageWidth/350,width*imageHeight/250);
+				break;
+		}
 	}
 	Gfx_updateScreen();
 }
@@ -87,7 +103,7 @@ void MobImage::selectStat(int x, int y, int width, int height, int red, int gree
 void MobImage::refreshWidget() {
 	if (resource) {
 		Gfx_drawImage(resource, PADDING + (paddedBounds.width >> 1) - (imageWidth >> 1),
-			((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y);
+			((paddedBounds.height >> 1) - (imageHeight >> 1))+paddedBounds.y);
 		if (hasNote) {
 			Gfx_drawImage(RES_CHANGE_STAR, PADDING + (paddedBounds.width >> 1) - (imageWidth >> 1),
 				((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y);

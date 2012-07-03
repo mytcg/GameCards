@@ -3,6 +3,7 @@
 #include "AlbumViewScreen.h"
 #include "ImageScreen.h"
 #include "OptionsScreen.h"
+#include "EditDeckScreen.h"
 #include "../utils/Util.h"
 #include "AuctionListScreen.h"
 #include "../UI/Button.h"
@@ -27,7 +28,10 @@ ImageScreen::ImageScreen(MainScreen *previous, MAHandle img, Feed *feed, bool fl
 			mainLayout =  Util::createImageLayout("Accept", "Reject", "");
 		}
 		else if (screenType == ST_DECK) {
-			mainLayout =  Util::createImageLayout("", "Back" , "Flip");
+			mainLayout =  Util::createImageLayout("Add", "Back" , "Flip");
+		}
+		else if(screenType == ST_DECK_REMOVE){
+			mainLayout =  Util::createImageLayout("Remove", "Back" , "Flip");
 		}
 		else {
 			mainLayout =  Util::createImageLayout((hasConnection&&canAuction)?"Options":"", "Back" , "Flip");
@@ -195,7 +199,7 @@ ImageScreen::~ImageScreen() {
 	if (imageCacheBack != NULL) {
 			delete imageCacheBack;
 			imageCacheBack = NULL;
-		}
+	}
 }
 void ImageScreen::clearListBox() {
 	Vector<Widget*> tempWidgets;
@@ -230,11 +234,37 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					}
 				}
 			} else {
+				if(!portrait){
+					if(card->getStats().size()>0){
+						if (imge->getResource() != RES_TEMP) {
+							selectStat(1);
+							if (currentSelectedStat == -1) {
+								imge->refreshWidget();
+								imge->statAdded = false;
+							} else {
+								if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()&&(card->getStats()[currentSelectedStat]->getSelectable())){
+									if (imge->getResource() != RES_TEMP) {
+										imge->refreshWidget();
+										lprintfln("currentSelectedStat %d",currentSelectedStat);
+										imge->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
+												card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
+												card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
+												card->getStats()[currentSelectedStat]->getColorBlue(), MobImage::PORTRAIT);
+									}
+								}
+							}
+						}
+					}
+					break;
+				}
 				if (screenType == ST_NEW_CARD) {
 					mainLayout =  Util::createImageLayout("Accept", "Reject", "");
 				}
 				else if (screenType == ST_DECK) {
-					mainLayout =  Util::createImageLayout("", "Back" , "Flip");
+					mainLayout =  Util::createImageLayout("Add", "Back" , "Flip");
+				}
+				else if (screenType == ST_DECK_REMOVE) {
+					mainLayout =  Util::createImageLayout("Remove", "Back" , "Flip");
 				}
 				else {
 					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
@@ -246,7 +276,11 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				if (imge->getResource() != NULL) {
 					maDestroyObject(imge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING1));
+				if(portrait){
+					imge->setResource(Util::loadImageFromResource(RES_LOADING1));
+				}else{
+					imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				}
 				imge->update();
 				imge->requestRepaint();
 				maUpdateScreen();
@@ -276,11 +310,35 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				}
 			}
 			else{
+				if(!portrait){
+					if(card->getStats().size()>0){
+						if (imge->getResource() != RES_TEMP) {
+							selectStat(-1);
+							if (currentSelectedStat == -1) {
+								imge->refreshWidget();
+								imge->statAdded = false;
+							} else {
+								if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()&&(card->getStats()[currentSelectedStat]->getSelectable())){
+									if (imge->getResource() != RES_TEMP) {
+										imge->refreshWidget();
+										imge->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
+													card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
+													card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
+													card->getStats()[currentSelectedStat]->getColorBlue(), MobImage::PORTRAIT);
+									}
+								}
+							}
+						}
+					}
+					break;
+				}
 				if (screenType == ST_NEW_CARD) {
 					mainLayout =  Util::createImageLayout("Accept", "Reject", "");
 				}
 				else if (screenType == ST_DECK) {
-					mainLayout =  Util::createImageLayout("", "Back" , "Flip");
+					mainLayout =  Util::createImageLayout("Add", "Back" , "Flip");
+				}else if (screenType == ST_DECK_REMOVE) {
+					mainLayout =  Util::createImageLayout("Remove", "Back" , "Flip");
 				}
 				else {
 					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
@@ -293,7 +351,11 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				if (imge->getResource() != NULL) {
 					maDestroyObject(imge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING1));
+				if(portrait){
+					imge->setResource(Util::loadImageFromResource(RES_LOADING1));
+				}else{
+					imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				}
 				imge->update();
 				imge->requestRepaint();
 				maUpdateScreen();
@@ -313,7 +375,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
 				currentSelectedStat = card->getStats().size();
-			}else if(card->getStats().size()>0){
+			}else if(card->getStats().size()>0 && portrait){
 				if (imge->getResource() != RES_TEMP) {
 					selectStat(-1);
 					if (currentSelectedStat == -1) {
@@ -334,7 +396,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 			}
 			break;
 		case MAK_DOWN:
-			if(card->getStats().size()>0 && currentSelectedStat < card->getStats().size()-1){
+			if(card->getStats().size()>0 && currentSelectedStat < card->getStats().size()-1 && portrait){
 				if (imge->getResource() != RES_TEMP) {
 					selectStat(1);
 					if (currentSelectedStat == -1) {
@@ -369,7 +431,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				busy = true;
 				acceptCard();
 			}
-			else if (screenType != ST_DECK) {
+			else if (screenType != ST_DECK && screenType != ST_DECK_REMOVE) {
 				if (card != NULL && hasConnection && canAuction) {
 					if (next != NULL) {
 						delete next;
@@ -381,6 +443,12 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					refresh = true;
 					next->show();
 				}
+			}else if(screenType == ST_DECK_REMOVE){
+				((EditDeckScreen *)previous)->removeCard();
+				previous->show();
+			}else if(screenType == ST_DECK){
+				((AlbumViewScreen *)previous)->addCard();
+				previous->show();
 			}
 			break;
 		case MAK_BACK:
@@ -405,49 +473,52 @@ void ImageScreen::keyPressEvent(int keyCode) {
 		case MAK_FIRE:
 			if(currentSoftKeys->getChildren()[0]->isSelected()){
 				keyPressEvent(MAK_SOFTLEFT);
+			}else if(currentSoftKeys->getChildren()[1]->isSelected()){
+				if(((flipOrSelect && tapped)) || (!tapped)){
+					flip=!flip;
+					if (screenType != ST_DECK && screenType != ST_DECK_REMOVE) {
+						currentSelectedKey = NULL;
+						currentKeyPosition = -1;
+						Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
+						currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
+						currentSelectedKey= currentSoftKeys->getChildren()[1];
+						currentKeyPosition= 1;
+						currentSoftKeys->getChildren()[1]->setSelected(true);
+					}
+					imge->refreshWidget();
+					imge->statAdded = false;
+					currentSelectedStat = -1;
+					if (imge->getResource() != NULL) {
+						maDestroyObject(imge->getResource());
+					}
+					if(portrait){
+						imge->setResource(Util::loadImageFromResource(RES_LOADING1));
+					}else{
+						imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+					}
+					imge->update();
+					imge->requestRepaint();
+					maUpdateScreen();
+					if (flip) {
+						if ((imageCacheBack != NULL)&&(imge != NULL)) {
+							Util::retrieveBack(imge, card, height-PADDING*2, imageCacheBack);
+							Util::retrieveFront(NULL, card, height-PADDING*2, imageCacheFront);
+						}
+					} else {
+						if ((imageCacheFront != NULL)&&(imge != NULL)) {
+							Util::retrieveFront(imge, card, height-PADDING*2, imageCacheFront);
+							Util::retrieveBack(NULL, card, height-PADDING*2, imageCacheBack);
+						}
+					}
+					flipOrSelect=0;
+					currentSelectedStat = -1;
+					tapped = false;
+				}
 			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
 				keyPressEvent(MAK_SOFTRIGHT);
 			}
 			else if (screenType != ST_NEW_CARD) {
 				if (card != NULL) {
-					if(((flipOrSelect && tapped)&&(currentSelectedStat == -1)) ||
-						(!tapped && currentSelectedStat == -1)){
-						flip=!flip;
-						if (screenType != ST_DECK) {
-							currentSelectedKey = NULL;
-							currentKeyPosition = -1;
-							Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
-							currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
-							currentSelectedKey= currentSoftKeys->getChildren()[1];
-							currentKeyPosition= 1;
-							currentSoftKeys->getChildren()[1]->setSelected(true);
-						}
-						imge->refreshWidget();
-						imge->statAdded = false;
-						currentSelectedStat = -1;
-						if (imge->getResource() != NULL) {
-							maDestroyObject(imge->getResource());
-						}
-						imge->setResource(Util::loadImageFromResource(RES_LOADING1));
-						imge->update();
-						imge->requestRepaint();
-						maUpdateScreen();
-
-						if (flip) {
-							if ((imageCacheBack != NULL)&&(imge != NULL)) {
-								Util::retrieveBack(imge, card, height-PADDING*2, imageCacheBack);
-								Util::retrieveFront(NULL, card, height-PADDING*2, imageCacheFront);
-							}
-						} else {
-							if ((imageCacheFront != NULL)&&(imge != NULL)) {
-								Util::retrieveFront(imge, card, height-PADDING*2, imageCacheFront);
-								Util::retrieveBack(NULL, card, height-PADDING*2, imageCacheBack);
-							}
-						}
-						flipOrSelect=0;
-						currentSelectedStat = -1;
-						tapped = false;
-				} else {
 					if (imge->getResource() != RES_TEMP) {
 						if(currentSelectedStat>-1){
 							if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()&&(card->getStats()[currentSelectedStat]->getSelectable())){
@@ -516,7 +587,6 @@ void ImageScreen::keyPressEvent(int keyCode) {
 							}
 						}
 					}
-				}
 			} else {
 				previous->show();
 			}
@@ -529,7 +599,7 @@ void ImageScreen::selectStat(int upOrDown) {
 	currentSelectedStat += upOrDown;
 	int loops = 0;
 
-	if (currentSelectedStat == card->getStats().size()) {
+	if (currentSelectedStat >= card->getStats().size()) {
 		currentSelectedStat = -1;
 		return;
 	}

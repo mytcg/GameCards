@@ -805,14 +805,7 @@ int Util::getMaxImageHeight() {
 	if(portrait){
 		return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
 	}else{
-		return scrHeight - (PADDING * 4);
-	}
-}
-int Util::getAppHeight() {
-	if(portrait){
-		return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
-	}else{
-		return (int)((((double)((scrHeight-getSoftKeyBarHeight()- (PADDING * 4))))*1.40625));
+		return ((int)(((double)scrHeight)/*1.40625*/));
 	}
 }
 
