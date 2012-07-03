@@ -1,4 +1,5 @@
 #include <conprint.h>
+#include <MAUI/Layout.h>
 
 #include "AlbumViewScreen.h"
 #include "CompareScreen.h"
@@ -26,8 +27,20 @@ CompareScreen::CompareScreen(MainScreen *previous, MAHandle img, Feed *feed, boo
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[1];
 		height = kinListBox->getHeight()-70;
 	}
-	imge = new MobImage(0, 0, scrWidth-PADDING*2, height/2, kinListBox, false, false, Util::loadImageFromResource(img));
-	cmpge = new MobImage(0, 0, scrWidth-PADDING*2, height/2, kinListBox, false, false, Util::loadImageFromResource(img));
+	if(portrait){
+		subLayout = new Layout(0, 0, kinListBox->getWidth(), kinListBox->getHeight(), kinListBox, 1, 2);
+		subLayout->setDrawBackground(false);
+	}else{
+		subLayout = new Layout(0, 0, kinListBox->getWidth(), kinListBox->getHeight(), kinListBox, 2, 1);
+		subLayout->setDrawBackground(false);
+	}
+	if(portrait){
+		imge = new MobImage(0, 0, subLayout->getWidth(), subLayout->getHeight()/2, subLayout, false, false, Util::loadImageFromResource(img));
+		cmpge = new MobImage(0, 0, subLayout->getWidth(), subLayout->getHeight()/2, subLayout, false, false, Util::loadImageFromResource(img));
+	}else{
+		imge = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(img));
+		cmpge = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(img));
+	}
 	this->setMain(mainLayout);
 	if (card != NULL && compare != NULL) {
 		if (flip) {
@@ -179,8 +192,14 @@ void CompareScreen::keyPressEvent(int keyCode) {
 					keyPressEvent(MAK_SOFTRIGHT);
 					break;
 				}
+				currentSelectedKey = NULL;
+				currentKeyPosition = -1;
 				Util::updateSoftKeyLayout("", "Back", "Flip", mainLayout);
+				currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
+				currentSelectedKey= currentSoftKeys->getChildren()[1];
+				currentKeyPosition= 1;
 				currentSoftKeys->getChildren()[1]->setSelected(true);
+				
 				imge->refreshWidget();
 				imge->statAdded = false;
 				currentSelectedStat = -1;
@@ -192,11 +211,11 @@ void CompareScreen::keyPressEvent(int keyCode) {
 				if (cmpge->getResource() != NULL) {
 					maDestroyObject(cmpge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				imge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				imge->update();
 				imge->requestRepaint();
 
-				cmpge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				cmpge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				cmpge->update();
 				cmpge->requestRepaint();
 
@@ -209,9 +228,25 @@ void CompareScreen::keyPressEvent(int keyCode) {
 					Util::retrieveFrontFlip(cmpge, compare, height-PADDING*2, imageCache);
 				}
 				currentSelectedStat = -1;
+				break;
 		case MAK_UP:
+			if(currentSelectedKey!=NULL){
+				currentSelectedKey->setSelected(false);
+				currentSelectedKey = NULL;
+				currentKeyPosition = -1;
+			}
+			break;
 		case MAK_DOWN:
-
+			if(currentSelectedKey==NULL){
+				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
+					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+						currentKeyPosition=i;
+						currentSelectedKey= currentSoftKeys->getChildren()[i];
+						currentSelectedKey->setSelected(true);
+						break;
+					}
+				}
+			}
 			break;
 		case MAK_RIGHT:
 			if(currentSelectedKey!=NULL){
@@ -239,10 +274,10 @@ void CompareScreen::keyPressEvent(int keyCode) {
 				if (cmpge->getResource() != NULL) {
 					maDestroyObject(cmpge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				imge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				imge->update();
 				imge->requestRepaint();
-				cmpge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				cmpge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				cmpge->update();
 				cmpge->requestRepaint();
 
@@ -284,11 +319,11 @@ void CompareScreen::keyPressEvent(int keyCode) {
 				if (cmpge->getResource() != NULL) {
 					maDestroyObject(cmpge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				imge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				imge->update();
 				imge->requestRepaint();
 
-				cmpge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				cmpge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				cmpge->update();
 				cmpge->requestRepaint();
 				maUpdateScreen();

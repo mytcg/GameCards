@@ -11,7 +11,6 @@
 #include "OptionsScreen.h"
 #include "NewVersionScreen.h"
 #include "TradeFriendDetailScreen.h"
-#include "MenuTestScreen.h"
 #include "TutorialScreen.h"
 #include "../utils/Util.h"
 

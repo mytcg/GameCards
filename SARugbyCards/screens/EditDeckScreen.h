@@ -22,6 +22,7 @@ public:
 	~EditDeckScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
+	void removeCard();
 	void show();
 	void hide();
 
@@ -68,7 +69,6 @@ private:
 	void clearCards();
 	void clearListBox();
 
-	void removeCard();
 	void deleteDeck();
 
 	void drawList();

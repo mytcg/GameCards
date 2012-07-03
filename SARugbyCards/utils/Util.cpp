@@ -22,6 +22,7 @@ MainScreen *origAlbum;
 MainScreen *origMenu;
 int scrWidth;
 int scrHeight;
+bool portrait;
 
 Util::Util() {}
 Util::~Util() {}
@@ -806,7 +807,11 @@ int Util::getMaxImageWidth() {
 	return scrWidth - (PADDING * 4);
 }
 int Util::getMaxImageHeight() {
-	return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
+	if(portrait){
+		return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
+	}else{
+		return ((int)(((double)scrHeight)/*1.40625*/));
+	}
 }
 
 String Util::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
