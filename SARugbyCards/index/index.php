@@ -129,7 +129,7 @@ if ($_GET['registeruser']) {
 	}
 	
 	$ip = getip();
-	$sOP = registerUser($username, $password, $email, $referer, $iHeight, $iWidth, $root,$ip,$url);
+	$sOP = registerUser($username, $password, $email, $referer, $iHeight, $iWidth, $root,$ip,$url,$name,$surname,$age,$gender);
 	
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
@@ -149,32 +149,17 @@ if(!$sUsername){
 $aUserAuth=myqu('SELECT user_id, password '
 	.'FROM mytcg_user '
 	.'WHERE username="'.$sUsername.'"');
-
-	echo 'Original password'.$sPassword;
 	
 /*$aPassword=explode(':',$aUserAuth[0]['password']);
 $sCrypt=JUserHelper::getCryptedPassword($sPassword, $aPassword[1]);
 $sPasswordCrypted=$sCrypt.':'.$aPassword[1];
 $aTestPassword=explode(':',$sPasswordCrypted);*/
 
-echo 'user_id '.$aUserAuth[0]['user_id'];
+
 $user_id = $aUserAuth[0]['user_id'];
 $iMod=(intval($user_id) % 10)+1;
 
-echo 'md5($user_id) '.md5($user_id);
-echo 'md5($password) '.md5($sPassword);
-echo 'substr '.substr(md5($user_id),$iMod,10);
-
 $sPassword=substr(md5($user_id),$iMod,10).md5($sPassword);
-
-echo 'new password '.$sPassword;
-
-echo '$aPassword[0]: '.$aUserAuth[0]['password'];
-echo '$aPassword[1]: '.$sPassword;
-echo 'SELECT user_id, password '
-	.'FROM mytcg_user '
-	.'WHERE username="'.$sUsername.'"';
-
 if ($aUserAuth[0]['password']==$sPassword){
 	$iUserID=$aUserAuth[0]['user_id'];
 } else {
@@ -205,10 +190,10 @@ if ($iUserID == 0){
 				FROM mytcg_transactiondescription
 				WHERE transactionid = 1');
 				
-		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+25) WHERE user_id = '.$iUserID);
+		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+20) WHERE user_id = '.$iUserID);
 			
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
-			VALUES ('.$iUserID.', "Recieved 25 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
+			VALUES ('.$iUserID.', "Recieved 20 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
 	}
 	
 	checkAchis($iUserID, 3);
@@ -2586,6 +2571,13 @@ if ($_GET['deletedeck']){
 	myqui('DELETE FROM mytcg_deck 
 			WHERE deck_id = '.$iDeckID);
 	$sOP = "<result>Deck deleted!</result>";
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
+if ($_GET['getachis']){
+	$sOP = getAchis($iUserID);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;

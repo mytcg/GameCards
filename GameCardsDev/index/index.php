@@ -192,7 +192,7 @@ if ($iUserID == 0){
 		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+25) WHERE user_id = '.$iUserID);
 			
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
-			VALUES ('.$iUserID.', "Recieved 25 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
+			VALUES ('.$iUserID.', "Recieved 25 credits for logging in.", now(), 1, 2)');
 	}
 	
 	checkAchis($iUserID, 3);
@@ -2628,6 +2628,13 @@ if ($_GET['deletedeck']){
 	myqui('DELETE FROM mytcg_deck 
 			WHERE deck_id = '.$iDeckID);
 	$sOP = "<result>Deck deleted!</result>";
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
+if ($_GET['getachis']){
+	$sOP = getAchis($iUserID);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;

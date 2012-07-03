@@ -2135,18 +2135,19 @@ function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
 					FROM mytcg_user_answer 
 					WHERE answer_id='.$iAnswerID);
 										
-	$aCredits=myqu('SELECT credit_value, description
+	/*$aCredits=myqu('SELECT credit_value, description
 					FROM mytcg_user_detail 
 					WHERE detail_id = (SELECT detail_id
 										FROM mytcg_user_answer
-										WHERE answer_id='.$iAnswerID.')');
-	$aCredit=$aCredits[0];
+										WHERE answer_id='.$iAnswerID.')');*/
+	//$aCredit=$aCredits[0];
 	$aAnswer=$aAnswered[0];
+	$echoed = false;
 	if ($aAnswer['answered'] == 0) {
-		myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
+		/*myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 				VALUES ('.$iUserID.', "Received '.$aCredit['credit_value'].' credits for answering '.$aCredit['description'].'", now(), '.$aCredit['credit_value'].', 1)');
 		
-		myqui('UPDATE mytcg_user SET credits = credits + '.$aCredit['credit_value'].' WHERE user_id ='.$iUserID);
+		myqui('UPDATE mytcg_user SET credits = credits + '.$aCredit['credit_value'].' WHERE user_id ='.$iUserID);*/
 				
 		$aCount=myqu('SELECT answer_id
 					FROM mytcg_user_answer 
@@ -2161,6 +2162,11 @@ function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
 					WHERE transactionid = 5');	
 					
 			myqui('UPDATE mytcg_user SET credits = credits + IFNULL((SELECT val FROM mytcg_transactiondescription WHERE transactionid = 5),0) WHERE user_id ='.$iUserID);
+			
+			$sOP = "<rewardCredits>60</rewardCredits>";
+			header('xml_length: '.strlen($sOP));
+			echo $sOP;
+			$echoed = true;
 		}
 	}
 	
@@ -2178,9 +2184,12 @@ function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
 																AND answered = 0)), 0)
 			where user_id = '.$iUserID);
 	
-	$sOP = "<result>1</result>";
-	header('xml_length: '.strlen($sOP));
-	echo $sOP;
+	if (!$echoed) {
+		$sOP = "<result>1</result>";
+		header('xml_length: '.strlen($sOP));
+		echo $sOP;
+	}
+	
 	exit;
 }
 
@@ -2448,7 +2457,7 @@ function hasProducts($categoryId, $iFreebie) {
 function getProducts($categoryId, $products, $iFreebie) {
 	if ($iFreebie == 1) {
 		$prodsQuery = myqu('SELECT DISTINCT P.PRODUCT_ID, P.DESCRIPTION, M.DESCRIPTION PACK_TYPE, 
-			P.PRICE, CONCAT(I.DESCRIPTION , "products/" , P.IMAGE , "_thumb.png") IMAGEURL, 
+			P.PRICE, CONCAT(I.DESCRIPTION , "products/" , P.IMAGE , "_thumb.jpg") IMAGEURL, 
 			P.NO_OF_CARDS, (CASE WHEN SUM(P.IN_STOCK) IS NULL THEN 0 ELSE SUM(P.IN_STOCK) END) AS IN_STOCK 
 			FROM mytcg_category C, mytcg_imageserver I, 
 			mytcg_productcategory_x PC, 
@@ -2463,7 +2472,7 @@ function getProducts($categoryId, $products, $iFreebie) {
 			ORDER BY P.DESCRIPTION');
 	} else {
 		$prodsQuery = myqu('SELECT DISTINCT P.PRODUCT_ID, P.DESCRIPTION, M.DESCRIPTION PACK_TYPE, 
-			IFNULL(P.PRICE,0) PRICE,IFNULL(P.PREMIUM,0) PREMIUM,CONCAT(I.DESCRIPTION , "products/" , P.IMAGE , "_thumb.png") IMAGEURL, 
+			IFNULL(P.PRICE,0) PRICE,IFNULL(P.PREMIUM,0) PREMIUM,CONCAT(I.DESCRIPTION , "products/" , P.IMAGE , "_thumb.jpg") IMAGEURL, 
 			P.NO_OF_CARDS, (CASE WHEN SUM(P.IN_STOCK) IS NULL THEN 0 ELSE SUM(P.IN_STOCK) END) AS IN_STOCK 
 			FROM mytcg_category C, mytcg_imageserver I, 
 			mytcg_productcategory_x PC, 
@@ -2777,7 +2786,7 @@ function invite($tradeMethod, $receiveNumber, $iUserID, $messageID) {
 	exit;
 }
 // register user 
-function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$root,$ip='',$url='www.mytcg.net') {
+function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$root,$ip='',$url='www.mytcg.net', $name, $surname, $age, $gender) {
 	$sOP='';
 	
 	$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
@@ -2862,13 +2871,17 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 			}
 		}
 		
-		myqu("INSERT INTO mytcg_user (username, email_address, is_active, date_register, credits, gameswon, ip, loaded) VALUES ('{$username}', '{$email}', 1, now(), 300, 0, '{$ip}', 1)");
+		myqu("INSERT INTO mytcg_user (username, email_address, is_active, date_register, credits, gameswon, ip, loaded, name, surname, mobile_date_last_visit, apps_id, age, gender) VALUES ('{$username}', '{$email}', 1, now(), 0, 0, '{$ip}', 1, '{$name}', '{$surname}', now(), 1, '{$age}', '{$gender}')");
 		
 		$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
 		$iUserID = $aUserDetails[0]['user_id'];
 		$iMod=(intval($iUserID) % 10)+1;
 		$crypPass = substr(md5($iUserID),$iMod,10).md5($password);
 		myqu("UPDATE mytcg_user SET password = '{$crypPass}' WHERE user_id = {$iUserID}");
+		
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
 		
 		if (sizeof($aReferer) > 0 && strlen($referer) > 0) {
 			myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
@@ -2896,10 +2909,20 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 			SELECT {$iUserID}, id
 			FROM mytcg_achievementlevel");
 			
-		myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
+		/*myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 			SELECT '.$iUserID.', descript, now(), val, 1 
 			FROM mytcg_transactiondescription
-			WHERE transactionid = 2');
+			WHERE transactionid = 2');*/
+			
+		myqui('INSERT mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
+				SELECT '.$iUserID.', descript, now(), val, 1
+				FROM mytcg_transactiondescription
+				WHERE transactionid = 1');
+				
+		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
+			VALUES ('.$iUserID.', "Recieved 20 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
+			
+		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+20) WHERE user_id = '.$iUserID);
 			
 		myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
 			VALUES ('.$iUserID.', '.$iUserID.')');
@@ -3714,6 +3737,60 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 	$sOP = '<created><deck_id>'.$deckId.'</deck_id><result>Deck Created!</result></created>';
 	
 	return $sOP;
+}
+
+
+
+function getAchis($iUserID) {
+	$achiQu = ('SELECT progress, target, date_completed, complete_image, 
+		name, description, incomplete_image, achievement_id 
+		FROM mytcg_userachievementlevel ual 
+		LEFT OUTER JOIN mytcg_achievementlevel al 
+		ON ual.achievementlevel_id = al.id 
+		LEFT OUTER JOIN mytcg_achievement a 
+		ON al.achievement_id = a.id 
+		WHERE ual.user_id = '.$iUserID.' 
+		ORDER BY name, achievement_id, target');
+	
+	$achiQuery = myqu($achiQu);
+	
+	$count = 0;
+	$currentParent = '';
+	
+	$retXml = '<achis>';
+	while ($aOneAchi=$achiQuery[$count]) {
+		$achiId = $aOneAchi['achievement_id'];
+		
+		if ($achiId != $currentParent) {
+			$currentParent = $achiId;
+		
+			if ($count > 0) {
+				$retXml .= '</achi>';
+			}
+			$retXml .= '<achi>';
+			
+			$retXml .= '<name>'.$aOneAchi['name'].'</name>';
+			$retXml .= '<description>'.$aOneAchi['description'].'</description>';
+			$retXml .= '<incomplete_image>'.$aOneAchi['incomplete_image'].'</incomplete_image>';
+		}
+		
+		$retXml .= '<subachi>';
+		
+		$retXml .= '<progress>'.$aOneAchi['progress'].'</progress>';
+		$retXml .= '<target>'.$aOneAchi['target'].'</target>';
+		$retXml .= '<complete_image>'.$aOneAchi['complete_image'].'</complete_image>';
+		$retXml .= '<date_completed>'.$aOneAchi['date_completed'].'</date_completed>';
+		
+		$retXml .= '</subachi>';
+		
+		$count++;
+	}
+	if ($count > 0) {
+		$retXml .= '</achi>';
+	}
+	$retXml .= '</achis>';
+	
+	return $retXml;
 }
 
 function checkAchis($iUserID, $iAchiTypeId) {
