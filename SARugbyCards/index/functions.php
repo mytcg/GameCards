@@ -3739,6 +3739,60 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 	return $sOP;
 }
 
+
+
+function getAchis($iUserID) {
+	$achiQu = ('SELECT progress, target, date_completed, complete_image, 
+		name, description, incomplete_image, achievement_id 
+		FROM mytcg_userachievementlevel ual 
+		LEFT OUTER JOIN mytcg_achievementlevel al 
+		ON ual.achievementlevel_id = al.id 
+		LEFT OUTER JOIN mytcg_achievement a 
+		ON al.achievement_id = a.id 
+		WHERE ual.user_id = '.$iUserID.' 
+		ORDER BY name, achievement_id, target');
+	
+	$achiQuery = myqu($achiQu);
+	
+	$count = 0;
+	$currentParent = '';
+	
+	$retXml = '<achis>';
+	while ($aOneAchi=$achiQuery[$count]) {
+		$achiId = $aOneAchi['achievement_id'];
+		
+		if ($achiId != $currentParent) {
+			$currentParent = $achiId;
+		
+			if ($count > 0) {
+				$retXml .= '</achi>';
+			}
+			$retXml .= '<achi>';
+			
+			$retXml .= '<name>'.$aOneAchi['name'].'</name>';
+			$retXml .= '<description>'.$aOneAchi['description'].'</description>';
+			$retXml .= '<incomplete_image>'.$aOneAchi['incomplete_image'].'</incomplete_image>';
+		}
+		
+		$retXml .= '<subachi>';
+		
+		$retXml .= '<progress>'.$aOneAchi['progress'].'</progress>';
+		$retXml .= '<target>'.$aOneAchi['target'].'</target>';
+		$retXml .= '<complete_image>'.$aOneAchi['complete_image'].'</complete_image>';
+		$retXml .= '<date_completed>'.$aOneAchi['date_completed'].'</date_completed>';
+		
+		$retXml .= '</subachi>';
+		
+		$count++;
+	}
+	if ($count > 0) {
+		$retXml .= '</achi>';
+	}
+	$retXml .= '</achis>';
+	
+	return $retXml;
+}
+
 function checkAchis($iUserID, $iAchiTypeId) {
 	$achiQu = ('SELECT ual.id, ual.progress, al.target, a.calc_id, a.reset, a.query, a.name 
 		FROM mytcg_userachievementlevel ual

@@ -2576,6 +2576,13 @@ if ($_GET['deletedeck']){
 	exit;
 }
 
+if ($_GET['getachis']){
+	$sOP = getAchis($iUserID);
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
 /** Searches on a string and returns a list of cards belonging to the user */
 if ($searchstring=$_GET['search']) {
 	if (!($iHeight=$_GET['height'])) {
