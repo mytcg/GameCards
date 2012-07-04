@@ -107,6 +107,8 @@ void ImageScreen::pointerReleaseEvent(MAPoint2d point)
 				}
 				if (!gotstat) {
 					currentSelectedStat = -1;
+					Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
+					currentSoftKeys->getChildren()[1]->setSelected(true);
 					flipOrSelect = tapped?1:0;
 				}
 			}
