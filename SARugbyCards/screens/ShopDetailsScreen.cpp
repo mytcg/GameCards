@@ -67,7 +67,7 @@ ShopDetailsScreen::ShopDetailsScreen(MainScreen *previous, Feed *feed, int scree
 
 	Layout *feedlayout;
 
-	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), /*74*/140, kinListBox, 2, 1);
+	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), /*74*/155, kinListBox, 2, 1);
 	feedlayout->setSkin(Util::getSkinAlbum());
 	feedlayout->addWidgetListener(this);
 
