@@ -16,7 +16,11 @@ MAUIMoblet::MAUIMoblet() {
 	MAExtent screenSize = maGetScrSize();
 	scrWidth = EXTENT_X(screenSize);
 	scrHeight = EXTENT_Y(screenSize);
-
+	if(scrWidth > scrHeight){
+		portrait = false;
+	}else{
+		portrait = true;
+	}
 	feed = Feed();
 	String data = "";
 	Util::getData("fd.sav", data);
