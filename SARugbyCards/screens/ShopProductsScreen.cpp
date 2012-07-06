@@ -480,7 +480,7 @@ void ShopProductsScreen::mtxTagEnd(const char* name, int len) {
 				feed->setCredits(cred.c_str());
 				feed->setPremium(prem.c_str());
 				if ((first)||(free)) {
-					msg = "Received: 150 credits and a free starter pack.";
+					msg = "Received: a free booster pack.";
 				}
 				notice->setHeight(36);
 				notice->setAutoSizeY(false);
