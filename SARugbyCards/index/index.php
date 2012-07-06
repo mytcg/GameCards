@@ -2354,8 +2354,11 @@ if ($iFreebie = $_GET['categoryproducts']){
 			$sOP.=$sTab.'<productid>'.trim($aProduct['PRODUCT_ID']).'</productid>'.$sCRLF;
 			$sOP.=$sTab.'<productname>'.trim($aProduct['DESCRIPTION']).'</productname>'.$sCRLF;
 			$sOP.=$sTab.'<producttype>'.trim($aProduct['PACK_TYPE']).'</producttype>'.$sCRLF;
-			$sOP.=$sTab.'<productprice>'.trim($aProduct['PRICE']).'</productprice>'.$sCRLF;
-			$sOP.=$sTab.'<productpremium>'.trim($aProduct['PREMIUM']).'</productpremium>'.$sCRLF;
+			//this needs to be fixed by the web team eventually, but for now we are setting the price to the premium as a work around
+			//$sOP.=$sTab.'<productprice>'.trim($aProduct['PRICE']).'</productprice>'.$sCRLF;
+			//$sOP.=$sTab.'<productpremium>'.trim($aProduct['PREMIUM']).'</productpremium>'.$sCRLF;
+			$sOP.=$sTab.'<productprice>'.trim($aProduct['PREMIUM']).'</productprice>'.$sCRLF;
+			$sOP.=$sTab.'<productpremium>0</productpremium>'.$sCRLF;
 			$sOP.=$sTab.'<productnumcards>'.trim($aProduct['NO_OF_CARDS']).'</productnumcards>'.$sCRLF;
 			$sOP.=$sTab.'<productthumb>'.trim($aProduct['IMAGEURL']).'</productthumb>'.$sCRLF;
 			$sOP.=$sTab.'</product>'.$sCRLF;
