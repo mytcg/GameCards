@@ -268,9 +268,11 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 			break;
 		case MAK_DOWN:
 			if (ind+1 < kinListBox->getChildren().size()) {
-				kinListBox->setSelectedIndex(ind+1);
-			} else {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				kinListBox->selectNextItem();
+			} else if(currentSelectedKey==NULL) {
+				if(kinListBox->getChildren().size() > 0){
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
