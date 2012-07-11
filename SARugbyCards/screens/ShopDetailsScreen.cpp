@@ -52,7 +52,7 @@ ShopDetailsScreen::ShopDetailsScreen(MainScreen *previous, Feed *feed, int scree
 	next = NULL;
 
 	if ((first)||(free)) {
-		label = new Label(0,0, scrWidth-PADDING*2, 36, NULL, "Received: 150 credits and a free starter pack.", 0, Util::getDefaultSelected());
+		label = new Label(0,0, scrWidth-PADDING*2, 36, NULL, "Received: a free booster pack.", 0, Util::getDefaultSelected());
 		label->setMultiLine(true);
 		label->setDrawBackground(false);
 		kinListBox->add(label);
@@ -67,7 +67,7 @@ ShopDetailsScreen::ShopDetailsScreen(MainScreen *previous, Feed *feed, int scree
 
 	Layout *feedlayout;
 
-	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), /*74*/140, kinListBox, 2, 1);
+	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), /*74*/155, kinListBox, 2, 1);
 	feedlayout->setSkin(Util::getSkinAlbum());
 	feedlayout->addWidgetListener(this);
 

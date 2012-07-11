@@ -480,7 +480,7 @@ void DetailScreen::keyPressEvent(int keyCode) {
 					}
 					break;
 				case BALANCE:
-					maPlatformRequest("http://buy.mytcg.net/");
+					maPlatformRequest("http://sarugbycards.com/buy/");
 					//next->show();
 					break;
 				case FRIENDS:

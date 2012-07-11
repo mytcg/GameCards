@@ -2043,8 +2043,11 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
   $iPremium=$iCreditsQuery[0]['premium'];
   
   //Total order cost
-  $itemCost = $aDetails[0]['price'];
-  $premiumCost = $aDetails[0]['premium'];
+  //this is part of the hack mentioned in productcategories, but we need to set the credits to the premium, and that premium to 0
+  //$itemCost = $aDetails[0]['price'];
+  //$premiumCost = $aDetails[0]['premium'];
+  $itemCost = $aDetails[0]['premium'];
+  $premiumCost = 0;
   if ($purchase == 1) {
 	$bValid = (($iCredits >= $itemCost) && ($itemCost > 0));
   } else if ($purchase == 2) {

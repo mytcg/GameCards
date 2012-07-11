@@ -72,7 +72,16 @@ void NativeEditBox::keyPressEvent(int keyCode, int nativeCode){
 	if(nativeCode > 0){
 		setInputMode(EditBox::IM_QWERTY);
 	}
-	EditBox::keyPressEvent(keyCode, nativeCode);
+
+	if(nativeCode==8){
+		String text = getCaption().c_str();
+		if(text.length()>0){
+				setCaption(text.substr(0,text.length()-1));
+		}
+		text = "";
+	}else{
+		EditBox::keyPressEvent(keyCode, nativeCode);
+	}
 }
 
 void NativeEditBox::keyReleaseEvent(int keyCode, int nativeCode){
