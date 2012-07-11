@@ -3039,8 +3039,8 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
 			VALUES ('.$iUserID.', '.$iUserID.')');
 		
-		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
-			VALUES ('.$iUserID.', "Did you know, you can visit '.$url.' for a web based experience.", now(), 1)');
+		//myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
+		//	VALUES ('.$iUserID.', "Did you know, you can visit '.$url.' for a web based experience.", now(), 1)');
 		
 		//return userdetails
 		echo userdetails($iUserID,$iHeight,$iWidth,$root);
