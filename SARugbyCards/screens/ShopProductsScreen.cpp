@@ -25,6 +25,7 @@ ShopProductsScreen::ShopProductsScreen(MainScreen *previous, Feed *feed, String 
 	next = NULL;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
+	busy = true;
 	lprintfln("ShopProductsScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
 	this->feed = feed;
@@ -80,6 +81,7 @@ ShopProductsScreen::ShopProductsScreen(MainScreen *previous, Feed *feed, String 
 	if(res < 0) {
 		notice->setCaption("Unable to connect, try again later...");
 		drawList();
+		busy = false;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -203,6 +205,11 @@ void ShopProductsScreen::drawList() {
 		label->setAutoSizeY();
 		label->setMultiLine();
 	}
+	if(currentSelectedKey!=NULL){
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
+	}
 	if (products.size() > 1) {
 		emp = false;
 	} else if (products.size() == 1) {
@@ -281,16 +288,20 @@ void ShopProductsScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
-			} else if (ind > 0) {
+				if (!busy) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
+			} else if (!busy && ind > 0) {
 				kinListBox->setSelectedIndex(ind-1);
 			}
 			break;
 		case MAK_DOWN:
-			if (ind+1 < kinListBox->getChildren().size()) {
+			if (!busy && ind+1 < kinListBox->getChildren().size()) {
 				kinListBox->setSelectedIndex(ind+1);
 			} else {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				if (!busy) {
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -371,6 +382,7 @@ void ShopProductsScreen::httpFinished(MAUtil::HttpConnection* http, int result) 
 		mHttp.close();
 		feed->remHttp();
 		notice->setCaption("Unable to connect, try again later...");
+		busy = false;
 	}
 }
 
@@ -490,6 +502,8 @@ void ShopProductsScreen::mtxTagEnd(const char* name, int len) {
 				notice->setCaption("");
 			}
 			drawList();
+
+			busy = false;
 		} else {
 			notice->setCaption("");
 		}

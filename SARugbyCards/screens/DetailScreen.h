@@ -38,7 +38,7 @@ private:
 	NativeEditBox *editBox, *editBoxUsername, *editBoxEmail, *editBoxHandle, *editBoxID;
 	Label *balanceLabel,*premiumLabel;
 	Widget* currentSelectedKey;
-	bool list, left, right;
+	bool list, left, right, busy;
 
 	Vector<Contact *> contacts;
 
