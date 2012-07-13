@@ -526,7 +526,9 @@ void DetailScreen::keyPressEvent(int keyCode) {
 			break;
 		case MAK_DOWN:
 			if (ind == max-1 && currentSelectedKey==NULL) {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				if(kinListBox->getChildren().size()>0){
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
