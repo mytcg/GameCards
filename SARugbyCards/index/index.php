@@ -198,7 +198,11 @@ if ($iUserID == 0){
 	
 	checkAchis($iUserID, 3);
 		
-	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now() WHERE user_id = '.$iUserID);
+	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now(), date_last_visit=now() WHERE user_id = '.$iUserID);
+	
+	myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
 }
 
 if ($iTestVersion=$_GET['update']){
@@ -251,6 +255,10 @@ if ($iTestVersion=$_GET['update']){
 	if ($iUpdate['dif'] >= 1) {
 	
 		myqui('UPDATE mytcg_user SET version_check_date=now(), apps_id = (select apps_id from mytcg_apps where apps_key = "'.$appkey.'") WHERE user_id = '.$iUserID);
+		
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
 		
 		$aVersion=myqu(
 			'SELECT v.url FROM mytcg_version v, mytcg_apps a '
