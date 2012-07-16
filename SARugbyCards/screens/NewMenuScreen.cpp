@@ -213,13 +213,13 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				next->show();
 			} else if (index == OP_LOGOUT) {
 #if not defined(MA_PROF_STRING_PLATFORM_IPHONEOS)
-				Albums *albums = feed->getAlbum();
+				/*Albums *albums = feed->getAlbum();
 				Vector<String> tmp = albums->getIDs();
 				for (Vector<String>::iterator itr = tmp.begin(); itr != tmp.end(); itr++) {
 					String s = itr->c_str();
 					s+="-lst.sav";
 					Util::saveData(s.c_str(),"");
-				}
+				}*/
 				feed->setAll("");
 				feed->setRegistered("1");
 				Util::saveData("fd.sav",feed->getAll().c_str());
