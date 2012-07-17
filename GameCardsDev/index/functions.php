@@ -2719,7 +2719,7 @@ function friends($iUserID) {
 	exit;
 }
 
-function userdetails($iUserID,$iHeight,$iWidth,$root,$jpg=1) {
+function userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight=0,$jpg=1) {
 	$aUserDetails=myqu('SELECT username, email_address, IFNULL(credits,0) credits, IFNULL(premium, 0) premium, freebie '
 		.'FROM mytcg_user '
 		.'WHERE user_id="'.$iUserID.'"');
@@ -2739,7 +2739,7 @@ function userdetails($iUserID,$iHeight,$iWidth,$root,$jpg=1) {
 	}
 	
 	//we need to return the url for the loading card
-	$height = resizeLoadingCard($iHeight, $iWidth, $root, $jpg);
+	$height = resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
 	$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
 	$sOP.='<loadingurl>'.$imageUrlQuery[0]['description'].$height.'/cards/loading'.$ext.'</loadingurl>'.$sCRLF;
 	$sOP.='<loadingurlflip>'.$imageUrlQuery[0]['description'].$height.'/cards/loadingFlip'.$ext.'</loadingurlflip>'.$sCRLF;
