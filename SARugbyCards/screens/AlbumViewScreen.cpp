@@ -482,8 +482,8 @@ void AlbumViewScreen::drawList() {
 		cardText += itr->second->getQuantity();
 		cardText += ")\n";
 		cardText += itr->second->getRarity();
-		cardText += "\nRating: ";
-		cardText += itr->second->getRanking();
+		//cardText += "\nRating: ";
+		//cardText += itr->second->getRanking();
 
 		feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 3, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());

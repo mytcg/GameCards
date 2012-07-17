@@ -9,6 +9,7 @@
 #include "../UI/Button.h"
 
 void ShopCategoriesScreen::refresh() {
+	busy = true;
 	show();
 	categories.clear();
 	category.clear();
@@ -43,7 +44,7 @@ void ShopCategoriesScreen::refresh() {
 	delete [] url;
 	url = NULL;
 	if(res < 0) {
-
+		busy = false;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -61,6 +62,7 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	label = NULL;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
+	busy = true;
 	if (screenType == ST_FREEBIE) {
 		mainLayout = Util::createMainLayout("", "", true);
 	} else {
@@ -110,6 +112,7 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	if(res < 0) {
 		drawList();
 		notice->setCaption("Unable to connect, try again later...");
+		busy = true;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -137,6 +140,7 @@ ShopCategoriesScreen::~ShopCategoriesScreen() {
 	temp1="";
 	error_msg="";
 }
+
 void ShopCategoriesScreen::clearListBox() {
 	Vector<Widget*> tempWidgets;
 	for (int i = 0; i < kinListBox->getChildren().size(); i++) {
@@ -151,6 +155,7 @@ void ShopCategoriesScreen::clearListBox() {
 	}
 	tempWidgets.clear();
 }
+
 void ShopCategoriesScreen::pointerPressEvent(MAPoint2d point)
 {
     locateItem(point);
@@ -223,6 +228,11 @@ void ShopCategoriesScreen::drawList() {
 		kinListBox->add(label);
 	}
 
+	if(currentSelectedKey!=NULL){
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
+	}
 	if (categories.size() > 1) {
 		kinListBox->setSelectedIndex(0);
 	} else if (categories.size() == 1) {
@@ -255,22 +265,27 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 	int ind = kinListBox->getSelectedIndex();
 	int max = kinListBox->getChildren().size();
 	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
+	lprintfln("busy: %s", busy?"true":"false");
 	switch(keyCode) {
 		case MAK_UP:
 			if(currentSelectedKey!=NULL){
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
-			} else if (ind > 0) {
+				if (!busy) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
+			} else if (!busy && ind > 0) {
 				kinListBox->setSelectedIndex(ind-1);
 			}
 			break;
 		case MAK_DOWN:
-			if (ind+1 < kinListBox->getChildren().size()) {
+			if (!busy && ind+1 < kinListBox->getChildren().size()) {
 				kinListBox->setSelectedIndex(ind+1);
 			} else {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				if (!busy) {
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -437,6 +452,7 @@ void ShopCategoriesScreen::httpFinished(MAUtil::HttpConnection* http, int result
 		feed->remHttp();
 		drawList();
 		notice->setCaption("Unable to connect, try again later...");
+		busy = false;
 	}
 }
 
@@ -485,8 +501,10 @@ void ShopCategoriesScreen::mtxTagEnd(const char* name, int len) {
 		drawList();
 	} else if(!strcmp(name, "error")) {
 		notice->setCaption(error_msg.c_str());
+		busy = false;
 	} else {
 		notice->setCaption("");
+		busy = false;
 	}
 }
 
