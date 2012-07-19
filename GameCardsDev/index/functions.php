@@ -2737,12 +2737,16 @@ function userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight=0,$jpg=1) {
 	if ($jpg) {
 		$ext = '.jpg';
 	}
+	$dir = '/cards/';
+	if ($iBBHeight) {
+		$dir = '/cardsbb/';
+	}
 	
 	//we need to return the url for the loading card
 	$height = resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
 	$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
-	$sOP.='<loadingurl>'.$imageUrlQuery[0]['description'].$height.'/cards/loading'.$ext.'</loadingurl>'.$sCRLF;
-	$sOP.='<loadingurlflip>'.$imageUrlQuery[0]['description'].$height.'/cards/loadingFlip'.$ext.'</loadingurlflip>'.$sCRLF;
+	$sOP.='<loadingurl>'.$imageUrlQuery[0]['description'].$height.$dir.'loading'.$ext.'</loadingurl>'.$sCRLF;
+	$sOP.='<loadingurlflip>'.$imageUrlQuery[0]['description'].$height.$dir.'loadingFlip'.$ext.'</loadingurlflip>'.$sCRLF;
 	
 	$sOP.='</userdetails>';
 	header('xml_length: '.strlen($sOP));
@@ -2912,7 +2916,7 @@ function invite($tradeMethod, $receiveNumber, $iUserID, $messageID) {
 	exit;
 }
 // register user 
-function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$root,$ip='',$url='www.mytcg.net') {
+function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$root,$ip='',$url='www.mytcg.net',$iBBHeight=0) {
 	$sOP='';
 	
 	$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
@@ -2930,7 +2934,7 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		if ($sPassword!=$aValidUser[0]['password']){
 			$iUserID=0;
 		} else {
-			echo userdetails($iUserID,$iHeight,$iWidth,$root);
+			echo userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
 			exit;
 		}
 	}
@@ -3043,7 +3047,7 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		//	VALUES ('.$iUserID.', "Did you know, you can visit '.$url.' for a web based experience.", now(), 1)');
 		
 		//return userdetails
-		echo userdetails($iUserID,$iHeight,$iWidth,$root);
+		echo userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
 		exit;
 	}
 }

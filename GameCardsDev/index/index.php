@@ -120,12 +120,15 @@ if ($_GET['registeruser']) {
 	if (!($iHeight=$_GET['height'])) {
 		$iHeight = '350';
 	}
+	if (!($iBBHeight=$_GET['bbheight'])) {
+		$iBBHeight = '0';
+	}
 	if (!($iWidth=$_GET['width'])) {
 		$iWidth = '250';
 	}
 	
 	$ip = getip();
-	$sOP = registerUser($username, $password, $email, $referer, $iHeight, $iWidth, $root,$ip,$url);
+	$sOP = registerUser($username, $password, $email, $referer, $iHeight, $iWidth, $root,$ip,$url,$iBBHeight);
 	
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
