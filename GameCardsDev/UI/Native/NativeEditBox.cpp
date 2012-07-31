@@ -69,7 +69,6 @@ void NativeEditBox::focusGained() {
 }
 
 void NativeEditBox::keyPressEvent(int keyCode, int nativeCode){
-	lprintfln("wawawa %d nanana %d",keyCode, nativeCode);
 	if(nativeCode > 0){
 		setInputMode(EditBox::IM_QWERTY);
 	}
