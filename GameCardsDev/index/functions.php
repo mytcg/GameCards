@@ -93,7 +93,7 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1, $iP
 	$iLandscapeRotateHeight = $iHeight*1.40625;
 	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
 	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
-	$iBBRotateHeight =  ($iBBHeight-20<=0)?$iBBHeight:$iBBHeight-20;
+	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
 	
 	//Check and create new resized front image
 	$filenameResized = $dir.$iImage.'_front'.$ext;
@@ -341,7 +341,7 @@ function resizeGCCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1, $iPortrait
 	$iLandscapeRotateHeight = $iHeight*1.40625;
 	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
 	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
-	$iBBRotateHeight =  ($iBBHeight-20<=0)?$iBBHeight:$iBBHeight-20;
+	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
 	
 	//we need to resize the gc image for this size, if it hasnt been done yet.
 	$filename = $root.'img/cards/gc'.$ext;
@@ -460,7 +460,7 @@ function resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 	
 	$iRotateHeight = ($iHeight-20<=0)?$iHeight:$iHeight-20;
 	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
-	$iBBRotateHeight = ($iBBHeight-20<=0)?$iBBHeight:$iBBHeight-20;
+	$iBBRotateHeight = ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
 	
 	//we need to resize the loading image for this size, if it hasnt been done yet.
 	$filename = $root.'img/cards/loading'.$ext;
@@ -2719,7 +2719,7 @@ function friends($iUserID) {
 	exit;
 }
 
-function userdetails($iUserID,$iHeight,$iWidth,$root,$jpg=1) {
+function userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight=0,$jpg=1) {
 	$aUserDetails=myqu('SELECT username, email_address, IFNULL(credits,0) credits, IFNULL(premium, 0) premium, freebie '
 		.'FROM mytcg_user '
 		.'WHERE user_id="'.$iUserID.'"');
@@ -2737,12 +2737,16 @@ function userdetails($iUserID,$iHeight,$iWidth,$root,$jpg=1) {
 	if ($jpg) {
 		$ext = '.jpg';
 	}
+	$dir = '/cards/';
+	if ($iBBHeight) {
+		$dir = '/cardsbb/';
+	}
 	
 	//we need to return the url for the loading card
-	$height = resizeLoadingCard($iHeight, $iWidth, $root, $jpg);
+	$height = resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight, $jpg);
 	$imageUrlQuery = myqu('SELECT description FROM mytcg_imageserver WHERE imageserver_id = 1');
-	$sOP.='<loadingurl>'.$imageUrlQuery[0]['description'].$height.'/cards/loading'.$ext.'</loadingurl>'.$sCRLF;
-	$sOP.='<loadingurlflip>'.$imageUrlQuery[0]['description'].$height.'/cards/loadingFlip'.$ext.'</loadingurlflip>'.$sCRLF;
+	$sOP.='<loadingurl>'.$imageUrlQuery[0]['description'].$height.$dir.'loading'.$ext.'</loadingurl>'.$sCRLF;
+	$sOP.='<loadingurlflip>'.$imageUrlQuery[0]['description'].$height.$dir.'loadingFlip'.$ext.'</loadingurlflip>'.$sCRLF;
 	
 	$sOP.='</userdetails>';
 	header('xml_length: '.strlen($sOP));
@@ -2912,7 +2916,7 @@ function invite($tradeMethod, $receiveNumber, $iUserID, $messageID) {
 	exit;
 }
 // register user 
-function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$root,$ip='',$url='www.mytcg.net') {
+function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$root,$ip='',$url='www.mytcg.net',$iBBHeight=0) {
 	$sOP='';
 	
 	$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
@@ -2930,7 +2934,7 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		if ($sPassword!=$aValidUser[0]['password']){
 			$iUserID=0;
 		} else {
-			echo userdetails($iUserID,$iHeight,$iWidth,$root);
+			echo userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
 			exit;
 		}
 	}
@@ -3043,7 +3047,7 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		//	VALUES ('.$iUserID.', "Did you know, you can visit '.$url.' for a web based experience.", now(), 1)');
 		
 		//return userdetails
-		echo userdetails($iUserID,$iHeight,$iWidth,$root);
+		echo userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
 		exit;
 	}
 }
