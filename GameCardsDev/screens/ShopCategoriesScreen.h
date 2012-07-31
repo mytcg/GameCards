@@ -36,7 +36,7 @@ private:
 	String parentTag;
 	String temp,temp1,error_msg;
 	int i, moved, screenType, currentKeyPosition;
-	bool list, left, right, empt;
+	bool list, left, right, empt, busy;
 
 	HashMap<String,String> categories;
 	Vector<String> category;
