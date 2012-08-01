@@ -340,6 +340,12 @@ void EditDeckScreen::drawList() {
 		label->setMultiLine();
 	}
 
+	if (currentSelectedKey!=NULL) {
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
+	}
+
 	if (index < cards.size()) {
 		kinListBox->setSelectedIndex(index);
 	}
@@ -449,19 +455,25 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						currentSelectedKey->setSelected(false);
 						currentSelectedKey = NULL;
 						currentKeyPosition = -1;
-						kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+						if (!busy) {
+							kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+						}
 					}
-					else if (ind == 0) {
-						kinListBox->setSelectedIndex(max-1);
-					} else {
-						kinListBox->selectPreviousItem();
+					else if (!busy) {
+						if (ind == 0) {
+							kinListBox->setSelectedIndex(max-1);
+						} else {
+							kinListBox->selectPreviousItem();
+						}
 					}
 					break;
 				case MAK_DOWN:
-					if (ind+1 < max ) {
+					if (ind+1 < max && !busy) {
 						kinListBox->setSelectedIndex(ind+1);
 					} else if(currentSelectedKey==NULL) {
-						kinListBox->getChildren()[ind]->setSelected(false);
+						if (!busy) {
+							kinListBox->getChildren()[ind]->setSelected(false);
+						}
 						for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 							if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 								currentKeyPosition=i;

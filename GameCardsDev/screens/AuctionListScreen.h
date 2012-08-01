@@ -45,7 +45,7 @@ private:
 	String parentTag, cardText;
 	String cardId, description, thumburl, fronturl, frontflipurl, backurl, backflipurl, categoryId, error_msg, openingBid, price, userCardId, auctionCardId, username, buyNowPrice, endDate, lastBidUser;
 	int moved, screenType, currentKeyPosition;
-	bool list, left, right, emp, shouldUpdateAuction;
+	bool list, left, right, emp, shouldUpdateAuction, busy;
 
 	AuctionVector auctions;
 	AuctionVector deleted;

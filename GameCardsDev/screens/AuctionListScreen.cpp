@@ -13,6 +13,7 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 	left = false;
 	right = false;
 	list = false;
+	busy = true;
 	shouldUpdateAuction = false;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
@@ -89,6 +90,8 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 		drawList();
 
 		notice->setCaption("Unable to connect, try again later...");
+
+		busy = false;
 
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
@@ -451,20 +454,24 @@ void AuctionListScreen::keyPressEvent(int keyCode) {
 	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch(keyCode) {
 		case MAK_UP:
-			if(currentSelectedKey!=NULL){
+			if (currentSelectedKey!=NULL) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[max-1]->setSelected(true);
-			}else{
+				if (!busy) {
+					kinListBox->getChildren()[max-1]->setSelected(true);
+				}
+			} else if (!busy) {
 				kinListBox->selectPreviousItem();
 			}
 			break;
 		case MAK_DOWN:
-			if (selected+1 < max) {
+			if (selected+1 < max & !busy) {
 				kinListBox->selectNextItem();
 			} else if(currentSelectedKey==NULL){
-				kinListBox->getChildren()[selected]->setSelected(false);
+				if (!busy) {
+					kinListBox->getChildren()[selected]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -516,6 +523,8 @@ void AuctionListScreen::httpFinished(MAUtil::HttpConnection* http, int result) {
 		feed->remHttp();
 
 		notice->setCaption("Unable to connect, try again later...");
+
+		busy = false;
 	}
 }
 
@@ -632,6 +641,8 @@ void AuctionListScreen::mtxTagEnd(const char* name, int len) {
 		error_msg = "";
 		endDate = "";
 		lastBidUser = "";
+
+		busy = false;
 	} else if (!strcmp(name, "auctionsincategory")) {
 		notice->setCaption("Building list...");
 		cardId = "";
@@ -651,6 +662,8 @@ void AuctionListScreen::mtxTagEnd(const char* name, int len) {
 		endDate = "";
 		lastBidUser = "";
 		drawList();
+
+		busy = false;
 	}
 }
 

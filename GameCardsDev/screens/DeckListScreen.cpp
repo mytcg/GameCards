@@ -173,7 +173,7 @@ void DeckListScreen::drawList() {
 		kinListBox->add(label);
 	}
 
-	if(currentSelectedKey!=NULL){
+	if (currentSelectedKey!=NULL) {
 		currentSelectedKey->setSelected(false);
 		currentSelectedKey = NULL;
 		currentKeyPosition = -1;
