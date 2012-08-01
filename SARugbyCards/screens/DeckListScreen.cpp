@@ -172,6 +172,12 @@ void DeckListScreen::drawList() {
 		label->addWidgetListener(this);
 		kinListBox->add(label);
 	}
+
+	if(currentSelectedKey!=NULL){
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
+	}
 	kinListBox->setSelectedIndex(0);
 
 	selecting = false;
@@ -280,10 +286,12 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 			}
 			break;
 		case MAK_DOWN:
-			if (ind+1 < max) {
+			if (ind+1 < max && !selecting) {
 				kinListBox->setSelectedIndex(ind+1);
 			} else {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				if (!selecting) {
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -299,12 +307,16 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				if (!selecting) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
 			}
-			else if (ind == 0) {
-				kinListBox->setSelectedIndex(max-1);
-			} else {
-				kinListBox->selectPreviousItem();
+			else if (!selecting) {
+				if (ind == 0) {
+					kinListBox->setSelectedIndex(max-1);
+				} else {
+					kinListBox->selectPreviousItem();
+				}
 			}
 			break;
 		case MAK_LEFT:
