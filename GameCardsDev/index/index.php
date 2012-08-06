@@ -963,6 +963,7 @@ if ($_GET['playablecategories']){
 		INNER JOIN mytcg_category_x cx
 		ON cx.category_child_id = c.category_id
 		WHERE uc.user_id = '.$iUserID.' 
+		AND c.playable = 1 
 		GROUP BY c.category_id');
 	
 	$results = array();

@@ -1917,7 +1917,7 @@ function auctionBid($bid, $username, $iUserID) {
 				exit;
 			}
 			//if there was a previous bid
-			$prevBidFree = $aBid['price'];
+			$prevBidFree = $aBid['free'];
 			$prevBidPremium = $aBid['premium'];
 			$prevUserId = $aBid['user_id'];
 			
@@ -1993,7 +1993,7 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 		
 		if ($aBid=$testresult[0]) {
 			//if there was a previous bid
-			$prevBidFree = $aBid['price'];
+			$prevBidFree = $aBid['free'];
 			$prevBidPremium = $aBid['premium'];
 			$prevUserId = $aBid['user_id'];
 			
