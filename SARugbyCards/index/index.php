@@ -2463,7 +2463,7 @@ if ($_GET['getalldecks']){
 	$iCount=0;
 	while ($aCompDeckDetail=$aCompDeckDetails[$iCount]){
 		myqui('INSERT INTO mytcg_deck (user_id, category_id, description, type, competitiondeck_id) 
-		VALUES('.$iUserID.',1,"'.trim($aCompDeckDetail['description']).',2,'.trim($aCompDeckDetail['competitiondeck_id']).')');
+		VALUES('.$iUserID.',1,"'.trim($aCompDeckDetail['description']).'",2,'.trim($aCompDeckDetail['competitiondeck_id']).')');
 		$iCount++;
 	}
 
