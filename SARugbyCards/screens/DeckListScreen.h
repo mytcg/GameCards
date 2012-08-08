@@ -35,7 +35,7 @@ private:
 	Album *album;
 	Widget* currentSelectedKey;
 
-	bool list, left, right, selecting;
+	bool list, left, right, selecting, emp;
 
 	HttpConnection mHttp;
 
