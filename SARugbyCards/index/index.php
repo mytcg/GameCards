@@ -2456,6 +2456,8 @@ if ($_GET['getdecks']){
 
 /** give all the user decks */
 if ($_GET['getalldecks']){
+	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
+	
 	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image 
 	FROM mytcg_competitiondeck 
 	WHERE active = "1" 
