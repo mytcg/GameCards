@@ -2527,7 +2527,9 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 			$sOP.=$sTab.$sTab.'<updated>0</updated>'.$sCRLF;
 		}
 		
-		$sOP.=$sTab.$sTab.'<albumname>'.trim($aCategory['description']).' ('.trim($aCategory['collected']).'/'.trim($aCategory['total']).')</albumname>'.$sCRLF;
+		$desc = trim($aCategory['description']).(strlen(trim($aCategory['collected']))>0?(' ('.trim($aCategory['collected']).'/'.trim($aCategory['total']).')'):'');
+		
+		$sOP.=$sTab.$sTab.'<albumname>'.$desc.'</albumname>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<totalcards>'.trim($aCategory['total']).'</totalcards>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<collected>'.trim($aCategory['collected']).'</collected>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'</album>'.$sCRLF;
@@ -3045,6 +3047,9 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		
 		//myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
 		//	VALUES ('.$iUserID.', "Did you know, you can visit '.$url.' for a web based experience.", now(), 1)');
+		
+		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
+			VALUES ('.$iUserID.', "Find the Facebook app by searching for Mobile Game Cards!", now(), 1)');
 		
 		//return userdetails
 		echo userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
@@ -3863,8 +3868,14 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 }
 
 function getAchis($iUserID) {
+	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
+		.'FROM mytcg_imageserver b '
+		.'ORDER BY b.description DESC '
+	);
+
 	$achiQu = ('SELECT progress, target, date_completed, complete_image, 
-		name, description, incomplete_image, achievement_id 
+		name, description, incomplete_image, achievement_id, 
+		a.phone_imageserver_id as aserver_id, al.phone_imageserver_id as alserver_id 
 		FROM mytcg_userachievementlevel ual 
 		LEFT OUTER JOIN mytcg_achievementlevel al 
 		ON ual.achievementlevel_id = al.id 
@@ -3892,15 +3903,37 @@ function getAchis($iUserID) {
 			
 			$retXml .= '<name>'.$aOneAchi['name'].'</name>';
 			$retXml .= '<description>'.$aOneAchi['description'].'</description>';
-			$retXml .= '<incomplete_image>'.$aOneAchi['incomplete_image'].'</incomplete_image>';
+			
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneAchi['aserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
+			}
+
+			$retXml .= '<incomplete_image>'.$sFound.'achi/phone/'.$aOneAchi['incomplete_image'].'</incomplete_image>';
 		}
 		
 		$retXml .= '<subachi>';
 		
 		$retXml .= '<progress>'.$aOneAchi['progress'].'</progress>';
 		$retXml .= '<target>'.$aOneAchi['target'].'</target>';
-		$retXml .= '<complete_image>'.$aOneAchi['complete_image'].'</complete_image>';
 		$retXml .= '<date_completed>'.$aOneAchi['date_completed'].'</date_completed>';
+		
+		$sFound='';
+		$iCountServer=0;
+		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+			if ($aOneServer['imageserver_id']==$aOneAchi['alserver_id']){
+				$sFound=$aOneServer['URL'];
+			} else {
+				$iCountServer++;
+			}
+		}
+
+		$retXml .= '<complete_image>'.$sFound.'achi/phone/'.$aOneAchi['complete_image'].'</complete_image>';
 		
 		$retXml .= '</subachi>';
 		
