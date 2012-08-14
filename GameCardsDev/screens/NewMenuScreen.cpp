@@ -13,6 +13,7 @@
 #include "TradeFriendDetailScreen.h"
 #include "MenuTestScreen.h"
 #include "TutorialScreen.h"
+#include "ViewAchisScreen.h"
 #include "../utils/Util.h"
 
 static item menuItems[] =
@@ -30,7 +31,8 @@ static item menuItems[] =
 	{ RES_FRIENDS_THUMB, RES_FRIENDS, OP_FRIENDS },
 	{ RES_INVITE_THUMB, RES_INVITE, OP_INVITEFRIENDS },
 	{ RES_REDEEM_THUMB, RES_REDEEM, OP_REDEEM },
-	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_LOGOUT }
+	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_LOGOUT },
+	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_ACHIEVEMENTS }
 };
 
 /*static tutItem tutItems[] =
@@ -301,6 +303,15 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					maExit(0);
 				}
 #endif
+			}
+			else if (index == OP_ACHIEVEMENTS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ViewAchisScreen(this, feed);
+				next->show();
 			}
 			break;
 		case MAK_BACK:
