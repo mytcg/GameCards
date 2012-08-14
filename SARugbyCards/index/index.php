@@ -2456,9 +2456,24 @@ if ($_GET['getdecks']){
 
 /** give all the user decks */
 if ($_GET['getalldecks']){
-	$aDeckDetails=myqu('SELECT deck_id, description 
-		FROM mytcg_deck 
-		WHERE user_id='.$iUserID);
+	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
+	
+	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image 
+	FROM mytcg_competitiondeck 
+	WHERE active = "1" 
+	AND competitiondeck_id NOT IN (SELECT competitiondeck_id FROM mytcg_deck WHERE user_id='.$iUserID.' AND type = 2)');
+	$iCount=0;
+	while ($aCompDeckDetail=$aCompDeckDetails[$iCount]){
+		myqui('INSERT INTO mytcg_deck (user_id, category_id, imageserver_id, description, image, type, competitiondeck_id) 
+		VALUES('.$iUserID.',1,'.(trim($aCompDeckDetail['imageserver_id'])==''?'NULL':trim($aCompDeckDetail['imageserver_id'])).',"'.trim($aCompDeckDetail['description']).'",'.(trim($aCompDeckDetail['image'])==''?'NULL':trim($aCompDeckDetail['image'])).',2,'.trim($aCompDeckDetail['competitiondeck_id']).')');
+		$iCount++;
+	}
+
+	$aDeckDetails=myqu('SELECT md.deck_id, md.description 
+		FROM mytcg_deck md
+		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
+		WHERE md.user_id='.$iUserID.'
+		AND ((cd.active="1" AND md.type="2")OR (md.type != "2"))');
 	$sOP='<decks>'.$sCRLF;
 	$iCount=0;
 	while ($aDeckDetail=$aDeckDetails[$iCount]){

@@ -25,6 +25,7 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 	deckId = "";
 	description = "";
 	moved = 0;
+	emp = true;
 
 	album = NULL;
 
@@ -162,10 +163,18 @@ void DeckListScreen::clearListBox() {
 }
 
 void DeckListScreen::drawList() {
-	if (screenType == ST_EDIT) {
-		label = Util::createSubLabel("New Deck");
-		label->addWidgetListener(this);
+	//if (screenType == ST_EDIT) {
+		//label = Util::createSubLabel("New Deck");
+		//label->addWidgetListener(this);
+		//kinListBox->add(label);
+	//}
+	if(screenType == ST_EDIT&&albums.size()==0){
+		emp = true;
+		label = Util::createSubLabel("Empty");
 		kinListBox->add(label);
+
+	} else {
+		emp = false;
 	}
 	for(int i = 0; i < albums.size(); i++) {
 		label = Util::createSubLabel(albums[i]->getDescription());
@@ -258,24 +267,26 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 			if (!selecting) {
 				switch (screenType) {
 					case ST_EDIT:
-						if (kinListBox->getSelectedIndex() == 0) {
-							if (next != NULL) {
-								delete next;
-								feed->remHttp();
-								next = NULL;
+						//if (kinListBox->getSelectedIndex() == 0) {
+						//	if (next != NULL) {
+						//		delete next;
+						//		feed->remHttp();
+						//		next = NULL;
+						//	}
+						//	next = new NewDeckScreen(this, feed);
+						//	next->show();
+						//}
+						//else {
+							if(!emp){
+								if (next != NULL) {
+									delete next;
+									feed->remHttp();
+									 next = NULL;
+								}
+								next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()]->getId());
+								next->show();
 							}
-							next = new NewDeckScreen(this, feed);
-							next->show();
-						}
-						else {
-							if (next != NULL) {
-								delete next;
-								feed->remHttp();
-								 next = NULL;
-							}
-							next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()-1]->getId());
-							next->show();
-						}
+						//}
 						break;
 					case ST_SELECT:
 						next = new OptionsScreen(feed, OptionsScreen::ST_NEW_GAME_OPTIONS, this, NULL,

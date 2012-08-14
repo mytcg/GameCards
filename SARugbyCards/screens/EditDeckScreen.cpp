@@ -155,8 +155,8 @@ void EditDeckScreen::deleteDeck() {
 
 void EditDeckScreen::removeCard() {
 	int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
-	if (cards.size() < 10) {
-		cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
+	if (cards.size() < 15) {
+		cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
 	}
 
 	int urlLength = 65 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
@@ -270,7 +270,7 @@ void EditDeckScreen::drawList() {
 
 	clearListBox();
 
-	if (cards.size() < 10) {
+	if (cards.size() < 15) {
 		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
 		feedlayout->setSkin(Util::getSkinList());
 		feedlayout->setDrawBackground(true);
@@ -496,7 +496,7 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						keyPressEvent(MAK_SOFTRIGHT);
 						break;
 					}
-					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
+					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 15) {
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
@@ -506,26 +506,26 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						((AlbumLoadScreen*)next)->setDeckId(deckId);
 						next->show();
 					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
+					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 15) ||
+							(kinListBox->getSelectedIndex() == 1 && cards.size() < 15)) {
 						drawConfirm();
-					}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() > 1 && cards.size() < 10)){
+					}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 15) ||
+							(kinListBox->getSelectedIndex() > 1 && cards.size() < 15)){
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
 							next = NULL;
 						}
 						int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
-						if (cards.size() < 10) {
-							cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
+						if (cards.size() < 15) {
+							cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
 						}
 						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
 						next->show();
 					}
 					break;
 				case MAK_SOFTLEFT:
-					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
+					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 15) {
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
@@ -535,8 +535,8 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						((AlbumLoadScreen*)next)->setDeckId(deckId);
 						next->show();
 					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
+					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 15) ||
+							(kinListBox->getSelectedIndex() == 1 && cards.size() < 15)) {
 						drawConfirm();
 					}
 					//else {
