@@ -248,6 +248,7 @@ void ViewAchisScreen::drawList() {
 		feedLayout->setDrawBackground(true);
 		feedLayout->addWidgetListener(this);
 		feedLayout->setVerticalAlignment(Layout::VA_CENTER);
+		feedLayout->setPaddingTop(PADDING);
 
 		//if there are achievements, the images must be downloaded
 		MobImage *tempImage = new MobImage(0, 0, ACHI_ITEM_HEIGHT, 66, feedLayout, false, false, Util::loadImageFromResource(RES_LOADINGTHUMB));

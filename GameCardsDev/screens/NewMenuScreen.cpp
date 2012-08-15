@@ -23,6 +23,7 @@ static item menuItems[] =
 	{ RES_DECKS_THUMB, RES_DECKS, OP_DECKS },
 	{ RES_SHOP_THUMB, RES_SHOP, OP_SHOP },
 	{ RES_AUCTIONS_THUMB, RES_AUCTIONS, OP_AUCTIONS },
+	{ RES_ACHIEVEMENTS_THUMB, RES_ACHIEVEMENTS, OP_ACHIEVEMENTS },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
 	{ RES_CREDITS_THUMB, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE, OP_PROFILE },
@@ -31,8 +32,7 @@ static item menuItems[] =
 	{ RES_FRIENDS_THUMB, RES_FRIENDS, OP_FRIENDS },
 	{ RES_INVITE_THUMB, RES_INVITE, OP_INVITEFRIENDS },
 	{ RES_REDEEM_THUMB, RES_REDEEM, OP_REDEEM },
-	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_LOGOUT },
-	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_ACHIEVEMENTS }
+	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_LOGOUT }
 };
 
 /*static tutItem tutItems[] =
@@ -212,6 +212,14 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS);
 				next->show();
+			} else if (index == OP_ACHIEVEMENTS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ViewAchisScreen(this, feed);
+				next->show();
 			} else if(index == OP_CREDITS) {
 				if(next!=NULL){
 					delete next;
@@ -303,15 +311,6 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					maExit(0);
 				}
 #endif
-			}
-			else if (index == OP_ACHIEVEMENTS) {
-				if(next!=NULL){
-					delete next;
-					feed->remHttp();
-					next = NULL;
-				}
-				next = new ViewAchisScreen(this, feed);
-				next->show();
 			}
 			break;
 		case MAK_BACK:
