@@ -758,6 +758,37 @@ void Util::retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *m
 	}
 }
 
+void Util::retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache)
+{
+	if (mImageCache == NULL) {
+		return;
+	}
+
+	MAHandle store = maOpenStore((FILE_PREFIX+(name+".sav")).c_str(), 0);
+	ImageCacheRequest* req1;
+	if(store != STERR_NONEXISTENT) {
+		MAHandle cacheimage = maCreatePlaceholder();
+		maReadStore(store, cacheimage);
+		maCloseStore(store, 0);
+
+		if (maGetDataSize(cacheimage) > 0) {
+			if (img == NULL) {
+				return;
+			}
+			returnImage(img, cacheimage, height);
+		}
+		else {
+			req1 = new ImageCacheRequest(img, name, url, height, 6);
+			mImageCache->request(req1);
+		}
+		cacheimage = -1;
+	}
+	else {
+		ImageCacheRequest* req1 = new ImageCacheRequest(img, name, url, height, 6);
+		mImageCache->request(req1);
+	}
+}
+
 int Util::intlen(float start) {
 	int end = 0;
 	while(start >= 1) {

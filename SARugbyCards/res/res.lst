@@ -370,3 +370,11 @@
 .res RES_BIG_RIGHT_ARROW /*93*/
 .ubin
 .image "big_arrow_right.png"
+
+.res RES_ACHIEVEMENTS /*94*/
+.ubin
+.image "Achievements.png"
+
+.res RES_ACHIEVEMENTS_THUMB /*95*/
+.ubin
+.image "Achievements_thumb.png"
