@@ -2251,7 +2251,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 		$sOP .= '</cards>';
 		header('xml_length: '.strlen($sOP));
 		echo $sOP;
-		exit;
+		return;
   }
   
   $aUserDetails=myqu('SELECT credits, premium 
@@ -2261,7 +2261,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 	$sOP.='<result>Insufficient funds.</result>';
   header('xml_length: '.strlen($sOP));
   echo $sOP;
-  exit;
+  return;
  }
 
 function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
@@ -3974,6 +3974,7 @@ function checkAchis($iUserID, $iAchiTypeId) {
 		
 		$valQuery = myqu($query);
 		$val = $valQuery[0]['val'];
+		
 		if ($aOneAchi['calc_id'] == ACHI_INC) {
 			if ($val >= 0) {
 				$updateQuery = "UPDATE mytcg_userachievementlevel SET date_updated = now(), progress = progress + ".$val." WHERE id = ".$userAchiId;
