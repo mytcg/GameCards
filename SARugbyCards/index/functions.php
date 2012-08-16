@@ -2297,7 +2297,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 		}*/
 	}
 	if ($topcar == -1) {
-		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, -1) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
+		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, a.category_id) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
 										cx.category_parent_id,

@@ -154,7 +154,7 @@ void EditDeckScreen::deleteDeck() {
 }
 
 void EditDeckScreen::removeCard() {
-	int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
+	int cardIndex = kinListBox->getSelectedIndex();
 	if (cards.size() < 15) {
 		cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
 	}
@@ -288,17 +288,6 @@ void EditDeckScreen::drawList() {
 		//label->setHorizontalAlignment(Label::HA_CENTER);
 	}
 
-	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
-	feedlayout->setSkin(Util::getSkinList());
-	feedlayout->setDrawBackground(true);
-	feedlayout->addWidgetListener(this);
-
-	label = new Label(0, 0, 0, 0, NULL, "", 0, Util::getDefaultFont());
-	feedlayout->add(label);
-
-	label = Util::createSubLabel("Delete Deck");
-	label->setDrawBackground(false);
-	feedlayout->add(label);
 	//label = new Label(0,0, feedlayout->getWidth(), 48, feedlayout, "Delete Deck", 0, Util::getDefaultFont());
 	//label->setSkin(Util::getSkinList());
 	//label->setVerticalAlignment(Label::VA_CENTER);
@@ -505,18 +494,13 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
 						((AlbumLoadScreen*)next)->setDeckId(deckId);
 						next->show();
-					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 15) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 15)) {
-						drawConfirm();
-					}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 15) ||
-							(kinListBox->getSelectedIndex() > 1 && cards.size() < 15)){
+					}else if(kinListBox->getSelectedIndex() > 0){
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
 							next = NULL;
 						}
-						int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
+						int cardIndex = kinListBox->getSelectedIndex();
 						if (cards.size() < 15) {
 							cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
 						}
@@ -534,10 +518,15 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
 						((AlbumLoadScreen*)next)->setDeckId(deckId);
 						next->show();
-					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 15) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 15)) {
-						drawConfirm();
+					}else if (kinListBox->getSelectedIndex() == 0 && cards.size() < 15) {
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+						((AlbumLoadScreen*)next)->setDeckId(deckId);
+						next->show();
 					}
 					//else {
 					//	removeCard();
