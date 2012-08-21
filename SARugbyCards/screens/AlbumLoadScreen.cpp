@@ -99,7 +99,6 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	notice = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
 
 	if (album == NULL) {
-		lprintfln("album = new Albums()");
 		album = new Albums();
 	} else {
 		album->clearAll();

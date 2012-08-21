@@ -54,6 +54,7 @@ class Util
 		static void retrieveBack(MobImage *img, Card *card, int height, ImageCache *mImageCache);
 		static void retrieveFrontFlip(MobImage *img, Card *card, int height, ImageCache *mImageCache);
 		static void retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *mImageCache);
+		static void retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache);
 		static void returnImage(MobImage *img, MAHandle i, int height);
 		static int intlen(float start);
 		static int absoluteValue(int num);

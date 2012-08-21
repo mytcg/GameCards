@@ -441,4 +441,10 @@
 .ubin 
 .image "popup_header.png"
 
+.res RES_ACHIEVEMENTS /*111*/
+.ubin
+.image "Achievements.png"
 
+.res RES_ACHIEVEMENTS_THUMB /*112*/
+.ubin
+.image "Achievements_thumb.png"

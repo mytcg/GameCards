@@ -2208,7 +2208,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 		$sOP .= '</cards>';
 		header('xml_length: '.strlen($sOP));
 		echo $sOP;
-		exit;
+		return;
   }
   
   $aUserDetails=myqu('SELECT credits, premium 
@@ -2218,7 +2218,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 	$sOP.='<result>Insufficient funds.</result>';
   header('xml_length: '.strlen($sOP));
   echo $sOP;
-  exit;
+  return;
  }
 
 function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
@@ -2297,7 +2297,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 		}*/
 	}
 	if ($topcar == -1) {
-		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, -1) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
+		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, a.category_id) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
 										cx.category_parent_id,
@@ -3840,8 +3840,14 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 
 
 function getAchis($iUserID) {
+	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
+		.'FROM mytcg_imageserver b '
+		.'ORDER BY b.description DESC '
+	);
+
 	$achiQu = ('SELECT progress, target, date_completed, complete_image, 
-		name, description, incomplete_image, achievement_id 
+		name, description, incomplete_image, achievement_id, 
+		a.phone_imageserver_id as aserver_id, al.phone_imageserver_id as alserver_id 
 		FROM mytcg_userachievementlevel ual 
 		LEFT OUTER JOIN mytcg_achievementlevel al 
 		ON ual.achievementlevel_id = al.id 
@@ -3869,15 +3875,37 @@ function getAchis($iUserID) {
 			
 			$retXml .= '<name>'.$aOneAchi['name'].'</name>';
 			$retXml .= '<description>'.$aOneAchi['description'].'</description>';
-			$retXml .= '<incomplete_image>'.$aOneAchi['incomplete_image'].'</incomplete_image>';
+			
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneAchi['aserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
+			}
+
+			$retXml .= '<incomplete_image>'.$sFound.'achi/phone/'.$aOneAchi['incomplete_image'].'</incomplete_image>';
 		}
 		
 		$retXml .= '<subachi>';
 		
 		$retXml .= '<progress>'.$aOneAchi['progress'].'</progress>';
 		$retXml .= '<target>'.$aOneAchi['target'].'</target>';
-		$retXml .= '<complete_image>'.$aOneAchi['complete_image'].'</complete_image>';
 		$retXml .= '<date_completed>'.$aOneAchi['date_completed'].'</date_completed>';
+		
+		$sFound='';
+		$iCountServer=0;
+		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+			if ($aOneServer['imageserver_id']==$aOneAchi['alserver_id']){
+				$sFound=$aOneServer['URL'];
+			} else {
+				$iCountServer++;
+			}
+		}
+
+		$retXml .= '<complete_image>'.$sFound.'achi/phone/'.$aOneAchi['complete_image'].'</complete_image>';
 		
 		$retXml .= '</subachi>';
 		

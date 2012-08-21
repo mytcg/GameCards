@@ -13,6 +13,7 @@
 #include "TradeFriendDetailScreen.h"
 #include "TutorialScreen.h"
 #include "../utils/Util.h"
+#include "ViewAchisScreen.h"
 
 static item menuItems[] =
 {
@@ -20,6 +21,7 @@ static item menuItems[] =
 	{ RES_DECKS_THUMB, RES_DECKS, OP_DECKS },
 	{ RES_SHOP_THUMB, RES_SHOP, OP_SHOP },
 	{ RES_AUCTIONS_THUMB, RES_AUCTIONS, OP_AUCTIONS },
+	{ RES_ACHIEVEMENTS_THUMB, RES_ACHIEVEMENTS, OP_ACHIEVEMENTS },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
 	{ RES_CREDITS_THUMB, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE, OP_PROFILE },
@@ -194,6 +196,14 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS);
+				next->show();
+			} else if (index == OP_ACHIEVEMENTS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ViewAchisScreen(this, feed);
 				next->show();
 			} else if(index == OP_CREDITS) {
 				if(next!=NULL){
