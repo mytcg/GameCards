@@ -3972,6 +3972,77 @@ function checkAchis($iUserID, $iAchiTypeId) {
 	}
 }
 
+function getAllCategoryChildren($iCategoryId){
+	$qu = 'SELECT category_child_id
+				FROM mytcg_category_x cx 
+				WHERE cx.category_parent_id = '.$iCategoryId;
+	$aCategories=myqu($qu);
+	
+	$iCount=0;
+	$sOP="";
+	while ($aCategory=$aCategories[$iCount]){
+		$sOP.=trim($aCategory['category_child_id']).','.getAllCategoryChildren(trim($aCategory['category_child_id']));
+		$iCount++;
+	}
+	return $sOP;
+}
+
+function auctionCategories($iCategoryId,$iUserID,$usercategories){
+	$qu = '';
+	if($iCategoryId=='0'){
+		$qu = 'SELECT DISTINCT d.category_id, d.description
+				FROM mytcg_category d, mytcg_category_x cx
+				WHERE d.category_id = cx.category_parent_id
+				AND cx.category_parent_id NOT IN (SELECT category_child_id AS category_parent_id FROM mytcg_category_x)';
+	}else{
+		$qu = 'SELECT d.category_id, d.description
+				FROM mytcg_category d, mytcg_category_x cx
+				WHERE cx.category_parent_id = '.$iCategoryId.'
+				AND d.category_id = cx.category_child_id';
+	}
+	$aCategories=myqu($qu);
+	
+	$iCount=0;
+	$iChildCount="0";
+	$sOP="";
+	while ($aCategory=$aCategories[$iCount]){
+		$aChildAuctionCheck=myqu('SELECT count(*) as count 
+			FROM mytcg_card c
+			INNER JOIN mytcg_category d
+			on c.category_id = d.category_id
+			INNER JOIN mytcg_usercard uc
+			ON uc.card_id = c.card_id
+			INNER JOIN mytcg_market ac
+			ON uc.usercard_id = ac.usercard_id
+			INNER JOIN mytcg_category_x cx
+			ON d.category_id = cx.category_child_id
+			WHERE ac.marketstatus_id = 1 
+			AND datediff(now(), ac.date_expired) <= 0
+			 '.$usercategories.' 
+			AND uc.user_id <> '.$iUserID.'					
+			AND d.category_id IN ('.getAllCategoryChildren(trim($aCategory['category_id'])).trim($aCategory['category_id']).')');
+		if(trim($aChildAuctionCheck[0]['count'])!="0"){
+			$aChildCheck=myqu('SELECT count(*) as count 
+					FROM mytcg_category d, mytcg_category_x cx
+					WHERE cx.category_parent_id = '.trim($aCategory['category_id']).'
+					AND d.category_id = cx.category_parent_id');
+			$sOP.="<album>";
+			$sOP.=$sTab.'<albumid>'.trim($aCategory['category_id']).'</albumid>'.$sCRLF;
+			$sOP.=$sTab.'<children>'.trim($aChildCheck[0]['count']).'</children>'.$sCRLF;
+			$sOP.=$sTab.'<albumname>'.trim($aCategory['description']).'</albumname>'.$sCRLF;
+			$sOP.="</album>";
+			if($iCount==0){
+				$iChildCount=trim($aChildCheck[0]['count']);
+			}
+		}
+		$iCount++;
+	}
+	if($iCount==1&&$iChildCount!="0"){
+		return auctionCategories(trim($aCategories[0]['category_id']),$iUserID,$usercategories);
+	}else{
+		return $sOP;
+	}
+}
 /** 
 	SOME JOOMLA
 	the JUserHelper class copied from libraries/joomla/user/helper.php

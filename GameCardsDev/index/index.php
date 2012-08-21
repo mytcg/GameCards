@@ -2335,6 +2335,110 @@ if ($_GET['auctioncategories']) {
 	exit;
 }
 
+/** return a list of categories with auctions in them */
+if ($_GET['auctioncategories2']) {
+	if (!($iCategoryId= $_GET['categoryId'])) {
+		$iCategoryId = '0';
+	}
+	$inClause = "";
+	if ($topcar != "-1") {
+		$inClause = " AND c.category_id IN (".$topcar;
+		
+		$currentChildren = $topcar;
+		do {
+			$qu = 'SELECT category_child_id 
+				FROM mytcg_category_x 
+				WHERE category_parent_id IN ('.$currentChildren.')';
+			$childrenQuery=myqu($qu);
+			
+			$currentChildren = '';
+			$iCount=0;
+			
+			while ($child = $childrenQuery[$iCount]) {
+				$iCount++;
+				
+				$inClause.= ','.$child['category_child_id'];
+				
+				$currentChildren.=(strlen($currentChildren)>0?(','.$child['category_child_id']):$child['category_child_id']);
+			}
+		} while ($currentChildren != '');
+		
+		$inClause.=')';
+	}
+	$sOP='<cardcategories>'.$sCRLF;
+	if($iCategoryId=='0'){
+		$qu = 'SELECT count(*) as cnt 
+			FROM mytcg_usercard UC 
+			INNER JOIN mytcg_market AC 
+			ON UC.usercard_id=AC.usercard_id 
+			INNER JOIN mytcg_card c 
+			ON UC.card_id=c.card_id 
+			INNER JOIN mytcg_user U 
+			ON UC.user_id=U.user_id 
+			LEFT OUTER JOIN mytcg_marketcard AB 
+			ON AC.market_id=AB.market_id 
+			LEFT OUTER JOIN mytcg_user UB 
+			ON AB.user_id=UB.user_id 
+			WHERE AC.marketstatus_id="1" 
+			AND datediff(now(), AC.date_expired) <= 0 '.$inClause.' 
+			AND U.user_id='.$iUserID;
+		$aAuctionCards=myqu($qu);
+			
+		if ($aMine=$aAuctionCards[0]) {
+			if ($aMine['cnt'] > 0) {
+				$sOP.="<album>";
+				$sOP.=$sTab.'<albumid>-2</albumid>'.$sCRLF;
+				$sOP.=$sTab.'<albumname>My Auctions</albumname>'.$sCRLF;
+				$sOP.="</album>";
+			}
+		}
+			
+		$qu = 'SELECT count(*) AS cnt
+				FROM mytcg_market a, mytcg_usercard b, mytcg_card c
+				WHERE datediff(now(), date_expired) <= 0
+				AND a.usercard_id = b.usercard_id
+				AND b.card_id = c.card_id
+				AND a.user_id <> '.$iUserID.'  '.$inClause.' 
+				AND c.card_id NOT IN (SELECT card_id
+										FROM mytcg_usercard
+										WHERE user_id = '.$iUserID.')';
+		$aAuctionCards=myqu($qu);
+			
+		if ($aMine=$aAuctionCards[0]) {
+			if ($aMine['cnt'] > 0) {
+				$sOP.="<album>";
+				$sOP.=$sTab.'<albumid>-3</albumid>'.$sCRLF;
+				$sOP.=$sTab.'<albumname>Not Owned</albumname>'.$sCRLF;
+				$sOP.="</album>";
+			}
+		}
+		
+		$qu = 'SELECT count(*) as cnt
+				FROM mytcg_market a, mytcg_usercard b, mytcg_card c
+				WHERE datediff(now(), date_expired) <= 0
+				AND a.usercard_id = b.usercard_id
+				AND b.card_id = c.card_id
+				AND c.value > a.minimum_bid
+				AND a.marketstatus_id = 1  '.$inClause.' 
+				AND a.user_id <> '.$iUserID;
+		$aAuctionCards=myqu($qu);
+			
+		if ($aMine=$aAuctionCards[0]) {
+			if ($aMine['cnt'] > 0) {
+				$sOP.="<album>";
+				$sOP.=$sTab.'<albumid>-4</albumid>'.$sCRLF;
+				$sOP.=$sTab.'<albumname>Good Deals</albumname>'.$sCRLF;
+				$sOP.="</album>";
+			}
+		}
+	}
+	$sOP.= auctionCategories($iCategoryId,$iUserID,$usercategories);
+	$sOP.='</cardcategories>'.$sCRLF;
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
 /** return a list of products in a category */
 if ($iFreebie = $_GET['categoryproducts']){
 	$iCategoryId= $_REQUEST['categoryId'];
