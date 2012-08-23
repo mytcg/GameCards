@@ -12,6 +12,7 @@ void ShopCategoriesScreen::refresh() {
 	busy = true;
 	show();
 	categories.clear();
+	categorychildren.clear();
 	category.clear();
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -35,8 +36,10 @@ void ShopCategoriesScreen::refresh() {
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_AUCTIONS:
+			url = new char[urlLength+14+categoryId.length()];
+			memset(url,'\0',urlLength+14+categoryId.length());
 			notice->setCaption("Checking for auction categories...");
-			sprintf(url, "%s?auctioncategories=1", URL);
+			sprintf(url, "%s?auctioncategories2=1&categoryId=%s", URL, categoryId.c_str());
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
@@ -53,7 +56,7 @@ void ShopCategoriesScreen::refresh() {
 	}
 }
 
-ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int screenType) : mHttp(this), screenType(screenType) {
+ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int screenType, String catId) : mHttp(this), screenType(screenType), categoryId(catId) {
 
 	lprintfln("ShopCategoriesScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
@@ -63,6 +66,7 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
 	busy = true;
+	temp2="";
 	if (screenType == ST_FREEBIE) {
 		mainLayout = Util::createMainLayout("", "", true);
 	} else {
@@ -94,8 +98,10 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_AUCTIONS:
+			url = new char[urlLength+14+categoryId.length()];
+			memset(url,'\0',urlLength+14+categoryId.length());
 			notice->setCaption("Checking for auction categories...");
-			sprintf(url, "%s?auctioncategories=1", URL);
+			sprintf(url, "%s?auctioncategories2=1&categoryId=%s", URL, categoryId.c_str());
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
@@ -138,6 +144,8 @@ ShopCategoriesScreen::~ShopCategoriesScreen() {
 	parentTag="";
 	temp="";
 	temp1="";
+	temp2="";
+	temp3="";
 	error_msg="";
 }
 void ShopCategoriesScreen::clearListBox() {
@@ -214,7 +222,7 @@ void ShopCategoriesScreen::drawList() {
 	empt = false;
 	kinListBox->getChildren().clear();
 
-	if (screenType == ST_AUCTIONS)
+	if (screenType == ST_AUCTIONS && !strcmp(categoryId.c_str(),"0"))
 	{
 		label = Util::createSubLabel("Create New Auction");
 		label->addWidgetListener(this);
@@ -396,12 +404,18 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 								feed->remHttp();
 								next = NULL;
 							}
-							orig = this;
-							String selectedCaption = ((Label*)kinListBox->getChildren()[i])->getCaption();
-							String category = categories.find(selectedCaption)->second.c_str();
 
-							next = new AuctionListScreen(this, feed, AuctionListScreen::ST_CATEGORY, category);
-							next->show();
+							String category = categories.find(selectedCaption)->second.c_str();
+							String catchildren = categorychildren.find(selectedCaption)->second.c_str();
+							if(!strcmp(catchildren.c_str(),"0")){
+								orig = this;
+								String selectedCaption = ((Label*)kinListBox->getChildren()[i])->getCaption();
+								next = new AuctionListScreen(this, feed, AuctionListScreen::ST_CATEGORY, category);
+								next->show();
+							}else{
+								next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS,category);
+								next->show();
+							}
 						}
 
 					break;
@@ -480,8 +494,12 @@ void ShopCategoriesScreen::mtxTagData(const char* data, int len) {
 	if (!strcmp(parentTag.c_str(), "cardcategories")) {
 		categories.clear();
 		category.clear();
+		categorychildren.clear();
+	} else if(!strcmp(parentTag.c_str(), "children")) {
+		temp2 = data;
 	} else if(!strcmp(parentTag.c_str(), "albumname")) {
 		temp1 = data;
+		temp3 = data;
 	} else if(!strcmp(parentTag.c_str(), "albumid")) {
 		temp = data;
 	} else if(!strcmp(parentTag.c_str(), "error")) {
@@ -493,8 +511,11 @@ void ShopCategoriesScreen::mtxTagEnd(const char* name, int len) {
 	if(!strcmp(name, "albumname")) {
 		categories.insert(temp1, temp);
 		category.add(temp1);
+		categorychildren.insert(temp3, temp2);
 		temp1 = "";
 		temp = "";
+		temp2 = "";
+		temp3 = "";
 	} else if (!strcmp(name, "cardcategories")) {
 		notice->setCaption("Choose a category.");
 		drawList();
