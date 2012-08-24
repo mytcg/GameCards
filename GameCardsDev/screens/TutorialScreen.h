@@ -8,7 +8,7 @@
 #include "../MAHeaders.h"
 #include "../utils/ImageCache.h"
 #include "../utils/XmlConnection.h"
-#include "../UI/Widgets/TransitionImage.h"
+#include "../UI/Widgets/MobImage.h"
 #include "MainScreen.h"
 
 using namespace MAUI;
@@ -21,7 +21,7 @@ struct tutItem {
 
 class TutorialScreen : public MainScreen {
 public:
-	TutorialScreen(MainScreen *previous, tutItem *items, int itemCount);
+	TutorialScreen(MainScreen *previous, Vector<String> tutimages);
 	~TutorialScreen();
 	void keyPressEvent(int keyCode);
 
@@ -29,15 +29,18 @@ public:
 	void pointerMoveEvent(MAPoint2d point);
 	void pointerReleaseEvent(MAPoint2d point);
 	void locateItem(MAPoint2d point);
+	String getIdFromImageString(String url);
 private:
 	void clearListBox();
 	MAPoint2d pointPressed, pointReleased;
-	TransitionImage *imge;
+	MobImage *imge;
+	ImageCache *imageCache;
 	Image *leftArrow, *rightArrow;
+	Widget *softKeys;
 	bool left, right, panLeft, panRight;
-	int itemCount, index;
+	int itemCount, index, height;
 
-	tutItem *tutItems;
+	Vector<String> tutimages;
 
 	void scrollImage(int move = 1); //1 will move 1 image to the right, -1 will move 1 to the left
 };

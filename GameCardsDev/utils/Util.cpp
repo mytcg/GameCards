@@ -779,7 +779,7 @@ void Util::retrieveImage(MobImage *img, String name, String url, int height, Ima
 		cacheimage = -1;
 	}
 	else {
-		ImageCacheRequest* req1 = new ImageCacheRequest(img, name, url, height, 6);
+		req1 = new ImageCacheRequest(img, name, url, height, 6);
 		mImageCache->request(req1);
 	}
 }

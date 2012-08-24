@@ -225,6 +225,7 @@
 #define OP_INVITEFRIENDS 12
 #define OP_REDEEM 13
 #define OP_LOGOUT 14
+#define OP_TUT 15
 
 #include <MAUtil/String.h>
 

@@ -85,9 +85,7 @@ void ImageCache::finishedDownloading()
 	if (mData != NULL) {
 		if ((mNextRequest != NULL)&&(!destroyed)) {
 			Util::saveFile((mNextRequest->getSaveName()).c_str(), mData);
-			if (mNextRequest->getImage() != NULL) {
-				Util::returnImage(mNextRequest->getImage(), mData, mNextRequest->getHeight());
-			}
+			Util::returnImage(mNextRequest->getImage(), mData, mNextRequest->getHeight());
 		}
 	} else if (mNextRequest != NULL){
 		if (mNextRequest->getImage() != NULL) {
@@ -187,7 +185,7 @@ void ImageCache::connRecvFinished(MAUtil::Connection* conn, int result) {
 		if (mNextRequest->getImage() != NULL) {
 			if (mNextRequest->getType() == 0) {
 				//normal loading
-			} else if ((((mNextRequest->getType() == 3)||(mNextRequest->getType() == 4))&&portrait)||(((mNextRequest->getType() == 1)||(mNextRequest->getType() == 2))&&!portrait)) {
+			} else if ((((mNextRequest->getType() == 3)||(mNextRequest->getType() == 4))&&portrait)||(((mNextRequest->getType() == 1)||(mNextRequest->getType() == 2))&&!portrait)||((mNextRequest->getType() == 6)&&!portrait)) {
 				if (val <= 5.5) {
 					maDestroyObject(mNextRequest->getImage()->getResource());
 					mNextRequest->getImage()->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
@@ -244,7 +242,7 @@ void ImageCache::connRecvFinished(MAUtil::Connection* conn, int result) {
 					mNextRequest->getImage()->setResource(Util::loadImageFromResource(RES_LOADING_FLIP18));
 				}
 				mNextRequest->getImage()->requestRepaint();
-			} else if ((((mNextRequest->getType() == 1)||(mNextRequest->getType() == 2))&&portrait)||(((mNextRequest->getType() == 3)||(mNextRequest->getType() == 4))&&!portrait)) {
+			} else if ((((mNextRequest->getType() == 1)||(mNextRequest->getType() == 2))&&portrait)||(((mNextRequest->getType() == 3)||(mNextRequest->getType() == 4))&&!portrait)||((mNextRequest->getType() == 6)&&portrait)) {
 				if (val <= 5.5) {
 					maDestroyObject(mNextRequest->getImage()->getResource());
 					mNextRequest->getImage()->setResource(Util::loadImageFromResource(RES_LOADING1));
