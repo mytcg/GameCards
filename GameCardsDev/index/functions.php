@@ -510,6 +510,124 @@ function resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 	return $iHeight;
 }
 
+function resizeTut($iHeight, $iWidth, $iImage, $root) {
+
+	//we need to check if the width after scaling would be too wide for the screen.
+	$filename = $root.'img/tuts/'.$iImage;
+	if (file_exists($filename)) {
+		$image = new Upload($filename);
+		$ratio = $iHeight / $image->image_src_y;
+		if (($ratio * ($image->image_src_x)) > $iWidth) {
+			$ratio = $iWidth / $image->image_src_x;
+			$iHeight =  intval($ratio * $image->image_src_y);
+		}
+	}
+	else {
+		die('File does not exist -> '.$filename);
+	}
+	
+	//we want a maximum image size, so larger devices dont have to download huge images
+	if ($iHeight > 480) {
+		//for now, max = 480
+		$iHeight = 480;
+	}
+	
+	if ($iWidth > 480) {
+		//for now, max = 480
+		$iWidth = 480;
+	}
+	
+	$iPortrait=1;
+	//portrait, 1=protrait, 2=landscape
+	if ($iWidth > $iHeight) {
+		$iPortrait=2;
+	}
+	
+	$fliprotate='90';
+	$landscape="";
+	if ($iPortrait==2) {
+		$fliprotate='-90';
+		$landscape="/landscape";
+	}
+	
+	//Check directory for resized version
+	chmod($root,0777);
+	$dir = $root.'img/tuts/'.$iHeight;
+	$dir .= $landscape;
+	if (!is_dir($dir)){
+		if (!mkdir($dir, 0777, true)) {
+			die('Failed to create folders -> '.$dir);
+		}
+	}
+	
+	$dir .= "/";
+	
+	$iLandscapeRotateWidth = $iWidth;
+	$iLandscapeRotateHeight = $iHeight*1.40625;
+	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
+	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
+	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
+	
+	//Check and create new resized front image
+	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.$iImage;
+	if((!file_exists($filenameResized)) && (file_exists($filename))){
+		$image = new Upload($filename);
+		$image->image_resize = true;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight;
+		} else {
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
+		$image->Process($dir);
+	}
+	
+	/*$filename = $root.'img/cards/'.$iImage.'_front'.$ext;
+	$filenameResized = $dir.$iImage.'_front_flip'.$ext;
+	if((!file_exists($filenameResized)) && (file_exists($filename))){
+		$image = new Upload($filename);
+		$image->image_resize = true;
+		$image->file_new_name_body = $iImage.'_front_flip';
+		if ($iBBHeight) {
+			$ratio = $iRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iBBRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iBBRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iRotateWidth;
+			
+			$image->image_rotate = $fliprotate;
+		} else {
+			$ratio = $iRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iRotateWidth;
+			
+			$image->image_rotate = $fliprotate;
+		}
+		$image->Process($dir);
+	}*/
+	
+	return $iHeight.$landscape;
+}
+
 //clears any actions that when limit is up
 function updateAuctions() {
 	//Select details of the auction
@@ -3865,6 +3983,67 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 	$sOP = '<created><deck_id>'.$deckId.'</deck_id><result>Deck Created!</result></created>';
 	
 	return $sOP;
+}
+
+function getTuts($iHeight, $iWidth, $topcar, $root) {
+	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
+		.'FROM mytcg_imageserver b '
+		.'ORDER BY b.description DESC '
+	);
+	
+	$tutQu = ('select t.id, t.description, ti.index, ti.imageserver, ti.image
+		from mytcg_tutorial t, mytcg_tutorialimage ti
+		where ti.tutorial_id = t.id
+		and t.app_id = '.$topcar.'
+		order by t.description, ti.index');
+	
+	$tutQuery = myqu($tutQu);
+	
+	$count = 0;
+	$currentParent = '';
+	
+	$retXml = '<tuts>';
+	while ($aOneTut=$tutQuery[$count]) {
+		$tutId = $aOneTut['id'];
+		
+		if ($tutId != $currentParent) {
+			$currentParent = $tutId;
+		
+			if ($count > 0) {
+				$retXml .= '</tut>';
+			}
+			$retXml .= '<tut>';
+			
+			$retXml .= '<id>'.$aOneTut['id'].'</id>';
+			$retXml .= '<description>'.$aOneTut['description'].'</description>';
+		}
+		
+		$retXml .= '<tutimage>';
+		
+		$sFound='';
+		$iCountServer=0;
+		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+			if ($aOneServer['imageserver_id']==$aOneTut['imageserver']){
+				$sFound=$aOneServer['URL'];
+			} else {
+				$iCountServer++;
+			}
+		}
+
+		$height = resizeTut($iHeight, $iWidth, $aOneTut['image'], $root);
+		
+		$retXml .= '<image>'.$sFound.'tuts/'.$height.'/'.$aOneTut['image'].'</image>';
+		
+		$retXml .= '</tutimage>';
+		
+		$count++;
+	}
+	if ($count > 0) {
+		$retXml .= '</tut>';
+	}
+	$retXml .= '</tuts>';
+	
+	return $retXml;
 }
 
 function getAchis($iUserID) {
