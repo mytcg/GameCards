@@ -11,7 +11,7 @@
 #include "ShopDetailsScreen.h"
 #include "../UI/Button.h"
 
-EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) : mHttp(this), deckId(deckId) {
+EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String active, String type) : mHttp(this), deckId(deckId), active(active), type(type) {
 	busy = true;
 	emp = true;
 	this->previous = previous;
@@ -56,11 +56,11 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	notice->setCaption("Getting card list...");
 
 	mImageCache = new ImageCache();
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 92 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth)+type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&decktype=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(),type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -385,6 +385,8 @@ EditDeckScreen::~EditDeckScreen() {
 	statDisplay="";
 	note="";
 	deckId="";
+	active="";
+	type="";
 	id="";
 	description="";
 	quantity="";
@@ -485,27 +487,31 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						keyPressEvent(MAK_SOFTRIGHT);
 						break;
 					}
-					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 15) {
-						if (next != NULL) {
-							delete next;
-							feed->remHttp();
-							next = NULL;
+					if(!strcmp(type.c_str(), "1")){
+						if (kinListBox->getSelectedIndex() == 0 && cards.size() < 15) {
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+							((AlbumLoadScreen*)next)->setDeckId(deckId);
+							next->show();
+						}else if(kinListBox->getSelectedIndex() > 0){
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							int cardIndex = kinListBox->getSelectedIndex();
+							if (cards.size() < 15) {
+								cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
+							}
+							next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
+							next->show();
 						}
-						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
-						((AlbumLoadScreen*)next)->setDeckId(deckId);
-						next->show();
-					}else if(kinListBox->getSelectedIndex() > 0){
-						if (next != NULL) {
-							delete next;
-							feed->remHttp();
-							next = NULL;
-						}
-						int cardIndex = kinListBox->getSelectedIndex();
-						if (cards.size() < 15) {
-							cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
-						}
-						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
-						next->show();
+					} else if(!strcmp(type.c_str(), "2")&&!strcmp(active.c_str(), "1")){
+
 					}
 					break;
 				case MAK_SOFTLEFT:

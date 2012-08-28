@@ -24,6 +24,8 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 
 	deckId = "";
 	description = "";
+	active="";
+	type="";
 	moved = 0;
 	emp = true;
 
@@ -86,7 +88,9 @@ DeckListScreen::~DeckListScreen() {
 	currentSelectedKey = NULL;
 	parentTag= "";
 	description = "";
+	active="";
 	deckId = "";
+	type="";
 	categoryId = "";
 
 	if (next != NULL) {
@@ -141,10 +145,14 @@ void DeckListScreen::refresh() {
 void DeckListScreen::clearAlbums() {
 	for (int i = 0; i < albums.size(); i++) {
 		delete albums[i];
-		albums = NULL;
+		albums[i] = NULL;
 	}
-
+	for (int i = 0; i < decks.size(); i++) {
+		delete decks[i];
+		decks[i] = NULL;
+	}
 	albums.clear();
+	decks.clear();
 }
 
 void DeckListScreen::clearListBox() {
@@ -283,7 +291,7 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 									feed->remHttp();
 									 next = NULL;
 								}
-								next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()]->getId());
+								next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()]->getId(),decks[kinListBox->getSelectedIndex()]->getActive(),decks[kinListBox->getSelectedIndex()]->getType());
 								next->show();
 							}
 						//}
@@ -405,6 +413,10 @@ void DeckListScreen::mtxTagData(const char* data, int len) {
 		deckId += data;
 	} else if(!strcmp(parentTag.c_str(), "desc")) {
 		description += data;
+	} else if(!strcmp(parentTag.c_str(), "active")) {
+		active += data;
+	} else if(!strcmp(parentTag.c_str(), "type")) {
+		type += data;
 	}
 }
 
@@ -412,9 +424,13 @@ void DeckListScreen::mtxTagEnd(const char* name, int len) {
 	if (!strcmp(name, "deck")) {
 		album = new Album(deckId, description);
 		albums.add(album);
+		deck = new Deck(deckId,description,type,active);
+		decks.add(deck);
 
 		deckId = "";
 		description = "";
+		active="";
+		type="";
 	}
 	else if (!strcmp(name, "decks")) {
 		if (albums.size() <= 1 && screenType == ST_SELECT) {

@@ -56,6 +56,9 @@ function addCreditsSMS($iUserID,$amount=350){
     $sql = "INSERT INTO mytcg_transactionlog (user_id, description, date,
 val, transactionlogtype_id) VALUES (".$iUserID.", 'Purchased ".$amount." credits via SMS', NOW(),".$amount.", 2)";
     myqu($sql);
+	myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$userID.", NULL, NULL, NULL, 
+				now(), 'Received ".$amount." credits via SMS purchase', ".$amount.", 'SMS', 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$userID."), 2,0,".$amount.")");
     $sql = "INSERT INTO mytcg_notifications (user_id, notification,
 notedate, notificationtype_id) VALUES (".$iUserID.",'Received ".$amount." credits via SMS purchase',now(), 3)";
     myqu($sql);
@@ -189,7 +192,9 @@ if ($iUserID == 0){
 				SELECT '.$iUserID.', descript, now(), val, 1
 				FROM mytcg_transactiondescription
 				WHERE transactionid = 1');
-				
+		myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$userID.", NULL, NULL, NULL, 
+				now(), 'Recieved 20 credits for logging in today', 20, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$userID."), 16,20,0)");		
 		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+20) WHERE user_id = '.$iUserID);
 			
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
@@ -2469,17 +2474,19 @@ if ($_GET['getalldecks']){
 		$iCount++;
 	}
 
-	$aDeckDetails=myqu('SELECT md.deck_id, md.description 
+	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
 		FROM mytcg_deck md
 		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
 		WHERE md.user_id='.$iUserID.'
-		AND ((cd.active="1" AND md.type="2")OR (md.type != "2"))');
+		AND ((cd.active="1" AND md.type="2")OR (md.type != "2") OR (cd.active="2" AND md.type="2"))');
 	$sOP='<decks>'.$sCRLF;
 	$iCount=0;
 	while ($aDeckDetail=$aDeckDetails[$iCount]){
 		$sOP.='<deck>'.$sCRLF;
 		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
-		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;	
+		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		$sOP.=$sTab.'<active>'.trim($aDeckDetail['active']).'</active>'.$sCRLF;
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;		
 		$sOP.='</deck>'.$sCRLF;
 		$iCount++;
 	}
@@ -2608,6 +2615,9 @@ if ($_GET['getcardsindeck']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($DeckType=$_GET['decktype'])) {
+		$DeckType = '1';
+	}
 	if (!($iPortrait=$_GET['portrait'])) {
 		$iPortrait = 1;
 	}
@@ -2621,7 +2631,7 @@ if ($_GET['getcardsindeck']){
 		WHERE deck_id='.$iDeckID);
 	
 	$sOP = "<deck>";
-	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait);
+	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait,$DeckType);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
 	$sOP .= "</deck>";
 	header('xml_length: '.strlen($sOP));
