@@ -3492,7 +3492,7 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id ');
 	} else if($iDeckID > -1 && $DeckType == "2"){
-		$aCards=myqu('SELECT p.position_id, p.description as position, dc.points, dc.deckcard_id, dc.usercard_id, cards.*
+		$aCards=myqu('SELECT p.position_id, p.description as position, IFNULL(dc.points,"0") as points, dc.deckcard_id, dc.usercard_id, cards.*
 					FROM mytcg_position p
 					LEFT OUTER JOIN mytcg_deckcard dc
 					ON p.position_id = dc.position_id
@@ -3642,7 +3642,7 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.'<card>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<cardid>'.$aOneCard['card_id'].'</cardid>'.$sCRLF;		
 		$sOP.=$sTab.$sTab.'<description>'.$aOneCard['description'].'</description>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<quantity>'.$aOneCard['quantity'].'</quantity>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<quantity>'.($aOneCard['quantity']==""?"0":$aOneCard['quantity']).'</quantity>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<updated>'.$aOneCard['updated'].'</updated>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<note>'.$aOneCard['note'].'</note>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<ranking>'.$aOneCard['ranking'].'</ranking>'.$sCRLF;

@@ -16,6 +16,9 @@ Card::Card() {
 	backflip = "";
 	ranking = "";
 	rarity = "";
+	position = "";
+	positionid = "";
+	points = "";
 	loaded = false;
 	updated = false;
 }
@@ -36,6 +39,9 @@ Card::~Card() {
 	gamePlayerCardId="";
 	fullDesc = "";
 	note = "";
+	position = "";
+	positionid = "";
+	points = "";
 
 	int size = stats.size();
 	for (int i = 0; i < size; i++) {
@@ -123,6 +129,30 @@ String Card::getId() {
 
 void Card::setId(const char *i) {
 	id = i;
+}
+
+String Card::getPosition() {
+	return position;
+}
+
+void Card::setPosition(const char *p) {
+	position = p;
+}
+
+String Card::getPositionId() {
+	return positionid;
+}
+
+void Card::setPositionId(const char *pi) {
+	positionid = pi;
+}
+
+String Card::getPoints() {
+	return points;
+}
+
+void Card::setPoints(const char *poi) {
+	points = poi;
 }
 
 String Card::getRate() {

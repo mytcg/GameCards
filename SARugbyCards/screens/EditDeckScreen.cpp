@@ -36,6 +36,9 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 	ranking = "";
 	rarity = "";
 	value = "";
+	positionid = "";
+	position = "";
+	points = "";
 	error_msg = "";
 	updated = "";
 	statDisplay = "";
@@ -95,11 +98,11 @@ void EditDeckScreen::refresh() {
 	if(portrait == false){
 		port = 2;
 	}
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 92 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth) + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&decktype=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(),type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -280,9 +283,11 @@ void EditDeckScreen::drawList() {
 		feedlayout->add(label);
 
 		//label = new Label(0,0, feedlayout->getWidth(), 48, feedlayout, "Add Card", 0, Util::getDefaultFont());
-		label = Util::createSubLabel("Add Card");
-		label->setDrawBackground(false);
-		feedlayout->add(label);
+		if(!strcmp(type.c_str(), "1")){
+			label = Util::createSubLabel("Add Card");
+			label->setDrawBackground(false);
+			feedlayout->add(label);
+		}
 		//label->setSkin(Util::getSkinList());
 		//label->setVerticalAlignment(Label::VA_CENTER);
 		//label->setHorizontalAlignment(Label::HA_CENTER);
@@ -296,14 +301,23 @@ void EditDeckScreen::drawList() {
 	String cardText = "";
 	for (int i = 0; i < cards.size(); i++) {
 		String cardText = "";
-		cardText += cards[i]->getText();
-		cardText += " (";
-		cardText += cards[i]->getQuantity();
-		cardText += ")\n";
-		cardText += cards[i]->getRarity();
-		cardText += "\nRating: ";
-		cardText += cards[i]->getRanking();
-
+		if(!strcmp(type.c_str(), "1")){
+			cardText += cards[i]->getText();
+			cardText += " (";
+			cardText += cards[i]->getQuantity();
+			cardText += ")\n";
+			cardText += cards[i]->getRarity();
+			cardText += "\nRating: ";
+			cardText += cards[i]->getRanking();
+		}else if(!strcmp(type.c_str(), "2")){
+			if(strcmp(cards[i]->getText().c_str(),"")){
+				cardText += cards[i]->getText()+"\n";
+			}
+			cardText += "Position: ";
+			cardText += cards[i]->getPosition();
+			cardText += "\nPoints: ";
+			cardText += cards[i]->getPoints();
+		}
 		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 74, kinListBox, 3, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());
 		feedlayout->setDrawBackground(true);
@@ -739,6 +753,12 @@ void EditDeckScreen::mtxTagData(const char* data, int len) {
 		rarity += data;
 	} else if(!strcmp(parentTag.c_str(), "value")) {
 		value = data;
+	} else if(!strcmp(parentTag.c_str(), "positionid")) {
+		positionid = data;
+	} else if(!strcmp(parentTag.c_str(), "position")) {
+		position = data;
+	} else if(!strcmp(parentTag.c_str(), "points")) {
+		points = data;
 	} else if(!strcmp(parentTag.c_str(), "result")) {
 		error_msg = data;
 	} else if(!strcmp(parentTag.c_str(), "updated")) {
@@ -758,6 +778,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		Card *newCard = new Card();
 		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
 		newCard->setStats(stats);
+		newCard->setPositionId(positionid.c_str());
+		newCard->setPosition(position.c_str());
+		newCard->setPoints(points.c_str());
 		newCard->setUpdated(updated == "1");
 		cards.add(newCard);
 		id = "";
@@ -768,6 +791,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		backurl = "";
 		rate = "";
 		value = "";
+		positionid = "";
+		position = "";
+		points = "";
 		rarity = "";
 		ranking = "";
 		frontflipurl = "";
@@ -844,6 +870,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		rarity="";
 		ranking="";
 		value="";
+		positionid = "";
+		position = "";
+		points = "";
 		updated="";
 	}
 }

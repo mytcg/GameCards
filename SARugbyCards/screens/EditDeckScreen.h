@@ -43,7 +43,7 @@ private:
 	Widget* currentSelectedKey;
 
 	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, active, type;
-	String id,description,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, updated;
+	String id,description,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, positionid, position, points, updated;
 	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue;
 	int size, i, moved, listSizes, screenType, currentKeyPosition;
 	bool list, left, right, emp, hasConnection, busy, deleting;
