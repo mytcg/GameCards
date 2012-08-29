@@ -525,7 +525,16 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 							next->show();
 						}
 					} else if(!strcmp(type.c_str(), "2")&&!strcmp(active.c_str(), "1")){
-
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						int cardIndex = kinListBox->getSelectedIndex();
+						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+						((AlbumLoadScreen*)next)->setDeckId(deckId);
+						((AlbumLoadScreen*)next)->setPositionId(cards[cardIndex]->getPositionId());
+						next->show();
 					}
 					break;
 				case MAK_SOFTLEFT:
