@@ -49,6 +49,7 @@ String ImageCacheRequest::getUrl()
 			case 4:
 				return card->getBackFlip();
 			case 6:
+			case 7:
 				return url;
 		}
   return "";
@@ -80,6 +81,7 @@ String ImageCacheRequest::getSaveName()
 				card->setBackFlip((card->getId()+"b_flip.sav").c_str());
 				return (card->getId()+"b_flip.sav");
 			case 6:
+			case 7:
 				return (name+".sav");
 		}
   return "";

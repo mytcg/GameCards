@@ -3,6 +3,7 @@
 
 #include <MAUI/Screen.h>
 #include <MAUI/Image.h>
+#include <MAUI/ListBox.h>
 #include "../utils/Card.h"
 #include "../utils/Feed.h"
 #include "../MAHeaders.h"
@@ -31,16 +32,18 @@ public:
 	void locateItem(MAPoint2d point);
 	String getIdFromImageString(String url);
 private:
+	Widget* currentSelectedKey;
+
+	ListBox *midList;
 	void clearListBox();
 	MAPoint2d pointPressed, pointReleased;
-	MobImage *imge;
 	ImageCache *imageCache;
 	Image *leftArrow, *rightArrow;
 	Widget *softKeys;
 	bool left, right, panLeft, panRight;
-	int itemCount, index, height;
+	int itemCount, index, height, currentKeyPosition;
 
-	Vector<String> tutimages;
+	Vector<MobImage*> tutImages;
 
 	void scrollImage(int move = 1); //1 will move 1 image to the right, -1 will move 1 to the left
 };
