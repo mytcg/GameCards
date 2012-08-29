@@ -753,7 +753,7 @@ void Util::retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *m
 	}
 }
 
-void Util::retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache)
+void Util::retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache, int type)
 {
 	if (mImageCache == NULL) {
 		return;
@@ -773,13 +773,13 @@ void Util::retrieveImage(MobImage *img, String name, String url, int height, Ima
 			returnImage(img, cacheimage, height);
 		}
 		else {
-			req1 = new ImageCacheRequest(img, name, url, height, 6);
+			req1 = new ImageCacheRequest(img, name, url, height, type);
 			mImageCache->request(req1);
 		}
 		cacheimage = -1;
 	}
 	else {
-		req1 = new ImageCacheRequest(img, name, url, height, 6);
+		req1 = new ImageCacheRequest(img, name, url, height, type);
 		mImageCache->request(req1);
 	}
 }
