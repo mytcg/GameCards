@@ -1310,7 +1310,8 @@ function getCardStats($gamePlayerCardId) {
 		ON cs.card_id = c.card_id
 		INNER JOIN mytcg_categorystat cst
 		ON cst.categorystat_id = cs.categorystat_id
-		WHERE gpc.gameplayercard_id = '.$gamePlayerCardId);
+		WHERE gpc.gameplayercard_id = '.$gamePlayerCardId.' 
+		AND cs.selectable = 0');
 	
 	//build xml of the user's card stats
 	$sOP='<cardstats>'.$sCRLF;
