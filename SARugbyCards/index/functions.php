@@ -2044,7 +2044,7 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 	else {
 		echo $sTab.'<result>0</result>'.$sCRLF;
 	}
-	exit;
+	return;
 }
 
 function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product, $root, $iBBHeight=0, $jpg=1, $purchase=1, $iPortrait=1) {
@@ -2755,7 +2755,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
     $sOP='<result>Card no longer in possession</result>'.$sCRLF;
     header('xml_length: '.strlen($sOP));
     echo $sOP;
-    exit;
+    return;
   }
 	
 	//check if the target user exists
@@ -2788,7 +2788,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
 			}
 		header('xml_length: '.strlen($sOP));
 		echo $sOP;
-		exit;
+		return;
 	}
 		
 	myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
@@ -2800,7 +2800,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
   $sOP='<result>Card sending currently not supported.</result>'.$sCRLF;
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
-	exit;
+	return;
 	
   //usercardstatus_id = 4 = Received.
   myqui('UPDATE mytcg_usercard set loaded = 1 where usercard_id = '.$aCheckCard[0]['usercard_id']);
@@ -2830,7 +2830,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
 	$sOP='<result>Card sent successfully</result>'.$sCRLF;
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
-	exit;
+	return;
 }
 function invite($tradeMethod, $receiveNumber, $iUserID, $messageID) {
 	//check if the target user exists
