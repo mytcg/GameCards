@@ -35,6 +35,7 @@ public:
 	void refresh();
 
 	void setDeckId(String deckId);
+	void setPositionId(String positionId);
 	void menuOptionSelected(int index);
 
 	enum screenTypes {ST_ALBUMS, ST_PLAY, ST_GAMES, ST_LOBBY, ST_COMPARE, ST_AUCTION, ST_DECK, ST_FRIENDS};
@@ -45,7 +46,7 @@ private:
 
 	Vector<String> path;
 	String parentTag;
-	String temp,temp1,error_msg,hasCards,updated,categoryId,deckId,friendId;
+	String temp,temp1,error_msg,hasCards,updated,categoryId,deckId,friendId,positionId;
 	int size, i, moved, screenType, xStart, currentKeyPosition;
 	bool list, left, right, mid,listLeft, listRight, empt, hasConnection, isAuction, shown;
 

@@ -3494,7 +3494,11 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 	} else if($iDeckID > -1 && $DeckType == "2"){
 		$aCards=myqu('SELECT p.position_id, p.description as position, IFNULL(dc.points,"0") as points, dc.deckcard_id, dc.usercard_id, cards.*
 					FROM mytcg_position p
-					LEFT OUTER JOIN mytcg_deckcard dc
+					LEFT OUTER JOIN (
+					select points, deckcard_id, usercard_id, position_id, card_id
+					from mytcg_deckcard
+					where deck_id = '.$iDeckID.'
+					) dc 
 					ON p.position_id = dc.position_id
 					LEFT OUTER JOIN (SELECT A.card_id, count(*) quantity, B.image, A.usercard_id,  B.value, 
 					B.description, B.thumbnail_phone_imageserver_id, B.front_phone_imageserver_id, B.back_phone_imageserver_id, B.ranking, D.description quality,
@@ -3518,8 +3522,7 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					WHERE A.user_id='.$iUserID.'  
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id  cards
-					on dc.card_id = cards.card_id
-					where (dc.deck_id = '.$iDeckID.' OR dc.deck_id is null)');
+					on dc.card_id = cards.card_id');
 	} else {
 		if($iFriendID=='0'){
 			$query = 'select count(*) loaded from mytcg_usercard a, mytcg_card b where a.card_id = b.card_id and a.usercardstatus_id = 1 and loaded = 1 and a.user_id = '.$iUserID.' and category_id = '.$iCategory;

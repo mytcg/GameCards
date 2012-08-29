@@ -89,6 +89,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	shown = false;
 	temp1 = "";
 	deckId = "";
+	positionId = "";
 	friendId="0";
 	updated = "0";
 
@@ -714,7 +715,7 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 						break;
 					case ST_DECK:
 						if (val->getHasCards()) {
-							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId);
+							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
 							next->show();
 						}
 						else {
@@ -1108,4 +1109,8 @@ int AlbumLoadScreen::getCount() {
 
 void AlbumLoadScreen::setDeckId(String d) {
 	deckId = d;
+}
+
+void AlbumLoadScreen::setPositionId(String p) {
+	positionId = p;
 }

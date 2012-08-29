@@ -2532,6 +2532,9 @@ if ($_GET['getcategorydecks']){
 if ($_GET['addtodeck']){
 	$iDeckID=$_GET['deck_id'];
 	$iCardID=$_GET['card_id'];
+	if (!($iPositionID=$_GET['position_id'])) {
+		$iPositionID = '';
+	}
 	
 	$cardQuery = myqu('SELECT usercard_id 
 		FROM mytcg_usercard 
@@ -2543,9 +2546,17 @@ if ($_GET['addtodeck']){
 	
 	$iUserCardID = $cardQuery[0]['usercard_id'];
 	
-	myqui('UPDATE mytcg_usercard 
-			SET deck_id = '.$iDeckID.'  
-			WHERE usercard_id = '.$iUserCardID);
+	if($iPositionID!=''){
+		myqui('DELETE FROM mytcg_deckcard 
+				WHERE deck_id = '.$iDeckID.'  
+				AND position_id = '.$iPositionID);
+		myqui('INSERT INTO mytcg_deckcard (usercard_id,card_id,deck_id,position_id)
+				VALUES  ('.$iUserCardID.','.$iCardID.','.$iDeckID.','.$iPositionID.')');
+	}else{
+		myqui('UPDATE mytcg_usercard 
+				SET deck_id = '.$iDeckID.'  
+				WHERE usercard_id = '.$iUserCardID);
+	}
 	
 	$sOP = "<result>Card added to Deck!</result>";
 	header('xml_length: '.strlen($sOP));
