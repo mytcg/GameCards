@@ -313,7 +313,7 @@ void Card::setAll(const char* allch) {
 			}
 
 			setLoaded(true);
-			if ((getText().length() <= 0)||(getQuantity().length() <= 0)) {
+			if (getPosition().length() == 0 && ((getText().length() <= 0)||(getQuantity().length() <= 0))) {
 				setQuantity("");
 				setText("");
 				setLoaded(false);

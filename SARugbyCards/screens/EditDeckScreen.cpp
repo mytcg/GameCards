@@ -776,11 +776,11 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 	if(!strcmp(name, "card")) {
 		//notice->setCaption("");
 		Card *newCard = new Card();
-		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
-		newCard->setStats(stats);
 		newCard->setPositionId(positionid.c_str());
 		newCard->setPosition(position.c_str());
 		newCard->setPoints(points.c_str());
+		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
+		newCard->setStats(stats);
 		newCard->setUpdated(updated == "1");
 		cards.add(newCard);
 		id = "";
