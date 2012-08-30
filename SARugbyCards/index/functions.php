@@ -568,7 +568,8 @@ function resizeTut($iHeight, $iWidth, $iImage, $root) {
 	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
 	
 	//Check and create new resized front image
-	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.$iImage;
+	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.'/'.$iImage;
+	
 	if((!file_exists($filenameResized)) && (file_exists($filename))){
 		$image = new Upload($filename);
 		$image->image_resize = true;
