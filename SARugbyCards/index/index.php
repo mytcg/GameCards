@@ -2006,8 +2006,7 @@ if ($_GET['usercategories']){
 			LEFT OUTER JOIN mytcg_category_x cx
 			ON cx.category_child_id = ca.category_id
 			WHERE LOWER(ucs.description) = LOWER("album")
-			AND uc.user_id = '.$userId.'
-			AND uc.loaded = 1');
+			AND uc.user_id = '.$userId);
 			
 		if ($aLoad[0]['loaded'] == 0) {
 			$sOP = "<result></result>";
@@ -2675,6 +2674,20 @@ if ($_GET['deletedeck']){
 
 if ($_GET['getachis']){
 	$sOP = getAchis($iUserID);
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
+if ($_GET['gettuts']) {
+	if (!($iHeight=$_GET['height'])) {
+		$iHeight = '350';
+	}
+	if (!($iWidth=$_GET['width'])) {
+		$iWidth = '250';
+	}
+
+	$sOP = getTuts($iHeight, $iWidth, $topcar, $root);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;

@@ -378,3 +378,19 @@
 .res RES_ACHIEVEMENTS_THUMB /*95*/
 .ubin
 .image "Achievements_thumb.png"
+
+.res RES_TUTORIALS /*96*/
+.ubin
+.image "Tutorials.png"
+
+.res RES_TUTORIALS_THUMB /*97*/
+.ubin
+.image "Tutorials_thumb.png"
+
+.res RES_LEADERBOARDS /*98*/
+.ubin
+.image "Leaderboard.png"
+
+.res RES_LEADERBOARDS_THUMB /*99*/
+.ubin
+.image "Leaderboard_thumb.png"

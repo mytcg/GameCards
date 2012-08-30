@@ -509,6 +509,125 @@ function resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 	return $iHeight;
 }
 
+function resizeTut($iHeight, $iWidth, $iImage, $root) {
+
+	//we need to check if the width after scaling would be too wide for the screen.
+	$filename = $root.'img/tuts/'.$iImage;
+	if (file_exists($filename)) {
+		$image = new Upload($filename);
+		$ratio = $iHeight / $image->image_src_y;
+		if (($ratio * ($image->image_src_x)) > $iWidth) {
+			$ratio = $iWidth / $image->image_src_x;
+			$iHeight =  intval($ratio * $image->image_src_y);
+		}
+	}
+	else {
+		die('File does not exist -> '.$filename);
+	}
+	
+	//we want a maximum image size, so larger devices dont have to download huge images
+	if ($iHeight > 480) {
+		//for now, max = 480
+		$iHeight = 480;
+	}
+	
+	if ($iWidth > 480) {
+		//for now, max = 480
+		$iWidth = 480;
+	}
+	
+	$iPortrait=1;
+	//portrait, 1=protrait, 2=landscape
+	if ($iWidth > $iHeight) {
+		$iPortrait=2;
+	}
+	
+	$fliprotate='90';
+	$landscape="";
+	if ($iPortrait==2) {
+		$fliprotate='-90';
+		$landscape="/landscape";
+	}
+	
+	//Check directory for resized version
+	chmod($root,0777);
+	$dir = $root.'img/tuts/'.$iHeight;
+	$dir .= $landscape;
+	if (!is_dir($dir)){
+		if (!mkdir($dir, 0777, true)) {
+			die('Failed to create folders -> '.$dir);
+		}
+	}
+	
+	$dir .= "/";
+	
+	$iLandscapeRotateWidth = $iWidth;
+	$iLandscapeRotateHeight = $iHeight*1.40625;
+	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
+	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
+	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
+	
+	//Check and create new resized front image
+	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.'/'.$iImage;
+	
+	if((!file_exists($filenameResized)) && (file_exists($filename))){
+		$image = new Upload($filename);
+		$image->image_resize = true;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight;
+		} else {
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
+		$image->Process($dir);
+	}
+	
+	/*$filename = $root.'img/cards/'.$iImage.'_front'.$ext;
+	$filenameResized = $dir.$iImage.'_front_flip'.$ext;
+	if((!file_exists($filenameResized)) && (file_exists($filename))){
+		$image = new Upload($filename);
+		$image->image_resize = true;
+		$image->file_new_name_body = $iImage.'_front_flip';
+		if ($iBBHeight) {
+			$ratio = $iRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iBBRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iBBRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iRotateWidth;
+			
+			$image->image_rotate = $fliprotate;
+		} else {
+			$ratio = $iRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iRotateWidth;
+			
+			$image->image_rotate = $fliprotate;
+		}
+		$image->Process($dir);
+	}*/
+	
+	return $iHeight.$landscape;
+}
+
 //clears any actions that when limit is up
 function updateAuctions() {
 	//Select details of the auction
@@ -3521,7 +3640,7 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND A.card_id = D.card_id 
 					WHERE A.user_id='.$iUserID.'  
 					AND C.usercardstatus_id=1 	
-					GROUP BY B.card_id  cards
+					GROUP BY B.card_id) cards
 					on dc.card_id = cards.card_id');
 	} else {
 		if($iFriendID=='0'){
@@ -3651,78 +3770,79 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.$sTab.'<ranking>'.$aOneCard['ranking'].'</ranking>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<quality>'.$aOneCard['quality'].'</quality>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<value>'.$aOneCard['value'].'</value>'.$sCRLF;
-		if($aOneCard['position_id']!=null){
+		if($aOneCard['position_id']!=""){
 			$sOP.=$sTab.$sTab.'<positionid>'.$aOneCard['position_id'].'</positionid>'.$sCRLF;
 			$sOP.=$sTab.$sTab.'<position>'.$aOneCard['position'].'</position>'.$sCRLF;
 			$sOP.=$sTab.$sTab.'<points>'.$aOneCard['points'].'</points>'.$sCRLF;
 		}
-		$sFound='';
-		$iCountServer=0;
-		$ids.=(($ids=='')?$aOneCard['card_id']:(','.$aOneCard['card_id']));
+		if($aOneCard['card_id']!=""){
+			$sFound='';
+			$iCountServer=0;
+			$ids.=(($ids=='')?$aOneCard['card_id']:(','.$aOneCard['card_id']));
 		
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['thumbnail_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['thumbnail_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
-		$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
+			
+			//before setting the front and back urls, make sure the card is resized for the height
+			$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
-		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
-		
-		$sFound='';
-		$iCountServer=0;
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['front_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['front_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
-		
-		$dir = '/cards/';
-		if ($iBBHeight) {
-			$dir = '/cardsbb/';
-		}
-		if ($iPortrait==2) {
-			$dir.="landscape/";
-		}
-		
-		$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
+			
+			$dir = '/cards/';
+			if ($iBBHeight) {
+				$dir = '/cardsbb/';
+			}
+			if ($iPortrait==2) {
+				$dir.="landscape/";
+			}
+			
+			$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
 
-		$sFound='';
-		$iCountServer=0;
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['back_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['back_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
     
-		$sOP.=$sTab.$sTab.'<backurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back'.$ext.'</backurl>'.$sCRLF; 
-		$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
+			$sOP.=$sTab.$sTab.'<backurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back'.$ext.'</backurl>'.$sCRLF; 
+			$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
 
-		$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
-		A.left, top, width, height, frontorback, 
-		colour_r, colour_g, colour_b 
-		FROM mytcg_cardstat A, mytcg_categorystat B 
-		WHERE A.categorystat_id = B.categorystat_id 
-		AND A.card_id = '.$aOneCard['card_id']);
+			$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
+			A.left, top, width, height, frontorback, 
+			colour_r, colour_g, colour_b 
+			FROM mytcg_cardstat A, mytcg_categorystat B 
+			WHERE A.categorystat_id = B.categorystat_id 
+			AND A.card_id = '.$aOneCard['card_id']);
 		
-		$iCountStat=0;
-		$sOP.=$sTab.$sTab.'<stats>'.$sCRLF;
-		While ($aOneStat=$aStats[$iCountStat]) {
-			$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
-				left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
-				frontorback="'.$aOneStat['frontorback'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
-			$iCountStat++;
+			$iCountStat=0;
+			$sOP.=$sTab.$sTab.'<stats>'.$sCRLF;
+			While ($aOneStat=$aStats[$iCountStat]) {
+				$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
+					left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
+					frontorback="'.$aOneStat['frontorback'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
+				$iCountStat++;
+			}
+			$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
 		}
-		$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
-		
 		$iCount++;
 		$sOP.=$sTab.'</card>'.$sCRLF;
 	}
@@ -3901,7 +4021,66 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 	return $sOP;
 }
 
+function getTuts($iHeight, $iWidth, $topcar, $root) {
+	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
+		.'FROM mytcg_imageserver b '
+		.'ORDER BY b.description DESC '
+	);
+	
+	$tutQu = ('select t.id, t.description, ti.index, ti.imageserver, ti.image
+		from mytcg_tutorial t, mytcg_tutorialimage ti
+		where ti.tutorial_id = t.id
+		and t.app_id = '.$topcar.'
+		order by t.description, ti.index');
+	
+	$tutQuery = myqu($tutQu);
+	
+	$count = 0;
+	$currentParent = '';
+	
+	$retXml = '<tuts>';
+	while ($aOneTut=$tutQuery[$count]) {
+		$tutId = $aOneTut['id'];
+		
+		if ($tutId != $currentParent) {
+			$currentParent = $tutId;
+		
+			if ($count > 0) {
+				$retXml .= '</tut>';
+			}
+			$retXml .= '<tut>';
+			
+			$retXml .= '<id>'.$aOneTut['id'].'</id>';
+			$retXml .= '<description>'.$aOneTut['description'].'</description>';
+		}
+		
+		$retXml .= '<tutimage>';
+		
+		$sFound='';
+		$iCountServer=0;
+		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+			if ($aOneServer['imageserver_id']==$aOneTut['imageserver']){
+				$sFound=$aOneServer['URL'];
+			} else {
+				$iCountServer++;
+			}
+		}
 
+		$height = resizeTut($iHeight, $iWidth, $aOneTut['image'], $root);
+		
+		$retXml .= '<image>'.$sFound.'tuts/'.$height.'/'.$aOneTut['image'].'</image>';
+		
+		$retXml .= '</tutimage>';
+		
+		$count++;
+	}
+	if ($count > 0) {
+		$retXml .= '</tut>';
+	}
+	$retXml .= '</tuts>';
+	
+	return $retXml;
+}
 
 function getAchis($iUserID) {
 	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '

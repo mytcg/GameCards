@@ -22,6 +22,8 @@ static item menuItems[] =
 	{ RES_SHOP_THUMB, RES_SHOP, OP_SHOP },
 	{ RES_AUCTIONS_THUMB, RES_AUCTIONS, OP_AUCTIONS },
 	{ RES_ACHIEVEMENTS_THUMB, RES_ACHIEVEMENTS, OP_ACHIEVEMENTS },
+	{ RES_LEADERBOARDS_THUMB, RES_LEADERBOARDS, OP_LEADERBOARDS },
+	{ RES_TUTORIALS_THUMB, RES_TUTORIALS, OP_TUTORIALS },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
 	{ RES_CREDITS_THUMB, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE, OP_PROFILE },
@@ -204,6 +206,22 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				next = new ViewAchisScreen(this, feed);
+				next->show();
+			} else if (index == OP_LEADERBOARDS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_RANKING);
+				next->show();
+			} else if (index == OP_TUTORIALS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_TUT);
 				next->show();
 			} else if(index == OP_CREDITS) {
 				if(next!=NULL){
