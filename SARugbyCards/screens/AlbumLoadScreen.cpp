@@ -1032,6 +1032,19 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 							loadCategory();
 						}
 						break;
+					case ST_DECK:
+						if (val->getHasCards()) {
+							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
+							next->show();
+						}
+						else {
+							//if a category has no cards, it means it has sub categories.
+							//it is added to the path so we can back track
+							path.add(val->getId());
+							//then it must be loaded
+							loadCategory();
+						}
+						break;
 					case ST_PLAY:
 						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, val->getId());
 						next->show();
