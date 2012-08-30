@@ -15,6 +15,7 @@ ViewAchisScreen::ViewAchisScreen(MainScreen *previous, Feed *feed) : mHttp(this)
 	lprintfln("ViewAchisScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	size = 0;
 	moved = 0;
+	itemsPerList = 0;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
 	int res = -1;
@@ -87,6 +88,7 @@ ViewAchisScreen::~ViewAchisScreen() {
 	parentTag="";
 	error_msg="";
 	updated="";
+	itemsPerList = 0;
 
 	for (int i = 0; i < achievements.size(); i++) {
 		delete achievements[i];
@@ -198,33 +200,33 @@ void ViewAchisScreen::drawList() {
 	empt = false;
 	listBox->clear();
 	int ind = listBox->getSelectedIndex();
-	int itemsPerList = listBox->getHeight() / ACHI_ITEM_HEIGHT;
+	itemsPerList = listBox->getHeight() / ACHI_ITEM_HEIGHT;
 	Layout *listLayout;
 	if (itemsPerList < achievements.size()) {
 		listLayout = new Layout(0, 0, listBox->getWidth(), listBox->getHeight(), listBox, 3, 1);
 		listLayout->setDrawBackground(false);
 		listLayout->setVerticalAlignment(Layout::VA_CENTER);
 
-		leftArrow = new Image(0, 0, ARROW_WIDTH, listLayout->getHeight(), listLayout, false, false, RES_LEFT_ARROW);
+		leftArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), listLayout, false, false, RES_BIG_LEFT_ARROW);
 		leftArrow->setDrawBackground(false);
 
-		midListBox = new ListBox(0, 0, listLayout->getWidth() - (ARROW_WIDTH*2) - (PADDING*2), listLayout->getHeight(), listLayout, ListBox::LBO_VERTICAL);
+		midListBox = new ListBox(0, 0, listLayout->getWidth() - (BIG_ARROW_WIDTH*2) - (PADDING*2), listLayout->getHeight(), listLayout, ListBox::LBO_VERTICAL);
 		midListBox->setDrawBackground(false);
 
-		rightArrow = new Image(0, 0, ARROW_WIDTH, listLayout->getHeight(), listLayout, false, false, RES_RIGHT_ARROW);
+		rightArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), listLayout, false, false, RES_BIG_RIGHT_ARROW);
 		rightArrow->setDrawBackground(false);
 	} else {
 		listLayout = new Layout(0, 0, listBox->getWidth(), listBox->getHeight(), listBox, 1, 1);
 		listLayout->setDrawBackground(false);
 		listLayout->setVerticalAlignment(Layout::VA_CENTER);
 
-		leftArrow = new Image(0, 0, ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_LEFT_ARROW);
+		leftArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_BIG_LEFT_ARROW);
 		leftArrow->setDrawBackground(false);
 
 		midListBox = new ListBox(0, 0, listLayout->getWidth() - (PADDING*2), listLayout->getHeight(), listLayout, ListBox::LBO_VERTICAL);
 		midListBox->setDrawBackground(false);
 
-		rightArrow = new Image(0, 0, ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_RIGHT_ARROW);
+		rightArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_BIG_RIGHT_ARROW);
 		rightArrow->setDrawBackground(false);
 	}
 	int currentList = -1;
@@ -476,7 +478,7 @@ void ViewAchisScreen::keyPressEvent(int keyCode) {
 					delete next;
 					next = NULL;
 				}
-				next = new AchiDetailsScreen(this, achievements[achiLists[selectedList]->getSelectedIndex()]);
+				next = new AchiDetailsScreen(this, achievements[(itemsPerList*selectedList)+(achiLists[selectedList]->getSelectedIndex())]);
 				next->show();
 			}
 			break;
