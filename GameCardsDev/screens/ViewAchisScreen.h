@@ -44,7 +44,7 @@ private:
 	ListBox *midListBox;
 	Image *leftArrow, *rightArrow;
 
-	int selectedList;
+	int selectedList, itemsPerList;
 	Vector<ListBox *> achiLists;
 	Vector<Achievement *> achievements;
 	Achievement *tempAchi;
