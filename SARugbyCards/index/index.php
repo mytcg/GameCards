@@ -2006,8 +2006,7 @@ if ($_GET['usercategories']){
 			LEFT OUTER JOIN mytcg_category_x cx
 			ON cx.category_child_id = ca.category_id
 			WHERE LOWER(ucs.description) = LOWER("album")
-			AND uc.user_id = '.$userId.'
-			AND uc.loaded = 1');
+			AND uc.user_id = '.$userId);
 			
 		if ($aLoad[0]['loaded'] == 0) {
 			$sOP = "<result></result>";
