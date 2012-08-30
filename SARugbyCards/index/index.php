@@ -2680,6 +2680,20 @@ if ($_GET['getachis']){
 	exit;
 }
 
+if ($_GET['gettuts']) {
+	if (!($iHeight=$_GET['height'])) {
+		$iHeight = '350';
+	}
+	if (!($iWidth=$_GET['width'])) {
+		$iWidth = '250';
+	}
+
+	$sOP = getTuts($iHeight, $iWidth, $topcar, $root);
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
 /** Searches on a string and returns a list of cards belonging to the user */
 if ($searchstring=$_GET['search']) {
 	if (!($iHeight=$_GET['height'])) {
