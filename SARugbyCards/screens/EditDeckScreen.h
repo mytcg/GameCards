@@ -37,6 +37,7 @@ public:
 
 	void refresh();
 private:
+	ListBox *midListBox;
 
 	HttpConnection mHttp;
 	ImageCache *mImageCache;
@@ -45,13 +46,14 @@ private:
 	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, active, type;
 	String id,description,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, positionid, position, points, updated;
 	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue;
-	int size, i, moved, listSizes, screenType, currentKeyPosition;
-	bool list, left, right, emp, hasConnection, busy, deleting;
+	int size, i, moved, listSizes, screenType, currentKeyPosition, cardsPerList, xStart;
+	bool list, left, right, emp, hasConnection, busy, deleting, listLeft, listRight;
 
 	Card *card;
 	Vector<Card *> cards;
 	Vector<Stat*> stats;
 	Stat *stat;
+	Image *leftArrow, *rightArrow;
 	MobImage *tempImage;
 
 	void httpFinished(MAUtil::HttpConnection*, int);
@@ -73,6 +75,11 @@ private:
 
 	void drawList();
 	void drawConfirm();
+
+	int selectedList;
+	Vector<ListBox *> cardLists;
+
+	void switchList(int nextOrPrev);
 };
 
 #endif	//_EDITDECKSCREEN_H_*/

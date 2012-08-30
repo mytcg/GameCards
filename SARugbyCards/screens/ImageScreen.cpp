@@ -90,9 +90,13 @@ void ImageScreen::pointerReleaseEvent(MAPoint2d point)
 	}
 	if (card != NULL) {
 		if (list) {
+			Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 			if(Util::absoluteValue(pointPressed.x-pointReleased.x) >imge->getWidth()/100*15||
 			Util::absoluteValue(pointPressed.x-pointReleased.x) > 45){
 				flipOrSelect = 1;
+				if(((Button *)currentSoftKeys->getChildren()[1])->isSelectable()){
+					currentSoftKeys->getChildren()[1]->setSelected(true);
+				}
 			}else{
 				flipOrSelect = 0;
 				bool gotstat = false;
@@ -107,11 +111,30 @@ void ImageScreen::pointerReleaseEvent(MAPoint2d point)
 				}
 				if (!gotstat) {
 					currentSelectedStat = -1;
-					Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
-					if(((Button *)currentSoftKeys->getChildren()[11])->isSelectable()){
-						currentSoftKeys->getChildren()[1]->setSelected(true);
-					}
 					flipOrSelect = tapped?1:0;
+					if(flipOrSelect&&((Button *)currentSoftKeys->getChildren()[1])->isSelectable()){
+						currentSoftKeys->getChildren()[1]->setSelected(true);
+					}else{
+						if(((Button *)currentSoftKeys->getChildren()[0])->isSelectable()){
+							currentSoftKeys->getChildren()[0]->setSelected(false);
+						}
+						if(((Button *)currentSoftKeys->getChildren()[1])->isSelectable()){
+							currentSoftKeys->getChildren()[1]->setSelected(false);
+						}
+						if(((Button *)currentSoftKeys->getChildren()[2])->isSelectable()){
+							currentSoftKeys->getChildren()[2]->setSelected(false);
+						}
+					}
+				}else{
+					if(((Button *)currentSoftKeys->getChildren()[0])->isSelectable()){
+						currentSoftKeys->getChildren()[0]->setSelected(false);
+					}
+					if(((Button *)currentSoftKeys->getChildren()[1])->isSelectable()){
+						currentSoftKeys->getChildren()[1]->setSelected(false);
+					}
+					if(((Button *)currentSoftKeys->getChildren()[2])->isSelectable()){
+						currentSoftKeys->getChildren()[2]->setSelected(false);
+					}
 				}
 			}
 			tapped = true;
@@ -478,7 +501,6 @@ void ImageScreen::keyPressEvent(int keyCode) {
 			if(currentSoftKeys->getChildren()[0]->isSelected()){
 				keyPressEvent(MAK_SOFTLEFT);
 			}else if(currentSoftKeys->getChildren()[1]->isSelected()){
-				if(((flipOrSelect && tapped)) || (!tapped)){
 					flip=!flip;
 					if (screenType != ST_DECK && screenType != ST_DECK_REMOVE) {
 						currentSelectedKey = NULL;
@@ -517,7 +539,6 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					flipOrSelect=0;
 					currentSelectedStat = -1;
 					tapped = false;
-				}
 			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
 				keyPressEvent(MAK_SOFTRIGHT);
 			}
