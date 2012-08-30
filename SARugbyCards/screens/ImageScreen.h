@@ -48,7 +48,7 @@ private:
 	Widget* currentSelectedKey;
 	int height, screenType, flipOrSelect, currentSelectedStat, currentKeyPosition;
 	bool flip, busy, tapped;
-	bool left, right, list, hasConnection, canAuction;
+	bool left, right, list, hasConnection, canAuction, selecatablestats;
 	String parentTag;
 
 	HttpConnection mHttp;

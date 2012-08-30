@@ -22,6 +22,12 @@ ImageScreen::ImageScreen(MainScreen *previous, MAHandle img, Feed *feed, bool fl
 	imageCacheBack = new ImageCache();
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
+	selecatablestats = false;
+	for(int i = 0; i < card->getStats().size();i++){
+		if(card->getStats()[i]->getSelectable()){
+			selecatablestats = true;
+		}
+	}
 
 	if (card != NULL) {
 		if (screenType == ST_NEW_CARD) {
@@ -423,7 +429,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 			}
 			break;
 		case MAK_DOWN:
-			if(card->getStats().size()>0 && currentSelectedStat < card->getStats().size()-1 && portrait){
+			if(selecatablestats && card->getStats().size()>0 && currentSelectedStat < card->getStats().size()-1 && portrait){
 				if (imge->getResource() != RES_TEMP) {
 					selectStat(1);
 					if (currentSelectedStat == -1) {
@@ -637,11 +643,11 @@ void ImageScreen::selectStat(int upOrDown) {
 	}
 
 	while (card->getStats().size() > loops &&
-			card->getStats()[currentSelectedStat]->getHeight() == 0 &&
-			card->getStats()[currentSelectedStat]->getWidth() == 0) {
+			(card->getStats()[currentSelectedStat]->getHeight() == 0 ||
+			card->getStats()[currentSelectedStat]->getWidth() == 0 || !card->getStats()[currentSelectedStat]->getSelectable())) {
 		loops++;
 		currentSelectedStat += upOrDown;
-		if (currentSelectedStat == -1) {
+		if (currentSelectedStat == -1 || currentSelectedStat ==card->getStats().size()-1) {
 			return;
 		}
 		else if (currentSelectedStat >= card->getStats().size()) {
