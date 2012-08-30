@@ -25,18 +25,18 @@ TutorialScreen::TutorialScreen(MainScreen *previous, Vector<String> tutUrls) {
 	subLayout->setPaddingRight(PADDING);
 	subLayout->setDrawBackground(false);
 
-	leftArrow = new Image(0, 0, ARROW_WIDTH, subLayout->getHeight(), subLayout, false, false, RES_UNSELECT_ICON);
+	leftArrow = new Image(0, 0, BIG_ARROW_WIDTH, subLayout->getHeight(), subLayout, false, false, RES_UNSELECT_ICON);
 	leftArrow->setDrawBackground(false);
 
-	midList = new ListBox(0, 0, scrWidth - (ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), subLayout);
+	midList = new ListBox(0, 0, scrWidth - (BIG_ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), subLayout);
 	midList->setDrawBackground(false);
 
-	rightArrow = new Image(0, 0, ARROW_WIDTH, subLayout->getHeight(), subLayout, false, false, RES_RIGHT_ARROW);
+	rightArrow = new Image(0, 0, BIG_ARROW_WIDTH, subLayout->getHeight(), subLayout, false, false, RES_BIG_RIGHT_ARROW);
 	rightArrow->setDrawBackground(false);
 
 	MobImage *tempImage;
 	for(int i = 0; i < itemCount; i++){
-		tempImage = new MobImage(0, 0, scrWidth - (ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), NULL);
+		tempImage = new MobImage(0, 0, scrWidth - (BIG_ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), NULL);
 		tempImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1));
 		tempImage->setDrawBackground(false);
 
@@ -205,14 +205,14 @@ void TutorialScreen::scrollImage(int move) {
 			leftArrow->setResource(RES_UNSELECT_ICON);
 		}
 		else {
-			leftArrow->setResource(RES_LEFT_ARROW);
+			leftArrow->setResource(RES_BIG_LEFT_ARROW);
 		}
 
 		if (index == itemCount-1) {
 			rightArrow->setResource(RES_UNSELECT_ICON);
 		}
 		else {
-			rightArrow->setResource(RES_RIGHT_ARROW);
+			rightArrow->setResource(RES_BIG_RIGHT_ARROW);
 		}
 
 		int capLength = 6 + Util::intlen(index+1) + Util::intlen(itemCount);

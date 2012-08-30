@@ -310,43 +310,31 @@ void EditDeckScreen::switchList(int nextOrPrev) {
 void EditDeckScreen::clearListBox() {
 	Vector<Widget*> tempWidgets;
 
-	lprintfln("clearListBox 1");
 	if (!emp) {
-		lprintfln("clearListBox 1.1");
 		midListBox->clear();
-		lprintfln("clearListBox 1.11");
 		for (int i = 0; i < cardLists.size(); i++) {
 			tempWidgets.add(cardLists[i]);
 		}
-		lprintfln("clearListBox 1.12");
 		cardLists.clear();
-		lprintfln("clearListBox 1.13");
 		for (int i = 0; i < listBox->getChildren().size(); i++) {
 			tempWidgets.add(listBox->getChildren()[i]);
 		}
-		lprintfln("clearListBox 1.14");
 		listBox->clear();
 		listBox->getChildren().clear();
 	}
 	else {
-		lprintfln("clearListBox 1.2");
 		for (int i = 0; i < listBox->getChildren().size(); i++) {
 			tempWidgets.add(listBox->getChildren()[i]);
 		}
-		lprintfln("clearListBox 1.21");
 		listBox->clear();
 		listBox->getChildren().clear();
-		lprintfln("clearListBox 1.22");
 	}
 
-	lprintfln("clearListBox 2");
 	for (int j = 0; j < tempWidgets.size(); j++) {
 		delete tempWidgets[j];
 		tempWidgets[j] = NULL;
 	}
-	lprintfln("clearListBox 3");
 	tempWidgets.clear();
-	lprintfln("clearListBox 4");
 }
 
 void EditDeckScreen::drawList() {
@@ -400,8 +388,6 @@ void EditDeckScreen::drawList() {
 		rightArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_BIG_RIGHT_ARROW);
 		rightArrow->setDrawBackground(false);
 	}
-
-	//begin paste
 
 	int currentList = -1;
 	ListBox *tempList = NULL;
@@ -501,8 +487,6 @@ void EditDeckScreen::drawList() {
 	memset(cap,'\0',capLength+1);
 	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
-
-	//end paste
 
 	if (currentSelectedKey!=NULL) {
 		currentSelectedKey->setSelected(false);
