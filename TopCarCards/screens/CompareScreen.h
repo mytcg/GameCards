@@ -37,6 +37,7 @@ private:
 	MobImage *imge, *cmpge;
 	ImageCache *imageCache;
 	Widget* currentSelectedKey;
+	Layout *subLayout;
 	int height, flipOrSelect, currentSelectedStat, currentKeyPosition;
 
 	bool flip, busy;

@@ -14,7 +14,7 @@ using namespace MAUtil;
 
 class ShopCategoriesScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener {
 public:
-	ShopCategoriesScreen(MainScreen *previous, Feed *feed, int screenType);
+	ShopCategoriesScreen(MainScreen *previous, Feed *feed, int screenType, String categoryId="0");
 	~ShopCategoriesScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
@@ -33,13 +33,14 @@ private:
 	Widget* currentSelectedKey;
 	HttpConnection mHttp;
 
-	String parentTag;
-	String temp,temp1,error_msg;
+	String parentTag, categoryId;
+	String temp,temp1,temp2,temp3,error_msg;
 	int i, moved, screenType, currentKeyPosition;
-	bool list, left, right, empt;
+	bool list, left, right, empt, busy;
 
 	HashMap<String,String> categories;
 	Vector<String> category;
+	HashMap<String,String> categorychildren;
 
 	void httpFinished(MAUtil::HttpConnection*, int);
 	void connReadFinished(Connection*, int);

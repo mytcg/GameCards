@@ -9,8 +9,10 @@
 #include "../UI/Button.h"
 
 void ShopCategoriesScreen::refresh() {
+	busy = true;
 	show();
 	categories.clear();
+	categorychildren.clear();
 	category.clear();
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -34,8 +36,10 @@ void ShopCategoriesScreen::refresh() {
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_AUCTIONS:
+			url = new char[urlLength+14+categoryId.length()];
+			memset(url,'\0',urlLength+14+categoryId.length());
 			notice->setCaption("Checking for auction categories...");
-			sprintf(url, "%s?auctioncategories=1", URL);
+			sprintf(url, "%s?auctioncategories2=1&categoryId=%s", URL, categoryId.c_str());
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
@@ -43,7 +47,7 @@ void ShopCategoriesScreen::refresh() {
 	delete [] url;
 	url = NULL;
 	if(res < 0) {
-
+		busy = false;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -52,7 +56,7 @@ void ShopCategoriesScreen::refresh() {
 	}
 }
 
-ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int screenType) : mHttp(this), screenType(screenType) {
+ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int screenType, String catId) : mHttp(this), screenType(screenType), categoryId(catId) {
 
 	lprintfln("ShopCategoriesScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
@@ -61,6 +65,8 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	label = NULL;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
+	busy = true;
+	temp2="";
 	if (screenType == ST_FREEBIE) {
 		mainLayout = Util::createMainLayout("", "", true);
 	} else {
@@ -92,8 +98,10 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_AUCTIONS:
+			url = new char[urlLength+14+categoryId.length()];
+			memset(url,'\0',urlLength+14+categoryId.length());
 			notice->setCaption("Checking for auction categories...");
-			sprintf(url, "%s?auctioncategories=1", URL);
+			sprintf(url, "%s?auctioncategories2=1&categoryId=%s", URL, categoryId.c_str());
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
@@ -110,6 +118,7 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	if(res < 0) {
 		drawList();
 		notice->setCaption("Unable to connect, try again later...");
+		busy = false;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -135,6 +144,8 @@ ShopCategoriesScreen::~ShopCategoriesScreen() {
 	parentTag="";
 	temp="";
 	temp1="";
+	temp2="";
+	temp3="";
 	error_msg="";
 }
 void ShopCategoriesScreen::clearListBox() {
@@ -151,6 +162,7 @@ void ShopCategoriesScreen::clearListBox() {
 	}
 	tempWidgets.clear();
 }
+
 void ShopCategoriesScreen::pointerPressEvent(MAPoint2d point)
 {
     locateItem(point);
@@ -210,7 +222,7 @@ void ShopCategoriesScreen::drawList() {
 	empt = false;
 	kinListBox->getChildren().clear();
 
-	if (screenType == ST_AUCTIONS)
+	if (screenType == ST_AUCTIONS && !strcmp(categoryId.c_str(),"0"))
 	{
 		label = Util::createSubLabel("Create New Auction");
 		label->addWidgetListener(this);
@@ -221,6 +233,12 @@ void ShopCategoriesScreen::drawList() {
 		label = Util::createSubLabel(itr->c_str());
 		label->addWidgetListener(this);
 		kinListBox->add(label);
+	}
+
+	if(currentSelectedKey!=NULL){
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
 	}
 
 	if (categories.size() > 1) {
@@ -261,16 +279,20 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
-			} else if (ind > 0) {
+				if (!busy) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
+			} else if (!busy && ind > 0) {
 				kinListBox->setSelectedIndex(ind-1);
 			}
 			break;
 		case MAK_DOWN:
-			if (ind+1 < kinListBox->getChildren().size()) {
-				kinListBox->setSelectedIndex(ind+1);
-			} else {
-				kinListBox->getChildren()[ind]->setSelected(false);
+			if (!busy && ind+1 < kinListBox->getChildren().size()) {
+				kinListBox->selectNextItem();
+			} else if(currentSelectedKey==NULL) {
+				if(kinListBox->getChildren().size() > 0){
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -382,12 +404,18 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 								feed->remHttp();
 								next = NULL;
 							}
-							orig = this;
-							String selectedCaption = ((Label*)kinListBox->getChildren()[i])->getCaption();
-							String category = categories.find(selectedCaption)->second.c_str();
 
-							next = new AuctionListScreen(this, feed, AuctionListScreen::ST_CATEGORY, category);
-							next->show();
+							String category = categories.find(selectedCaption)->second.c_str();
+							String catchildren = categorychildren.find(selectedCaption)->second.c_str();
+							if(!strcmp(catchildren.c_str(),"0")){
+								orig = this;
+								String selectedCaption = ((Label*)kinListBox->getChildren()[i])->getCaption();
+								next = new AuctionListScreen(this, feed, AuctionListScreen::ST_CATEGORY, category);
+								next->show();
+							}else{
+								next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS,category);
+								next->show();
+							}
 						}
 
 					break;
@@ -437,6 +465,7 @@ void ShopCategoriesScreen::httpFinished(MAUtil::HttpConnection* http, int result
 		feed->remHttp();
 		drawList();
 		notice->setCaption("Unable to connect, try again later...");
+		busy = false;
 	}
 }
 
@@ -465,8 +494,12 @@ void ShopCategoriesScreen::mtxTagData(const char* data, int len) {
 	if (!strcmp(parentTag.c_str(), "cardcategories")) {
 		categories.clear();
 		category.clear();
+		categorychildren.clear();
+	} else if(!strcmp(parentTag.c_str(), "children")) {
+		temp2 = data;
 	} else if(!strcmp(parentTag.c_str(), "albumname")) {
 		temp1 = data;
+		temp3 = data;
 	} else if(!strcmp(parentTag.c_str(), "albumid")) {
 		temp = data;
 	} else if(!strcmp(parentTag.c_str(), "error")) {
@@ -478,15 +511,20 @@ void ShopCategoriesScreen::mtxTagEnd(const char* name, int len) {
 	if(!strcmp(name, "albumname")) {
 		categories.insert(temp1, temp);
 		category.add(temp1);
+		categorychildren.insert(temp3, temp2);
 		temp1 = "";
 		temp = "";
+		temp2 = "";
+		temp3 = "";
 	} else if (!strcmp(name, "cardcategories")) {
 		notice->setCaption("Choose a category.");
 		drawList();
 	} else if(!strcmp(name, "error")) {
 		notice->setCaption(error_msg.c_str());
+		busy = false;
 	} else {
 		notice->setCaption("");
+		busy = false;
 	}
 }
 

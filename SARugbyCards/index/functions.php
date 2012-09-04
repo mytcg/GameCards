@@ -4245,6 +4245,19 @@ function getAchis($iUserID) {
 	return $retXml;
 }
 
+function checkAllUserAchis () {
+	$userQu = myqu('SELECT user_id FROM mytcg_user');
+	$achiTypeQu = myqu('SELECT id FROM mytcg_achievementtype');
+	
+	for ($i = 0; $i < sizeof($userQu); $i++) {
+		for ($j = 0; $j < sizeof($achiTypeQu); $j++) {
+			$user = $userQu[$i];
+			$achi = $achiTypeQu[$j];
+			checkAchis($user['user_id'], $achi['id']);
+		}
+	}
+}
+
 function checkAchis($iUserID, $iAchiTypeId) {
 	$achiQu = ('SELECT ual.id, ual.progress, al.target, a.calc_id, a.reset, a.query, a.name 
 		FROM mytcg_userachievementlevel ual

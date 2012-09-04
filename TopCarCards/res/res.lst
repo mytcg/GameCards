@@ -402,3 +402,11 @@
 .res RES_POPUP_HEADER /*101*/
 .ubin 
 .image "popup_header.png"
+
+.res RES_ACHIEVEMENTS /*102*/
+.ubin
+.image "Achievements.png"
+
+.res RES_ACHIEVEMENTS_THUMB  /*103*/
+.ubin
+.image "Achievements_thumb.png"

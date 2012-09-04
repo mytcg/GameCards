@@ -40,6 +40,7 @@ private:
 	ImageCache *imageCacheUser, *imageCacheOpp;
 	MobImage *userImage, *oppImage;
 	Layout **feedLayouts;
+	Layout *subLayout;
 	Widget *widImage, *widNotice, *currentSelectedKey;
 
 	MAUtil::HttpConnection* tempHttp;

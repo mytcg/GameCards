@@ -45,6 +45,12 @@ if ($_GET['addCreditsSMS']) {
 	addCreditsSMS($user_id);
 	exit;
 }
+
+if ($_GET['runAllUserAchis']) {
+	checkAllUserAchis();
+	exit;
+}
+
 if ($iUserID = $_GET['test']) {
 			
 }

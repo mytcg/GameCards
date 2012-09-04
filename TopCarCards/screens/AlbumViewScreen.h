@@ -25,6 +25,7 @@ public:
 	void show();
 	void hide();
 	int getCount();
+	void addCard();
 	void Add(const char* id, const char* name);
 	String *Retrieve(int id);
 	void drawList();
