@@ -202,6 +202,30 @@ if ($iUserID == 0){
 		
 	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now() WHERE user_id = '.$iUserID);
 }
+/** stalk user actions*/
+if(count($_GET)>0){
+	$pName[1]='NULL';
+	$pValue[1]='NULL';
+	$pName[2]='NULL';
+	$pValue[2]='NULL';
+	$pName[3]='NULL';
+	$pValue[3]='NULL';
+	$pName[4]='NULL';
+	$pValue[4]='NULL';
+	$pName[5]='NULL';
+	$pValue[5]='NULL';
+	$pName[6]='NULL';
+	$pValue[6]='NULL';
+	$count = 1;
+	foreach ($_GET as $key => $value) { 
+		$pName[$count]='"'.mysql_escape_string($key).'"';
+		$pValue[$count]='"'.mysql_escape_string($value).'"';
+		$count++;
+	}
+	$sql = 'INSERT INTO tcg_stalker (user_id, parameter_name_1, parameter_value_1, parameter_name_2, parameter_value_2, parameter_name_3, parameter_value_3, parameter_name_4, parameter_value_4, parameter_name_5, parameter_value_5, parameter_name_6, parameter_value_6)
+			VALUES ('.$iUserID.','.$pName[1].','.$pValue[1].','.$pName[2].','.$pValue[2].','.$pName[3].','.$pValue[3].','.$pName[4].','.$pValue[4].','.$pName[5].','.$pValue[5].','.$pName[6].','.$pValue[6].')';
+	myqu($sql);
+}
 
 if ($iTestVersion=$_GET['update']){
   
