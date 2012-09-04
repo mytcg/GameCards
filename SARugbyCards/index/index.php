@@ -53,6 +53,9 @@ function addCreditsSMS($iUserID,$amount=350){
   if(intval($iUserID) > 0){
     $sql = "UPDATE mytcg_user SET premium = IFNULL(premium,0) + ".$amount." WHERE user_id = ".$iUserID;
     myqu($sql);
+	myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
     $sql = "INSERT INTO mytcg_transactionlog (user_id, description, date,
 val, transactionlogtype_id) VALUES (".$iUserID.", 'Purchased ".$amount." credits via SMS', NOW(),".$amount.", 2)";
     myqu($sql);
@@ -193,10 +196,12 @@ if ($iUserID == 0){
 				FROM mytcg_transactiondescription
 				WHERE transactionid = 1');
 		myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
-				VALUES(".$userID.", NULL, NULL, NULL, 
-				now(), 'Recieved 20 credits for logging in today', 20, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$userID."), 16,20,0)");		
+				VALUES(".$iUserID.", NULL, NULL, NULL, 
+				now(), 'Recieved 20 credits for logging in today', 20, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 16,20,0)");		
 		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+20) WHERE user_id = '.$iUserID);
-			
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+				SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+				FROM mytcg_user WHERE user_id=".$iUserID);
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
 			VALUES ('.$iUserID.', "Recieved 20 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
 	}
@@ -204,6 +209,9 @@ if ($iUserID == 0){
 	checkAchis($iUserID, 3);
 		
 	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now() WHERE user_id = '.$iUserID);
+	myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
 }
 
 if ($iTestVersion=$_GET['update']){
@@ -256,7 +264,9 @@ if ($iTestVersion=$_GET['update']){
 	if ($iUpdate['dif'] >= 1) {
 	
 		myqui('UPDATE mytcg_user SET version_check_date=now(), apps_id = (select apps_id from mytcg_apps where apps_key = "'.$appkey.'") WHERE user_id = '.$iUserID);
-		
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
 		$aVersion=myqu(
 			'SELECT v.url FROM mytcg_version v, mytcg_apps a '
 			.'WHERE v.os="'.$iOs.'" '
