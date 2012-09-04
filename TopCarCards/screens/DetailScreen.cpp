@@ -136,6 +136,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 
 	if (screenType == PROFILE) {
 
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -157,6 +158,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == BALANCE) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -179,28 +181,30 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == RANKING) {
-			int urlLength = 100 + URLSIZE;
-			char *url = new char[urlLength+1];
-			memset(url,'\0',urlLength+1);
-			sprintf(url, "%s?leaderboard=%s", URL, category.c_str());
-			lprintfln("%s", url);
-			int res = mHttp.create(url, HTTP_GET);
+		busy = true;
+		int urlLength = 100 + URLSIZE;
+		char *url = new char[urlLength+1];
+		memset(url,'\0',urlLength+1);
+		sprintf(url, "%s?leaderboard=%s", URL, category.c_str());
+		lprintfln("%s", url);
+		int res = mHttp.create(url, HTTP_GET);
 
-			if(res < 0) {
+		if(res < 0) {
+			busy = false;
+		} else {
+			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
+			label->setCaption("Checking for latest rankings...");
 
-			} else {
-				label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
-				label->setCaption("Checking for latest rankings...");
+			mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
+			mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
+			feed->addHttp();
+			mHttp.finish();
 
-				mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
-				mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
-				feed->addHttp();
-				mHttp.finish();
-
-			}
-			delete [] url;
-			url = NULL;
+		}
+		delete [] url;
+		url = NULL;
 	} else if (screenType == FRIEND) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -209,7 +213,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {
-
+			busy = false;
 		} else {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("Checking for latest rankings...");
@@ -223,6 +227,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == NOTIFICATIONS) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -231,7 +236,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {
-
+			busy = false;
 		} else {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("Updating notifications...");
@@ -246,6 +251,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == FRIENDS) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -254,7 +260,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {
-
+			busy = false;
 		} else {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("Getting friends list...");
@@ -508,15 +514,17 @@ void DetailScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
-			} else if ((screenType == PROFILE)||(screenType == RANKING)||(screenType == FRIEND)) {
+				if (!busy) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
+			} else if (!busy && ((screenType == PROFILE)||(screenType == RANKING)||(screenType == FRIEND))) {
 				if (ind == 0) {
 					kinListBox->setSelectedIndex(max-1);
 				} else {
 					kinListBox->selectPreviousItem();
 					kinListBox->selectPreviousItem();
 				}
-			} else {
+			} else if (!busy) {
 				if (ind == 0) {
 					kinListBox->setSelectedIndex(max-1);
 				} else {
@@ -526,7 +534,9 @@ void DetailScreen::keyPressEvent(int keyCode) {
 			break;
 		case MAK_DOWN:
 			if (ind == max-1 && currentSelectedKey==NULL) {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				if(kinListBox->getChildren().size()>0){
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -535,7 +545,7 @@ void DetailScreen::keyPressEvent(int keyCode) {
 						break;
 					}
 				}
-			} else if ((ind == 0)&&(screenType != CARD)) {
+			} else if (!busy && (ind == 0) && (screenType != CARD)) {
 				if ((screenType == FRIENDS)||(screenType == NOTIFICATIONS)) {
 					kinListBox->setSelectedIndex(1);
 				} else if ((screenType == RANKING)||(screenType == FRIEND)) {
@@ -543,7 +553,7 @@ void DetailScreen::keyPressEvent(int keyCode) {
 				} else {
 					kinListBox->setSelectedIndex(3);
 				}
-			} else {
+			} else if (!busy) {
 				kinListBox->selectNextItem();
 				if ((screenType == PROFILE)||(screenType == RANKING)||(screenType == FRIEND)) {
 					kinListBox->selectNextItem();
@@ -663,6 +673,7 @@ void DetailScreen::httpFinished(MAUtil::HttpConnection* http, int result) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	}
 }
 
@@ -720,6 +731,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 		label->setCaption("");
 		isBusy = false;
+		busy = false;
 	} else if(!strcmp(name, "premium")) {
 		feed->setCredits(cred.c_str());
 		feed->setPremium(prem.c_str());
@@ -728,6 +740,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		premiumLabel->setCaption(prem.c_str());
 		cred = "0";
 		prem = "0";
+		busy = false;
 	} else if(!strcmp(name, "transactions")) {
 		if (count == 0) {
 			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "No transactions yet.", 0, Util::getDefaultFont());
@@ -743,6 +756,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		kinListBox->setSelectedIndex(3);
 		label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 		label->setCaption("");
+		busy = false;
 	} else if(!strcmp(name, "transaction")) {
 		count++;
 
@@ -803,10 +817,12 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 
 		kinListBox->setSelectedIndex(1);
 
+		busy = false;
 	} else if(!strcmp(name, "error")) {
 		if (label != NULL) {
 			label->setCaption(error_msg.c_str());
 		}
+		busy = false;
 	} else if(!strcmp(name, "notifications")) {
 		if (count == 0) {
 			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "No notifications yet.", 0, Util::getDefaultFont());
@@ -827,6 +843,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	} else if(!strcmp(name, "note")) {
 		count++;
 
@@ -872,6 +889,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			usr="";
 			val="";
 		}
+		busy = false;
 	} else if(!strcmp(name, "friend")) {
 
 		count++;
@@ -913,6 +931,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	} else {
 		if (screenType == PROFILE) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
@@ -934,6 +953,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	}
 }
 

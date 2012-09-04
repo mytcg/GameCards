@@ -546,10 +546,16 @@ void ShopDetailsScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
+				kinListBox->getChildren()[max-1]->setSelected(true);
+			}else{
+				kinListBox->selectPreviousItem();
 			}
 			break;
 		case MAK_DOWN:
-			if(currentSelectedKey==NULL){
+			if(ind+1<max){
+				kinListBox->selectNextItem();
+			}else if(currentSelectedKey==NULL){
+				kinListBox->getChildren()[ind]->setSelected(false);
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -765,7 +771,8 @@ void ShopDetailsScreen::buyNow()
 void ShopDetailsScreen::drawPostBid(String message)
 {
 	String bid = editBidBox->getCaption();
-
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	if (mainLayout == NULL) {
 		mainLayout = Util::createMainLayout("", "Back", true);
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
@@ -862,7 +869,8 @@ void ShopDetailsScreen::drawPostBid(String message)
 }
 void ShopDetailsScreen::drawBuyNow()
 {
-
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	if (mainLayout == NULL) {
 		mainLayout = Util::createMainLayout("Confirm", "Back", true);
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
@@ -942,7 +950,7 @@ void ShopDetailsScreen::drawBuyNow(bool success)
 {
 	if (success)
 	{
-		next = new ImageScreen(previous, Util::loadImageFromResource(RES_LOADING1), feed, false, auction->getCard());
+		next = new ImageScreen(previous, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, auction->getCard());
 		((ImageScreen *)next)->isAuction = true;
 		next->show();
 		auction = NULL;

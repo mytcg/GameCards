@@ -54,6 +54,7 @@ class Util
 		static void retrieveBack(MobImage *img, Card *card, int height, ImageCache *mImageCache);
 		static void retrieveFrontFlip(MobImage *img, Card *card, int height, ImageCache *mImageCache);
 		static void retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *mImageCache);
+		static void retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache, int type=6);
 		static void returnImage(MobImage *img, MAHandle i, int height);
 		static int intlen(float start);
 		static int absoluteValue(int num);
@@ -62,6 +63,7 @@ class Util
 		static int getSoftKeyBarHeight();
 		static int getMaxImageHeight();
 		static int getMaxImageWidth();
+		static int getAppHeight();
 		static String base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
 		static String base64_decode(String encoded_string);
 		static inline bool is_base64(unsigned char c);
@@ -93,12 +95,14 @@ class Util
 		static WidgetSkin* getIconListBack();
 		static WidgetSkin* getIconSelect();
 
+
 	private:
 
 };
 
 extern int scrWidth;
 extern int scrHeight;
+extern bool portrait;
 extern MainScreen *orig;
 extern MainScreen *origAlbum;
 extern MainScreen *origMenu;

@@ -2,19 +2,25 @@
 
 #include "TutorialScreen.h"
 #include "../utils/Util.h"
+#include "../UI/Button.h"
 
-TutorialScreen::TutorialScreen(MainScreen *previous, tutItem *items, int itemCount) :tutItems(items), itemCount(itemCount) {
+TutorialScreen::TutorialScreen(MainScreen *previous, Vector<String> tutUrls) {
 	lprintfln("TutorialScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
-	index = 0;
 
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
+
+	index = 0;
+	itemCount = tutUrls.size();
+	imageCache = new ImageCache();
 	mainLayout = new Layout(0, 0, scrWidth, scrHeight, NULL, 1, 2);
 	mainLayout->setSkin(Util::getSkinBack());
 	mainLayout->setDrawBackground(true);
 
-	Widget *softKeys = Util::createSoftKeyBar(Util::getSoftKeyBarHeight(), "", "", "");
-
-	Layout *subLayout = new Layout(0, 0, scrWidth, scrHeight-(softKeys->getHeight()), mainLayout, 3, 1);
+	softKeys = Util::createSoftKeyBar(Util::getSoftKeyBarHeight(), "", "Back", "");
+	height = softKeys->getHeight();
+	Layout *subLayout = new Layout(0, 0, scrWidth, scrHeight-height, mainLayout, 3, 1);
 	subLayout->setPaddingLeft(PADDING);
 	subLayout->setPaddingRight(PADDING);
 	subLayout->setDrawBackground(false);
@@ -22,30 +28,70 @@ TutorialScreen::TutorialScreen(MainScreen *previous, tutItem *items, int itemCou
 	leftArrow = new Image(0, 0, ARROW_WIDTH, subLayout->getHeight(), subLayout, false, false, RES_UNSELECT_ICON);
 	leftArrow->setDrawBackground(false);
 
-	imge = new TransitionImage(0, 0, scrWidth - (ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), subLayout, false, false, NULL);
-	imge->setDrawBackground(false);
-	imge->setResource(tutItems[0].image);
+	midList = new ListBox(0, 0, scrWidth - (ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), subLayout);
+	midList->setDrawBackground(false);
 
 	rightArrow = new Image(0, 0, ARROW_WIDTH, subLayout->getHeight(), subLayout, false, false, RES_RIGHT_ARROW);
 	rightArrow->setDrawBackground(false);
 
+	MobImage *tempImage;
+	for(int i = 0; i < itemCount; i++){
+		tempImage = new MobImage(0, 0, scrWidth - (ARROW_WIDTH * 2) - (PADDING*2), subLayout->getHeight(), NULL);
+		tempImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1));
+		tempImage->setDrawBackground(false);
+
+		Util::retrieveImage(tempImage, getIdFromImageString(tutUrls[i]), tutUrls[i], scrHeight-height-PADDING*2, imageCache, 7);
+
+		tutImages.add(tempImage);
+	}
+	tempImage = NULL;
+
+	midList->add(tutImages[0]);
+
 	mainLayout->add(softKeys);
 
+	int capLength = 6 + Util::intlen(index+1) + Util::intlen(itemCount);
+	char *cap = new char[capLength+1];
+	memset(cap,'\0',capLength+1);
+	sprintf(cap, "Page %d/%d", index+1, itemCount);
+	((Button*)(softKeys->getChildren()[1]))->setCaption(cap);
+	delete cap;
+
 	this->setMain(mainLayout);
+}
+
+String TutorialScreen::getIdFromImageString(String imageUrl) {
+	int lastSlash = imageUrl.findLastOf('/');
+	int lastDot = imageUrl.findLastOf('.');
+	return imageUrl.substr(lastSlash + 1, lastDot - lastSlash - 1);
 }
 
 TutorialScreen::~TutorialScreen() {
 	lprintfln("~TutorialScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	delete mainLayout;
 	mainLayout = NULL;
-
+	if (imageCache != NULL) {
+		delete imageCache;
+		imageCache = NULL;
+	}
 	previous = NULL;
-	imge = NULL;
 	leftArrow = NULL;
 	rightArrow = NULL;
-	itemCount = 0, index = 0;
+	midList = NULL;
+	itemCount = 0;
 
-	tutItems = NULL;
+	for (int i = 0; i < tutImages.size(); i++) {
+		if (i != index) {
+			delete tutImages[i];
+		}
+		tutImages[i] = NULL;
+	}
+	tutImages.clear();
+
+	index = 0;
+
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 }
 
 void TutorialScreen::locateItem(MAPoint2d point) {
@@ -108,33 +154,52 @@ void TutorialScreen::pointerReleaseEvent(MAPoint2d point) {
 void TutorialScreen::keyPressEvent(int keyCode) {
 	switch (keyCode) {
 		case MAK_LEFT:
-			scrollImage(-1);
+			if (currentSelectedKey == NULL) {
+				scrollImage(-1);
+			}
 			break;
 		case MAK_RIGHT:
-			scrollImage(1);
+			if (currentSelectedKey == NULL) {
+				scrollImage(1);
+			}
 			break;
 		case MAK_SOFTLEFT:
-			if (index == itemCount-1) {
-				origMenu->show();
-			}
 			break;
 		case MAK_BACK:
 		case MAK_SOFTRIGHT:
-			//previous->show();
+			previous->show();
+			break;
+		case MAK_FIRE:
+			if (currentSelectedKey != NULL && currentKeyPosition == 2) {
+				previous->show();
+			}
+			break;
+		case MAK_UP:
+			if(currentSelectedKey!=NULL){
+				currentSelectedKey->setSelected(false);
+				currentSelectedKey = NULL;
+				currentKeyPosition = -1;
+			}
+			break;
+		case MAK_DOWN:
+			for(int i = 0; i < softKeys->getChildren().size();i++){
+				if(((Button *)softKeys->getChildren()[i])->isSelectable()){
+					currentKeyPosition = i;
+					currentSelectedKey = softKeys->getChildren()[i];
+					currentSelectedKey->setSelected(true);
+					break;
+				}
+			}
 			break;
 	}
 }
 
 void TutorialScreen::scrollImage(int move) {
 	if ((move != 0) && ((move < 0 && index > 0) || (move > 0 && index < (itemCount-1)))) {
-		if (move > 0) {
-			imge->setTransition(TT_PUSH, -1, 0);
-		}
-		else {
-			imge->setTransition(TT_PUSH, 1, 0);
-		}
 		index = ((index+move)<0)?0:((index+move)>=itemCount)?itemCount-1:(index+move);
-		imge->setResource(tutItems[index].image);
+
+		midList->clear();
+		midList->add(tutImages[index]);
 
 		if (index == 0) {
 			leftArrow->setResource(RES_UNSELECT_ICON);
@@ -145,11 +210,16 @@ void TutorialScreen::scrollImage(int move) {
 
 		if (index == itemCount-1) {
 			rightArrow->setResource(RES_UNSELECT_ICON);
-			Util::updateSoftKeyLayout("Continue", "", "", mainLayout);
 		}
 		else {
 			rightArrow->setResource(RES_RIGHT_ARROW);
-			Util::updateSoftKeyLayout("", "", "", mainLayout);
 		}
+
+		int capLength = 6 + Util::intlen(index+1) + Util::intlen(itemCount);
+		char *cap = new char[capLength+1];
+		memset(cap,'\0',capLength+1);
+		sprintf(cap, "Page %d/%d", index+1, itemCount);
+		((Button*)(softKeys->getChildren()[1]))->setCaption(cap);
+		delete cap;
 	}
 }

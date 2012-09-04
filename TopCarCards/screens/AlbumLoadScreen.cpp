@@ -9,6 +9,7 @@
 #include "OptionsScreen.h"
 #include "../utils/Album.h"
 #include "DeckListScreen.h"
+#include "TutorialScreen.h"
 #include "../UI/Button.h"
 
 
@@ -186,6 +187,17 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
+		case ST_TUT:
+			notice->setCaption("Checking tutorials...");
+			int width = scrWidth - (ARROW_WIDTH * 2) - (PADDING*2);
+			int height = scrHeight-(mainLayout->getChildren()[mainLayout->getChildren().size() - 1]->getHeight());
+			urlLength = 71 + URLSIZE + Util::intlen(width) + Util::intlen(height);
+			url = new char[urlLength+1];
+			memset(url,'\0',urlLength+1);
+			sprintf(url, "%s?gettuts=1&height=%d&width=%d", URL, height, width);
+			lprintfln("%s", url);
+			res = mHttp.create(url, HTTP_GET);
+			break;
 	}
 	if(res < 0) {
 		hasConnection = false;
@@ -213,10 +225,17 @@ AlbumLoadScreen::~AlbumLoadScreen() {
 	lprintfln("~AlbumLoadScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	midListBox->clear();
 	for (int i = 0; i < cardLists.size(); i++) {
-			delete cardLists[i];
-			cardLists[i] = NULL;
+		delete cardLists[i];
+		cardLists[i] = NULL;
+	}
+	cardLists.clear();
+	tutimages.clear();
+	if(tuts.size() > 0){
+		for(HashMap<String,Vector<String> >::Iterator iterator = tuts.begin(); iterator != tuts.end(); iterator++) {
+			iterator->second.clear();
 		}
-		cardLists.clear();
+	}
+	tuts.clear();
 	delete mainLayout;
 	mainLayout = NULL;
 	if(next!=NULL){
@@ -227,6 +246,8 @@ AlbumLoadScreen::~AlbumLoadScreen() {
 	parentTag="";
 	temp="";
 	temp1="";
+	id="";
+	desc="";
 	error_msg="";
 	hasCards="";
 	updated="";
@@ -726,6 +747,10 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 							loadCategory();
 						}
 						break;
+					case ST_TUT:
+						next = new TutorialScreen(this, tuts.find(val->getId())->second);
+						next->show();
+						break;
 				}
 			}
 			break;
@@ -887,6 +912,12 @@ void AlbumLoadScreen::mtxTagData(const char* data, int len) {
 		hasCards += data;
 	} else if (!strcmp(parentTag.c_str(), "updated")) {
 		updated += data;
+	} else if(!strcmp(parentTag.c_str(), "id")) {
+		id += data;
+	} else if(!strcmp(parentTag.c_str(), "description")) {
+		desc += data;
+	} else if(!strcmp(parentTag.c_str(), "image")) {
+		image += data;
 	}
 }
 
@@ -902,7 +933,17 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		hasCards = "";
 		updated = "";
 		temp1 = "";
-	} else if (!strcmp(name, "usercategories") || !strcmp(name, "categories") || !strcmp(name, "games")) {
+	} else if (!strcmp(name, "tut")) {
+		notice->setCaption("");
+		album->addAlbum(id.c_str(), desc.c_str(), (hasCards=="true"), (updated=="1"));
+		tuts.insert(id,tutimages);
+		id = "";
+		desc = "";
+		tutimages.clear();
+	} else if (!strcmp(name, "tutimage")) {
+		tutimages.add(image);
+		image = "";
+	} else if (!strcmp(name, "usercategories") || !strcmp(name, "categories") || !strcmp(name, "games") || !strcmp(name, "tuts")) {
 		switch (screenType) {
 			case ST_PLAY:
 				notice->setCaption("Choose game cards.");
@@ -936,7 +977,20 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		drawList();
 		if (album->size() == 0) {
 			lprintfln("album->size() %d", album->size());
-			if (album->size()==0) {
+			if (screenType == ST_TUT) {
+				MenuScreen *confirmation = new MenuScreen(RES_BLANK, "We have not added any tutorials yet. They will be coming soon!");
+				confirmation->setMenuWidth(180);
+				confirmation->setMarginX(5);
+				confirmation->setMarginY(5);
+				confirmation->setDock(MenuScreen::MD_CENTER);
+				confirmation->setListener(this);
+				confirmation->setMenuFontSel(Util::getFontBlack());
+				confirmation->setMenuFontUnsel(Util::getFontWhite());
+				confirmation->setMenuSkin(Util::getSkinDropDownItem());
+				confirmation->addItem("Ok");
+				confirmation->show();
+			}
+			else {
 				MenuScreen *confirmation = new MenuScreen(RES_BLANK, "We noticed you have not purchased cards yet. You can go to the Shop to purchase some.");
 				confirmation->setMenuWidth(180);
 				confirmation->setMarginX(5);
@@ -1008,6 +1062,8 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		hasCards = "";
 		updated = "";
 		temp1 = "";
+		id="";
+		desc="";
 		error_msg = "";
 	} else if(!strcmp(name, "error")) {
 		notice->setCaption(error_msg.c_str());

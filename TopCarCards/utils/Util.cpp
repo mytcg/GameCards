@@ -22,6 +22,7 @@ MainScreen *origAlbum;
 MainScreen *origMenu;
 int scrWidth;
 int scrHeight;
+bool portrait;
 
 Util::Util() {}
 Util::~Util() {}
@@ -752,6 +753,37 @@ void Util::retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *m
 	}
 }
 
+void Util::retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache, int type)
+{
+	if (mImageCache == NULL) {
+		return;
+	}
+
+	MAHandle store = maOpenStore((FILE_PREFIX+(name+".sav")).c_str(), 0);
+	ImageCacheRequest* req1;
+	if(store != STERR_NONEXISTENT) {
+		MAHandle cacheimage = maCreatePlaceholder();
+		maReadStore(store, cacheimage);
+		maCloseStore(store, 0);
+
+		if (maGetDataSize(cacheimage) > 0) {
+			if (img == NULL) {
+				return;
+			}
+			returnImage(img, cacheimage, height);
+		}
+		else {
+			req1 = new ImageCacheRequest(img, name, url, height, type);
+			mImageCache->request(req1);
+		}
+		cacheimage = -1;
+	}
+	else {
+		req1 = new ImageCacheRequest(img, name, url, height, type);
+		mImageCache->request(req1);
+	}
+}
+
 int Util::intlen(float start) {
 	int end = 0;
 	while(start >= 1) {
@@ -801,7 +833,11 @@ int Util::getMaxImageWidth() {
 	return scrWidth - (PADDING * 4);
 }
 int Util::getMaxImageHeight() {
-	return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
+	if(portrait){
+		return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
+	}else{
+		return ((int)(((double)scrHeight)/*1.40625*/));
+	}
 }
 
 String Util::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
