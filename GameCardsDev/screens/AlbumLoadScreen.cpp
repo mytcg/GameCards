@@ -230,6 +230,7 @@ AlbumLoadScreen::~AlbumLoadScreen() {
 	}
 	cardLists.clear();
 	tutimages.clear();
+	path.clear();
 	if(tuts.size() > 0){
 		for(HashMap<String,Vector<String> >::Iterator iterator = tuts.begin(); iterator != tuts.end(); iterator++) {
 			iterator->second.clear();

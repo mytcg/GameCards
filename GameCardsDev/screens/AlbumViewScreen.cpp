@@ -93,6 +93,33 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 		}
 		delete url;
 		url = NULL;
+	} else if (albumType == AT_REDEEM) {
+		loadImages("");
+		notice->setCaption("Redeeming...");
+		int urlLength = 99 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+		char *url = new char[urlLength+1];
+		memset(url,'\0',urlLength+1);
+		sprintf(url, "%s?buyproduct=%s&height=%d&portrait=%d&width=%d&freebie=%d&jpg=1&purchase=%d", URL,
+				category.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), 0, 4);
+		lprintfln("%s", url);
+		if(mHttp.isOpen()){
+			mHttp.close();
+		}
+		mHttp = HttpConnection(this);
+		int res = mHttp.create(url, HTTP_GET);
+		if(res < 0) {
+			busy = false;
+			hasConnection = false;
+			notice->setCaption("");
+		} else {
+			hasConnection = true;
+			mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
+			mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
+			feed->addHttp();
+			mHttp.finish();
+		}
+		delete url;
+		url = NULL;
 	} else if (albumType == AT_PRODUCT) {
 			loadImages("");
 			notice->setCaption("Fetching list...");

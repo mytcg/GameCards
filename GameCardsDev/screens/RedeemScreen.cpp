@@ -2,7 +2,7 @@
 
 #include "RedeemScreen.h"
 #include "../utils/Util.h"
-#include "AlbumLoadScreen.h"
+#include "AlbumViewScreen.h"
 #include "../UI/Button.h"
 
 RedeemScreen::RedeemScreen(Feed *feed, MainScreen *previous) : mHttp(this) {
@@ -18,6 +18,8 @@ RedeemScreen::RedeemScreen(Feed *feed, MainScreen *previous) : mHttp(this) {
 	result = "";
 	error_msg = "";
 	parentTag = "";
+	type = "";
+	target = "";
 
 	mainLayout = Util::createMainLayout("Redeem", "Back", "", true);
 
@@ -56,6 +58,8 @@ RedeemScreen::~RedeemScreen() {
 	result = "";
 	error_msg = "";
 	parentTag = "";
+	type = "";
+	target = "";
 }
 void RedeemScreen::clearListBox() {
 	Vector<Widget*> tempWidgets;
@@ -283,6 +287,10 @@ void RedeemScreen::mtxTagData(const char* data, int len) {
 		result = data;
 	} else if(!strcmp(parentTag.c_str(), "error")) {
 		error_msg = data;
+	} else if(!strcmp(parentTag.c_str(), "type")) {
+		type = data;
+	} else if(!strcmp(parentTag.c_str(), "target")) {
+		target = data;
 	}
 }
 
@@ -292,8 +300,16 @@ void RedeemScreen::mtxTagEnd(const char* name, int len) {
 		isBusy = false;
 	} else if(!strcmp(name, "error")) {
 		notice->setCaption(error_msg.c_str());
-	} else {
-		notice->setCaption("");
+	} else if(!strcmp(name, "target")){
+		if(!strcmp(type.c_str(), "2")){
+			if (next != NULL) {
+				delete next;
+				feed->remHttp();
+				next = NULL;
+			}
+			next = new AlbumViewScreen(this, feed, target, AlbumViewScreen::AT_REDEEM);
+			next->show();
+		}
 	}
 }
 

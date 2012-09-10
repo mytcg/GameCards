@@ -35,7 +35,7 @@ private:
 	Widget* currentSelectedKey;
 	HttpConnection mHttp;
 
-	String error_msg, result, parentTag;
+	String error_msg, result, parentTag, type, target;
 	bool left, right, mid, error;
 	int moved, currentKeyPosition;
 

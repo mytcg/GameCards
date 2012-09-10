@@ -2219,6 +2219,8 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 	}
   } else if ($purchase == 3) {
 	$bValid = ((($iPremium + $iCredits) >= $itemCost) && ($itemCost > 0));
+  } else if ($purchase == 4) {
+	$bValid = true;
   } else {
 	$bValid = 1 == 2;
   }
