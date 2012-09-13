@@ -48,7 +48,7 @@ public:
 
 	int albumType;
 
-	enum albumTypes {AT_NORMAL, AT_NEW_CARDS, AT_COMPARE, AT_BUY, AT_FREE, AT_AUCTION, AT_DECK, AT_PRODUCT, AT_FRIENDS};
+	enum albumTypes {AT_NORMAL, AT_NEW_CARDS, AT_COMPARE, AT_BUY, AT_FREE, AT_AUCTION, AT_DECK, AT_PRODUCT, AT_FRIENDS, AT_REDEEM};
 private:
 	ListBox *midListBox;
 	Widget* currentSelectedKey;

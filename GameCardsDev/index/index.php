@@ -202,6 +202,30 @@ if ($iUserID == 0){
 		
 	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now() WHERE user_id = '.$iUserID);
 }
+/** stalk user actions*/
+if(count($_GET)>0){
+	$pName[1]='NULL';
+	$pValue[1]='NULL';
+	$pName[2]='NULL';
+	$pValue[2]='NULL';
+	$pName[3]='NULL';
+	$pValue[3]='NULL';
+	$pName[4]='NULL';
+	$pValue[4]='NULL';
+	$pName[5]='NULL';
+	$pValue[5]='NULL';
+	$pName[6]='NULL';
+	$pValue[6]='NULL';
+	$count = 1;
+	foreach ($_GET as $key => $value) { 
+		$pName[$count]='"'.mysql_escape_string($key).'"';
+		$pValue[$count]='"'.mysql_escape_string($value).'"';
+		$count++;
+	}
+	$sql = 'INSERT INTO tcg_stalker (user_id, parameter_name_1, parameter_value_1, parameter_name_2, parameter_value_2, parameter_name_3, parameter_value_3, parameter_name_4, parameter_value_4, parameter_name_5, parameter_value_5, parameter_name_6, parameter_value_6)
+			VALUES ('.$iUserID.','.$pName[1].','.$pValue[1].','.$pName[2].','.$pValue[2].','.$pName[3].','.$pValue[3].','.$pName[4].','.$pValue[4].','.$pName[5].','.$pValue[5].','.$pName[6].','.$pValue[6].')';
+	myqu($sql);
+}
 
 if ($iTestVersion=$_GET['update']){
   
@@ -553,29 +577,60 @@ if ($_GET['getupdates']) {
 
 //redeem card, adds the relevant card to the user's album
 if ($code=$_GET['redeemcode']) {
+	myqu("UPDATE mytcg_redeemcode SET active=2 WHERE active=1 AND date_end <= NOW() AND date_end is NOT NULL");
 	$exists = myqu('SELECT *
-		FROM mytcg_card
-		WHERE redeem_code = "'.$code.'"');
+		FROM mytcg_redeemcode
+		WHERE code = "'.$code.'"');
 
-	//returns 1 if one card matches the redeem code, or 0 if no cards match
 	if (sizeof($exists) > 0) {
-		myqui('UPDATE mytcg_usercard set loaded = 1 where card_id = (SELECT card_id FROM mytcg_card WHERE redeem_code = '.$code.') and user_id = '.$iUserID);
-		myqui('INSERT INTO mytcg_usercard
-			(user_id, card_id, usercardstatus_id, is_new)
-			SELECT '.$iUserID.', card_id, 4, 1
-			FROM mytcg_card
-			WHERE redeem_code =  "'.$code.'"');
-			
-		$sOP = "<result>Card successfully redeemed.</result>";
-	}
-	else {
+		$exists = myqu('SELECT *
+		FROM mytcg_redeemcode
+		WHERE code = "'.$code.'"
+		AND active = 1');
+		if (sizeof($exists) > 0) {
+			$limit = myqu("SELECT count(redeemcode_id)as count FROM mytcg_redeemuser WHERE redeemcode_id = ".$exists[0]["redeemcode_id"]."");
+			if($limit[0]["count"]<$exists[0]["limit"]||$exists[0]["limit"]==-1){
+				$greed = myqu("SELECT * FROM mytcg_redeemuser WHERE redeemcode_id = ".$exists[0]["redeemcode_id"]." AND user_id = ".$iUserID."");
+				if(sizeof($greed)==0){
+					myqui('INSERT INTO mytcg_redeemuser
+						(user_id, redeemcode_id)
+						VALUES ('.$iUserID.', '.$exists[0]["redeemcode_id"].')');
+					
+					if($exists[0]["redeemtype_id"]=="1"){//card
+						myqui('UPDATE mytcg_usercard set loaded = 1 where card_id = (SELECT target FROM mytcg_redeeomcode WHERE code = '.$code.') and user_id = '.$iUserID);
+						myqui('INSERT INTO mytcg_usercard
+							(user_id, card_id, usercardstatus_id, is_new)
+							SELECT '.$iUserID.', target, 4, 1
+							FROM mytcg_redeemcode
+							WHERE code =  "'.$code.'"');
+						checkAchis($iUserID, 1);
+						$sOP = "<result>Card successfully redeemed.</result>";
+					}else if($exists[0]["redeemtype_id"]=="2"){//product
+						$sOP = "<result>Booster successfully redeemed.</result><type>2</type><target>".$exists[0]["target"]."</target>";
+					}else if($exists[0]["redeemtype_id"]=="3"){//freemium credits
+						myqu("UPDATE mytcg_user SET credits = (credits+".$exists[0]["target"].") WHERE user_id = ".$iUserID."");
+						checkAchis($iUserID, 2);
+						$sOP = "<result>You received ".$exists[0]["target"]." credits.</result>";
+					}else if($exists[0]["redeemtype_id"]=="4"){//premium credits
+						myqu("UPDATE mytcg_user SET premium = (premium+".$exists[0]["target"].") WHERE user_id = ".$iUserID."");
+						checkAchis($iUserID, 2);
+						$sOP = "<result>You received ".$exists[0]["target"]." premium credits.</result>";
+					}
+				}else{
+					$sOP = "<result>You've already used this code.</result>";
+				}
+			}else{
+				$sOP = "<result>Redeem code expired.</result>";
+			}
+		}else{
+			$sOP = "<result>Redeem code expired.</result>";
+		}
+	}else {
 		$sOP = "<result>Invalid redeem code.</result>";
 	}
 	
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
-	
-	checkAchis($iUserID, 1);
 	
 	exit;
 }
