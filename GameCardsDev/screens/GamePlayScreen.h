@@ -7,7 +7,6 @@
 #include "../utils/XmlConnection.h"
 #include "../utils/Feed.h"
 #include "../utils/Card.h"
-#include "../utils/CardStat.h"
 #include "../utils/ImageCache.h"
 #include "../UI/KineticListBox.h"
 #include "../UI/Widgets/MobImage.h"
@@ -33,7 +32,6 @@ public:
 	void pointerReleaseEvent(MAPoint2d point);
 	void locateItem(MAPoint2d point);
 
-	typedef Vector<CardStat*> CardStatVector;
 	enum phases {P_CARD_DETAILS = 0, P_RESULTS, P_LOADING, P_OPPMOVE, P_LFM, P_CONFIRM, P_DECLINED, P_CLOSED, P_FRIEND};
 private:
 	NativeEditBox *editBoxFriend;

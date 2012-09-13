@@ -6,13 +6,20 @@
 #include "MobImage.h"
 
 MobImage::MobImage(int x, int y, int width, int height,
-		Widget* parent, bool autosizeX, bool autosizeY, MAHandle res)
-	: Image(x, y, width, height, parent, autosizeX, autosizeY, res) {
+		Widget* parent, bool autosizeX, bool autosizeY, MAHandle res, bool front)
+	: Image(x, y, width, height, parent, autosizeX, autosizeY, res), front(front) {
 	statAdded = false;
 	hasNote = false;
 }
 
 MobImage::~MobImage() {
+	for (int i = 0; i < labels.size(); i++) {
+		labels[i]->setParent(NULL);
+		delete labels[i];
+		labels[i] = NULL;
+	}
+	labels.clear();
+
 	if (getResource() != NULL) {
 		maDestroyObject(getResource());
 	}
@@ -101,14 +108,15 @@ void MobImage::selectStat(int x, int y, int width, int height, int red, int gree
 }
 
 void MobImage::refreshWidget() {
-	if (resource) {
+	/*if (resource) {
 		Gfx_drawImage(resource, PADDING + (paddedBounds.width >> 1) - (imageWidth >> 1),
 			((paddedBounds.height >> 1) - (imageHeight >> 1))+paddedBounds.y);
 		if (hasNote) {
 			Gfx_drawImage(RES_CHANGE_STAR, PADDING + (paddedBounds.width >> 1) - (imageWidth >> 1),
 				((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y);
 		}
-	}
+	}*/
+	this->drawWidget();
 }
 
 void MobImage::drawWidget() {
@@ -123,4 +131,46 @@ void MobImage::drawWidget() {
 			//selectStat(_x - 5,_y,_width,_height,_red,_green,_blue,_orientation);
 		}
 	}
+
+	if (stats.size() > 0) {
+		bool portrait = (imageHeight>imageWidth);
+		int diffX = (paddedBounds.width - imageWidth)/2, diffY = (paddedBounds.height - imageHeight)/2;
+		for (int i = 0; i < labels.size(); i++) {
+			labels[i]->setParent(NULL);
+		}
+
+		for (int i = 0; i < stats.size(); i++) {
+			if (stats[i].front == front) {
+				if (portrait) {
+					labels[i]->setPosition(((int)(stats[i].x * ((double)imageWidth/250))) + diffX, ((int)(stats[i].y * ((double)imageHeight/350))) + diffY);
+					labels[i]->setWidth((int)(stats[i].width * ((double)imageWidth/250)));
+					labels[i]->setHeight((int)(stats[i].height * ((double)imageHeight/350)));
+				}
+				else {
+					labels[i]->setPosition(((int)((350 - (stats[i].y + stats[i].height)) * ((double)imageWidth/350))) + diffX,
+							((int)((stats[i].x) * ((double)imageHeight/250))) + diffY);
+					labels[i]->setWidth((int)(stats[i].height * ((double)imageWidth/350)));
+					labels[i]->setHeight((int)(stats[i].width * ((double)imageHeight/250)));
+				}
+				labels[i]->setParent(this);
+				labels[i]->draw(true);
+			}
+		}
+	}
+}
+
+void MobImage::addStat(stat stat) {
+	stats.add(stat);
+
+	MobLabel *temp = new MobLabel(0, 0, 0, 0, NULL, (imageHeight>imageWidth)?TRANS_NONE:TRANS_ROT90);
+	temp->setDrawBackground(false);
+	temp->setMultiLine(true);
+	temp->setCaption(stat.display);
+	temp->setFont(Util::getMobFontGrey());
+
+	labels.add(temp);
+}
+
+void MobImage::flip() {
+	front = !front;
 }

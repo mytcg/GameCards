@@ -383,68 +383,46 @@
 .bin
 .include "arialblack.mof"
 
-/* Tutorial images */
-
-.res RES_TUT_1 /*97*/
-.ubin
-.image "tut_1.png"
-
-.res RES_TUT_2 /*98*/
-.ubin
-.image "tut_2.png"
-
-.res RES_TUT_3 /*99*/
-.ubin
-.image "tut_3.png"
-
-.res RES_TUT_4 /*100*/
-.ubin
-.image "tut_4.png"
-
-.res RES_TUT_5 /*101*/
-.ubin
-.image "tut_5.png"
-
-.res RES_TUT_6 /*102*/
-.ubin
-.image "tut_6.png"
-
-.res RES_TUT_7 /*103*/
-.ubin
-.image "tut_7.png"
-
-.res RES_FONT_GREEN /*104*/
+.res RES_FONT_GREEN /*97*/
 .bin
 .include "arialgreen.mof"  
 
-.res RES_FONT_GREY /*105*/
+.res RES_FONT_GREY /*98*/
 .bin
 .include "arialgrey.mof"  
 
-.res RES_DROPDOWNITEM_SEL /*106*/
+.res RES_DROPDOWNITEM_SEL /*99*/
 .ubin 
 .image "dropdownitem_sel.png" 
 
-.res RES_DROPDOWNITEM_UNSEL /*107*/
+.res RES_DROPDOWNITEM_UNSEL /*100*/
 .ubin 
 .image "dropdownitem_unsel.png"  
 
-.res RES_DROPDOWN_SEL /*108*/
+.res RES_DROPDOWN_SEL /*101*/
 .ubin 
 .image "dropdownbox_sel.png"  
 
-.res RES_DROPDOWN_UNSEL /*109*/
+.res RES_DROPDOWN_UNSEL /*102*/
 .ubin 
 .image "dropdownbox_unsel.png"
 
-.res RES_POPUP_HEADER /*110*/
+.res RES_POPUP_HEADER /*103*/
 .ubin 
 .image "popup_header.png"
 
-.res RES_ACHIEVEMENTS /*111*/
+.res RES_ACHIEVEMENTS /*104*/
 .ubin
 .image "Achievements.png"
 
-.res RES_ACHIEVEMENTS_THUMB /*112*/
+.res RES_ACHIEVEMENTS_THUMB /*105*/
 .ubin
 .image "Achievements_thumb.png"
+
+.res RES_TUTORIALS /*106*/
+.ubin
+.image "Tutorials.png"
+
+.res RES_TUTORIALS_THUMB /*107*/
+.ubin
+.image "Tutorials_thumb.png"
