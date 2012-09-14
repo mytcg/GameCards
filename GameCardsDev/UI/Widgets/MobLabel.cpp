@@ -1,3 +1,5 @@
+#include <conprint.h>
+
 #include "MobLabel.h"
 
 MobLabel::MobLabel(int x, int y, int width, int height, Widget* parent, int rotation)
@@ -5,6 +7,7 @@ MobLabel::MobLabel(int x, int y, int width, int height, Widget* parent, int rota
 }
 
 void MobLabel::setFont(MobFont* font) {
+	font->setRotation(rotation);
 	Label::setFont(font);
 }
 
@@ -16,16 +19,13 @@ void MobLabel::drawWidget() {
 
 		if(multiLine) {
 			Rect tempRect = Rect(0, 0, paddedBounds.width, paddedBounds.height);
-			((MobFont*)font)->drawBoundedString(wStr, textX, textY, tempRect, rotation);
+			((MobFont*)font)->drawBoundedString(wStr, textX, textY, tempRect);
 		} else {
 
 			if(autoSizeX)
-				((MobFont*)font)->drawString(wStr, textX, textY, rotation);
+				((MobFont*)font)->drawString(wStr, textX, textY);
 			else
-				((MobFont*)font)->drawString(cuttedCaption.c_str(), textX, textY, rotation);
+				((MobFont*)font)->drawString(cuttedCaption.c_str(), textX, textY);
 		}
 	}
-	/*else {
-		MAUI_LOG("MISSING A FONT!!!");
-	}*/
 }
