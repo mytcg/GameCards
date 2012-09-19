@@ -2618,7 +2618,7 @@ if ($_GET['getdecks']){
 
 /** give all the user decks */
 if ($_GET['getalldecks']){
-	$aDeckDetails=myqu('SELECT deck_id, description 
+	$aDeckDetails=myqu('SELECT deck_id, description, type 
 		FROM mytcg_deck 
 		WHERE user_id='.$iUserID);
 	$sOP='<decks>'.$sCRLF;
@@ -2627,6 +2627,7 @@ if ($_GET['getalldecks']){
 		$sOP.='<deck>'.$sCRLF;
 		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
 		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;	
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;
 		$sOP.='</deck>'.$sCRLF;
 		$iCount++;
 	}
@@ -2755,6 +2756,9 @@ if ($_GET['getcardsindeck']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($DeckType=$_GET['type'])) {
+		$DeckType = '1';
+	}
 	if (!($iPortrait=$_GET['portrait'])) {
 		$iPortrait = 1;
 	}
@@ -2768,7 +2772,7 @@ if ($_GET['getcardsindeck']){
 		WHERE deck_id='.$iDeckID);
 	
 	$sOP = "<deck>";
-	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait);
+	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait,$DeckType);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
 	$sOP .= "</deck>";
 	header('xml_length: '.strlen($sOP));

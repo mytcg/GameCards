@@ -11,13 +11,13 @@
 #include "ShopDetailsScreen.h"
 #include "../UI/Button.h"
 
-EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) : mHttp(this), deckId(deckId) {
+EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type) : mHttp(this), deckId(deckId), type(type) {
 	busy = true;
 	emp = true;
 	this->previous = previous;
 	this->feed = feed;
 	deleting = false;
-
+	newdeck = false;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
 	next = NULL;
@@ -25,6 +25,7 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	lprintfln("EditDeckScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 
 	id = "";
+	usercardid = "";
 	description = "";
 	quantity = "";
 	thumburl = "";
@@ -56,11 +57,11 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	notice->setCaption("Getting card list...");
 
 	mImageCache = new ImageCache();
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 88 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth) + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&type=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -95,11 +96,11 @@ void EditDeckScreen::refresh() {
 	if(portrait == false){
 		port = 2;
 	}
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 88 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth) + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&type=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -307,14 +308,17 @@ void EditDeckScreen::drawList() {
 	String cardText = "";
 	for (int i = 0; i < cards.size(); i++) {
 		String cardText = "";
-		cardText += cards[i]->getText();
-		cardText += " (";
-		cardText += cards[i]->getQuantity();
-		cardText += ")\n";
-		cardText += cards[i]->getRarity();
-		cardText += "\nRating: ";
-		cardText += cards[i]->getRanking();
-
+		if(!strcmp(type.c_str(), "3")){
+			cardText += cards[i]->getText();
+		}else{
+			cardText += cards[i]->getText();
+			cardText += " (";
+			cardText += cards[i]->getQuantity();
+			cardText += ")\n";
+			cardText += cards[i]->getRarity();
+			cardText += "\nRating: ";
+			cardText += cards[i]->getRanking();
+		}
 		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 74, kinListBox, 3, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());
 		feedlayout->setDrawBackground(true);
@@ -397,6 +401,7 @@ EditDeckScreen::~EditDeckScreen() {
 	note="";
 	deckId="";
 	id="";
+	usercardid="";
 	description="";
 	quantity="";
 	thumburl="";
@@ -486,6 +491,9 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 					break;
 				case MAK_BACK:
 				case MAK_SOFTRIGHT:
+					if(newdeck){
+						((DeckListScreen*)previous)->refresh();
+					}
 					previous->show();
 					break;
 				case MAK_FIRE:
@@ -520,8 +528,13 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						if (cards.size() < 10) {
 							cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
 						}
-						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
-						next->show();
+						if(!strcmp(type.c_str(), "1")){
+							next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
+							next->show();
+						}else if(!strcmp(type.c_str(), "2")){
+							next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_OPTIONS);
+							next->show();
+						}
 					}
 					break;
 				case MAK_SOFTLEFT:
@@ -722,6 +735,8 @@ void EditDeckScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 void EditDeckScreen::mtxTagData(const char* data, int len) {
 	if(!strcmp(parentTag.c_str(), "cardid")) {
 		id = data;
+	} else if(!strcmp(parentTag.c_str(), "usercardid")) {
+		usercardid = data;
 	} else if(!strcmp(parentTag.c_str(), "description")) {
 		description = data;
 	} else if(!strcmp(parentTag.c_str(), "quantity")) {
@@ -764,8 +779,10 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
 		newCard->setStats(stats);
 		newCard->setUpdated(updated == "1");
+		newCard->setUserCardId(usercardid.c_str());
 		cards.add(newCard);
 		id = "";
+		usercardid = "";
 		description = "";
 		quantity = "";
 		thumburl = "";
@@ -864,6 +881,10 @@ void EditDeckScreen::clearCards() {
 		stats[j] = NULL;
 	}
 	stats.clear();
+}
+
+void EditDeckScreen::setNewDeck(bool nd) {
+	newdeck = nd;
 }
 
 void EditDeckScreen::mtxParseError(int) {

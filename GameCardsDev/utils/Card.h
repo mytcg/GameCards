@@ -36,6 +36,9 @@ public:
 	String getId();
 	void setId(const char *id);
 
+	String getUserCardId();
+	void setUserCardId(const char *usercardid);
+
 	String getRate();
 	void setRate(const char *rate);
 
@@ -73,7 +76,7 @@ public:
 	Stat* getStatAt(int index);
 private:
 	//the note is generally saved in base64
-	String quantity, text, thumb, front, back, id, rate, value, fullDesc, gamePlayerCardId, note, frontflip, backflip, ranking, rarity;
+	String quantity, text, thumb, front, back, id, usercardid, rate, value, fullDesc, gamePlayerCardId, note, frontflip, backflip, ranking, rarity;
 	bool loaded, updated;
 	Vector<Stat*> stats;
 };

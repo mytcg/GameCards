@@ -8,6 +8,7 @@ Card::Card() {
 	front = "";
 	back = "";
 	id = "";
+	usercardid = "";
 	rate = "";
 	value = "";
 	fullDesc = "";
@@ -27,6 +28,7 @@ Card::~Card() {
 	front = "";
 	back = "";
 	id = "";
+	usercardid = "";
 	rate = "";
 	value = "";
 	frontflip = "";
@@ -123,6 +125,14 @@ String Card::getId() {
 
 void Card::setId(const char *i) {
 	id = i;
+}
+
+String Card::getUserCardId() {
+	return usercardid;
+}
+
+void Card::setUserCardId(const char *uci) {
+	usercardid = uci;
 }
 
 String Card::getRate() {

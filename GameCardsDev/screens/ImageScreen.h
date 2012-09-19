@@ -34,7 +34,7 @@ public:
 	void pop();
 	void selectStat(int upOrDown);
 
-	enum screenTypes {ST_NORMAL, ST_NEW_CARD, ST_DECK, ST_DECK_REMOVE};
+	enum screenTypes {ST_NORMAL, ST_NEW_CARD, ST_DECK, ST_DECK_REMOVE,ST_DECK_OPTIONS};
 
 	bool isAuction, refresh;
 private:

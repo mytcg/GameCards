@@ -3426,7 +3426,7 @@ usercardstatus = 3: Deleted
 usercardstatus = 4: Newly Received
 */
 //cardsincategory 
-function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$iUserID,$iDeckID, $root, $iBBHeight=0, $jpg=1, $iFriendID='0', $iPortrait=1) {
+function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$iUserID,$iDeckID, $root, $iBBHeight=0, $jpg=1, $iFriendID='0', $iPortrait=1, $DeckType='1') {
 	if (!($iHeight)) {
 		$iHeight = '350';
 	}
@@ -3590,7 +3590,7 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND (B.category_id='.$iCategory.' OR B.category_id IN (SELECT category_child_id FROM mytcg_category_x WHERE category_parent_id = '.$iCategory.')) 
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id ');
-	} else if($iDeckID > -1){
+	} else if($iDeckID > -1 && ($DeckType == "1" || $DeckType == "2")){
 		$aCards=myqu('SELECT A.card_id, count(*) quantity, B.image, A.usercard_id,  B.value, 
 					B.description, B.thumbnail_phone_imageserver_id, B.front_phone_imageserver_id, B.back_phone_imageserver_id, B.ranking, D.description quality,
 					(CASE WHEN (B.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
@@ -3614,6 +3614,22 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND A.deck_id='.$iDeckID.' 
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id ');
+	}else if($iDeckID > -1 && $DeckType == "3"){
+		$aCards=myqu('SELECT c.description slotdescription, c.category_id, ca.categoryaddon_id, uca.addonusercard_id, car.description,
+					'' as quantity, car.thumbnail_phone_imageserver_id, car.front_phone_imageserver_id, car.back_phone_imageserver_id, car.ranking, car.value, car.image,
+					'' as quality, (CASE WHEN (car.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
+						  THEN 1 ELSE 0 END) updated, '' as note, '' as date_updated
+					FROM (SELECT c.card_id, c.category_id FROM mytcg_card c, mytcg_usercard uc WHERE uc.card_id = c.card_id AND uc.usercard_id = '.$iDeckID.') card
+					INNER JOIN mytcg_categoryaddon ca
+					ON ca.category_id = card.category_id
+					INNER JOIN mytcg_category c
+					ON c.category_id = ca.addoncategory_id
+					LEFT OUTER JOIN mytcg_usercardaddon uca
+					ON uca.categoryaddon_id = ca.categoryaddon_id
+					LEFT OUTER JOIN mytcg_usercard uc
+					ON uc.usercard_id = uca.addonusercard_id
+					LEFT OUTER JOIN mytcg_card car
+					ON car.card_id = uc.card_id');
 	} else {
 		if($iFriendID=='0'){
 			$query = 'select count(*) loaded from mytcg_usercard a, mytcg_card b where a.card_id = b.card_id and a.usercardstatus_id = 1 and loaded = 1 and a.user_id = '.$iUserID.' and category_id = '.$iCategory;
@@ -3734,8 +3750,10 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 	$ids = '';
 	while ($aOneCard=$cardList[$iCount]){
 		$sOP.=$sTab.'<card>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<cardid>'.$aOneCard['card_id'].'</cardid>'.$sCRLF;		
+		$sOP.=$sTab.$sTab.'<cardid>'.$aOneCard['card_id'].'</cardid>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<usercardid>'.$aOneCard['usercard_id'].'</usercardid>'.$sCRLF;		
 		$sOP.=$sTab.$sTab.'<description>'.$aOneCard['description'].'</description>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<slotdescription>'.$aOneCard['slotdescription'].'</slotdescription>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<quantity>'.$aOneCard['quantity'].'</quantity>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<updated>'.$aOneCard['updated'].'</updated>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<note>'.$aOneCard['note'].'</note>'.$sCRLF;

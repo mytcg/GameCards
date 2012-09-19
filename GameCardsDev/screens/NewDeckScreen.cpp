@@ -453,6 +453,7 @@ void NewDeckScreen::mtxTagEnd(const char* name, int len) {
 		phase = P_RESULTS;
 
 		next = new EditDeckScreen(previous, feed, deckId);
+		((EditDeckScreen*)next)->setNewDeck(true);
 	}
 }
 
