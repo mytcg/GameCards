@@ -13,8 +13,8 @@
 #include "../UI/Button.h"
 #include "../UI/MenuScreen/MenuScreen.h"
 
-AlbumViewScreen::AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType, bool bAction, Card *card, String deckId) : mHttp(this),
-filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albumType(albumType), isAuction(bAction), card(card), deckId(deckId) {
+AlbumViewScreen::AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType, bool bAction, Card *card, String deckId, String friendId) : mHttp(this),
+filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albumType(albumType), isAuction(bAction), card(card), deckId(deckId), friendId(friendId) {
 	this->previous = previous;
 	this->feed = feed;
 	busy = true;
@@ -45,12 +45,16 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 	note = "";
 	statDesc = "";
 	statIVal = "";
+	int port = 1;
+	if(portrait == false){
+		port = 2;
+	}
 
 	next = NULL;
 	if (albumType == AT_COMPARE) {
 		mainLayout = Util::createMainLayout("", "Back" , "");
 	} else if (albumType == AT_DECK) {
-		mainLayout = Util::createMainLayout("View", "Back" , "");
+		mainLayout = Util::createMainLayout("", "Back" , "");
 	} else {
 		mainLayout = Util::createMainLayout("", "Back" , "");
 	}
@@ -65,11 +69,11 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 	if (albumType == AT_BUY) {
 		loadImages("");
 		notice->setCaption("Purchasing...");
-		int urlLength = 88 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+		int urlLength = 99 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
-		sprintf(url, "%s?buyproduct=%s&height=%d&width=%d&freebie=%d&jpg=1&purchase=%s", URL,
-				category.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth(), 0, deckId.c_str());
+		sprintf(url, "%s?buyproduct=%s&height=%d&portrait=%d&width=%d&freebie=%d&jpg=1&purchase=%s", URL,
+				category.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), 0, deckId.c_str());
 		lprintfln("%s", url);
 		if(mHttp.isOpen()){
 			mHttp.close();
@@ -92,11 +96,11 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 	} else if (albumType == AT_PRODUCT) {
 			loadImages("");
 			notice->setCaption("Fetching list...");
-			int urlLength = 71 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+			int urlLength = 82 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 			char *url = new char[urlLength+1];
 			memset(url,'\0',urlLength+1);
-			sprintf(url, "%s?cardsinbooster=%s&height=%d&width=%d&jpg=1", URL,
-					category.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+			sprintf(url, "%s?cardsinbooster=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
+					category.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 			lprintfln("%s", url);
 			if(mHttp.isOpen()){
 				mHttp.close();
@@ -121,11 +125,11 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 		albumType = AT_BUY;
 		loadImages("");
 		notice->setCaption("Receiving...");
-		int urlLength = 65 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+		int urlLength = 76 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
-		sprintf(url, "%s?buyproduct=%s&height=%d&width=%d&freebie=%d", URL,
-				category.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth(), 1);
+		sprintf(url, "%s?buyproduct=%s&height=%d&portrait=%d&width=%d&freebie=%d", URL,
+				category.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), 1);
 		lprintfln("%s", url);
 		if(mHttp.isOpen()){
 			mHttp.close();
@@ -148,12 +152,12 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 		url = NULL;
 	} else if (albumType == AT_DECK) {
 		//work out how long the url will be, the 15 is for the & and = symbals, as well as hard coded parameters
-		int urlLength = 81 + URLSIZE + category.length() + Util::intlen(Util::getMaxImageHeight()) +
+		int urlLength = 92 + URLSIZE + category.length() + Util::intlen(Util::getMaxImageHeight()) +
 				Util::intlen(scrWidth) + feed->getSeconds().length() + deckId.length();
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
-		sprintf(url, "%s?cardsincategorynotdeck=%s&seconds=%s&height=%d&width=%d&deck_id=%s&jpg=1", URL, category.c_str(),
-				feed->getSeconds().c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth(), deckId.c_str());
+		sprintf(url, "%s?cardsincategorynotdeck=%s&seconds=%s&height=%d&portrait=%d&width=%d&deck_id=%s&jpg=1", URL, category.c_str(),
+				feed->getSeconds().c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
 		lprintfln("%s", url);
 		if(mHttp.isOpen()){
 			mHttp.close();
@@ -174,13 +178,39 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 		}
 		delete url;
 		url = NULL;
-	} else {
-		loadFile();
+	} else if(albumType == AT_FRIENDS){
+		//loadFile();
 		//work out how long the url will be, the 15 is for the & and = symbals, as well as hard coded parameters
-		int urlLength = 75 + URLSIZE + category.length() + Util::intlen(Util::getMaxImageHeight()) + Util::intlen(scrWidth) + feed->getSeconds().length();
+		int urlLength = 96 + URLSIZE + category.length() + Util::intlen(Util::getMaxImageHeight()) + Util::intlen(scrWidth) + feed->getSeconds().length() + friendId.length();
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
-		sprintf(url, "%s?cardsincategory=%s&seconds=%s&height=%d&width=%d&jpg=1", URL, category.c_str(), feed->getSeconds().c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+		sprintf(url, "%s?cardsincategory=%s&seconds=%s&height=%d&portrait=%d&width=%d&jpg=1&friendid=%s", URL, category.c_str(), feed->getSeconds().c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), friendId.c_str());
+		lprintfln("%s", url);
+		if(mHttp.isOpen()){
+			mHttp.close();
+		}
+		mHttp = HttpConnection(this);
+		int res = mHttp.create(url, HTTP_GET);
+		if(res < 0) {
+			busy = false;
+			hasConnection = false;
+			notice->setCaption("");
+		} else {
+			hasConnection = true;
+			mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
+			mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
+			feed->addHttp();
+			mHttp.finish();
+		}
+		delete url;
+		url = NULL;
+	}  else {
+		loadFile();
+		//work out how long the url will be, the 15 is for the & and = symbals, as well as hard coded parameters
+		int urlLength = 86 + URLSIZE + category.length() + Util::intlen(Util::getMaxImageHeight()) + Util::intlen(Util::getMaxImageWidth()) + feed->getSeconds().length();
+		char *url = new char[urlLength+1];
+		memset(url,'\0',urlLength+1);
+		sprintf(url, "%s?cardsincategory=%s&seconds=%s&height=%d&portrait=%d&width=%d&jpg=1", URL, category.c_str(), feed->getSeconds().c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 		lprintfln("%s", url);
 		if(mHttp.isOpen()){
 			mHttp.close();
@@ -399,6 +429,9 @@ void AlbumViewScreen::drawList() {
 
 	//we need a layout to have arrow images on the sides of the list
 	int cardsPerList = listBox->getHeight() / ALBUM_ITEM_HEIGHT; //74 is the default card display item height
+	if(cardsPerList == 0){
+		cardsPerList = 1;
+	}
 	Layout *listLayout;
 	//check if we need more than 1 page
 	if (cardsPerList < cards.size()) {
@@ -558,6 +591,8 @@ AlbumViewScreen::~AlbumViewScreen() {
 	ranking="";
 	value="";
 	updated="";
+	deckId="";
+	friendId="";
 }
 
 void AlbumViewScreen::selectionChanged(Widget *widget, bool selected) {
@@ -706,14 +741,16 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 				Util::saveData(filename.c_str(), all.c_str());
 				all = "";
 			}
-			if ((albumType == AT_BUY)||(albumType == AT_FREE)) {
+			if (albumType == AT_FREE) {
+				origMenu->show();
+			} else if (albumType == AT_BUY) {
 				previous->refresh();
-				break;
-			}
-			if ((albumType == AT_NEW_CARDS) || (albumType == AT_AUCTION)) {
+			} else if ((albumType == AT_NEW_CARDS) || (albumType == AT_AUCTION)) {
 				((AlbumLoadScreen *)previous)->refresh();
-			} else {
+			} else if (albumType == AT_NORMAL) {
 				previous->show();
+			} else {
+				previous->pop();
 			}
 			break;
 		case MAK_FIRE:
@@ -724,7 +761,7 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 				keyPressEvent(MAK_SOFTRIGHT);
 				break;
 			}
-			if (albumType == AT_PRODUCT) {
+			if (albumType == AT_PRODUCT || albumType == AT_FRIENDS) {
 				break;
 			}
 			if (!emp && !busy && strcmp(cards.find(index[selected])->second->getQuantity().c_str(), "0") != 0) {
@@ -734,23 +771,21 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				if (albumType == AT_COMPARE) {
-					next = new CompareScreen(this, RES_LOADING_FLIP1, feed, false, cards.find(index[selected])->second, card);
+					next = new CompareScreen(this, portrait?RES_LOADING_FLIP1:RES_LOADING1, feed, false, cards.find(index[selected])->second, card);
 					next->show();
 				} else if (albumType == AT_AUCTION) {
 					next = new AuctionCreateScreen(this, feed, cards.find(index[selected])->second);
 					next->show();
 				} else {
 					if (albumType == AT_DECK) {
-						busy = true;
-						adding = true;
-						notice->setCaption("Adding...");
-						addCard(cards.find(index[selected])->second->getId());
+						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_DECK);
+						next->show();
 					} else {
 						if (albumType == AT_NEW_CARDS) {
-							next = new ImageScreen(this, Util::loadImageFromResource(RES_LOADING1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_NEW_CARD);
+							next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_NEW_CARD);
 						}
 						else {
-							next = new ImageScreen(this, Util::loadImageFromResource(RES_LOADING1), feed, false, cards.find(index[selected])->second);
+							next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second);
 						}
 						next->show();
 					}
@@ -758,6 +793,9 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 			}
 			break;
 		case MAK_SOFTLEFT:
+			if(albumType == AT_FRIENDS || albumType == AT_PRODUCT){
+				break;
+			}
 			if (!emp && !hasConnection) {
 				notice->setCaption("Unable to connect, try again later...");
 				feed->remHttp();
@@ -770,21 +808,32 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 				}
 				if (albumType == AT_AUCTION) {
 					next = new AuctionCreateScreen(this, feed, cards.find(index[selected])->second);
+					next->show();
 				}
 				else if (albumType == AT_NEW_CARDS) {
 					next = new OptionsScreen(feed, OptionsScreen::ST_NEW_CARD,
 							this, cards.find(index[selected])->second);
+					next->show();
 				} else if (albumType == AT_DECK) {
-					next = new ImageScreen(this, Util::loadImageFromResource(RES_LOADING1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_DECK);
+					next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_DECK);
+					next->show();
 				}
 				else {
 					next = new OptionsScreen(feed, OptionsScreen::ST_CARD_OPTIONS,
 							this, cards.find(index[selected])->second);
+					next->show();
 				}
-				next->show();
 			}
 			break;
 	}
+}
+
+void AlbumViewScreen::addCard(){
+	int selected = (cardLists[0]->getChildren().size() * selectedList) + cardLists[selectedList]->getSelectedIndex();
+	busy = true;
+	adding = true;
+	notice->setCaption("Adding...");
+	addCard(cards.find(index[selected])->second->getId());
 }
 
 void AlbumViewScreen::switchList(int nextOrPrev) {
@@ -984,7 +1033,6 @@ void AlbumViewScreen::mtxTagEnd(const char* name, int len) {
 		stat->setColorBlue(statBlue);
 		stat->setSelectable(selectable);
 		stats.add(stat);
-
 		statDesc = "";
 		statDisplay = "";
 		statIVal = "";
@@ -1051,9 +1099,11 @@ void AlbumViewScreen::mtxTagEnd(const char* name, int len) {
 		cards = tmp;
 		drawList();
 		busy = false;
-		String all = getAll();
-		Util::saveData(filename.c_str(), all.c_str());
-		all = "";
+		if(albumType != AT_FRIENDS){
+			String all = getAll();
+			Util::saveData(filename.c_str(), all.c_str());
+			all = "";
+		}
 		notice->setCaption("");
 		statDesc = "";
 		statDisplay = "";

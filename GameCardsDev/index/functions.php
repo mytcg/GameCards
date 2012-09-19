@@ -569,7 +569,8 @@ function resizeTut($iHeight, $iWidth, $iImage, $root) {
 	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
 	
 	//Check and create new resized front image
-	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.$iImage;
+	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.'/'.$iImage;
+	
 	if((!file_exists($filenameResized)) && (file_exists($filename))){
 		$image = new Upload($filename);
 		$image->image_resize = true;
@@ -1300,7 +1301,7 @@ function getCardStats($gamePlayerCardId) {
 	$cardStatDetails = myqu('SELECT c.description card_name, cst.description stat_type,
 		cs.description stat_description, cs.cardstat_id, cs.left, 
 		cs.top, cs.width, cs.height, cs.frontorback, cs.statvalue, 
-		cs.colour_r, cs.colour_g, cs.colour_b, cst.categorystat_id 
+		cs.colour_r, cs.colour_g, cs.colour_b, cst.categorystat_id, cs.mustdraw  
 		FROM mytcg_gameplayercard gpc
 		INNER JOIN mytcg_usercard uc
 		ON uc.usercard_id = gpc.usercard_id
@@ -1317,7 +1318,7 @@ function getCardStats($gamePlayerCardId) {
 	$sOP='<cardstats>'.$sCRLF;
 	$iCount=0;
 	while ($oneStat=$cardStatDetails[$iCount]){
-		$sOP.=$sTab.'<cardstat left="'.$oneStat['left'].'" top="'.$oneStat['top'].'" 
+		$sOP.=$sTab.'<cardstat left="'.$oneStat['left'].'" top="'.$oneStat['top'].'" mustdraw="'.$oneStat['mustdraw'].'" 
 			width="'.$oneStat['width'].'" height="'.$oneStat['height'].'" frontorback="'.$oneStat['frontorback'].'"
 			red="'.$oneStat['colour_r'].'" green="'.$oneStat['colour_g'].'" blue="'.$oneStat['colour_b'].'" ival="'.$oneStat['statvalue'].'">';
 		if ($iCount == 0) {
@@ -2002,9 +2003,14 @@ function auctionBid($bid, $username, $iUserID) {
 	$auctionCardId = $_GET['auctioncardid'];
 	
 	//Select details of the auction
-	$query = "SELECT price, auctiontype_id, usercard_id FROM mytcg_market WHERE market_id = ".$auctionCardId;
+	$query = "SELECT m.price, m.auctiontype_id, m.usercard_id, c.description  
+		FROM mytcg_market m
+		INNER JOIN mytcg_usercard uc ON uc.usercard_id = m.usercard_id
+		INNER JOIN mytcg_card c ON c.card_id = uc.card_id
+		WHERE m.market_id = ".$auctionCardId;
 	$result = myqu($query);
 	$auctionType = $result[0]['auctiontype_id'];
+	$auctionCard = $result[0]['description'];
   
 	if (($auctionType == 1 && $credits >= $bid) || ($auctionType == 2 && $premium >= $bid)) {
 		$rest = "SELECT minimum_bid "
@@ -2019,10 +2025,14 @@ function auctionBid($bid, $username, $iUserID) {
 			}
 		}
 		
-		$rest = "select IFNULL(price,0)+IFNULL(premium,0) credits, IFNULL(price,0) free, IFNULL(premium,0) premium, user_id 
+		$rest = "select IFNULL(mc.price,0)+IFNULL(mc.premium,0) credits, IFNULL(mc.price,0) free, IFNULL(mc.premium,0) premium, 
+			mc.user_id, c.description, m.market_id
 			from mytcg_marketcard mc
 			inner join (select max(marketcard_id) marketcard_id from mytcg_marketcard where market_id = ".$auctionCardId.") max
-			on max.marketcard_id = mc.marketcard_id";
+			on max.marketcard_id = mc.marketcard_id
+			inner join mytcg_market m on m.market_id = mc.market_id
+			inner join mytcg_usercard uc on uc.usercard_id = m.usercard_id
+			inner join mytcg_card c on c.card_id = uc.card_id";
 		$testresult = myqu($rest);
 		
 		if ($aBid=$testresult[0]) {
@@ -2030,7 +2040,6 @@ function auctionBid($bid, $username, $iUserID) {
 				echo $sTab.'<result>You are already the highest bidder.</result>'.$sCRLF;
 				exit;
 			}
-			/*TODO: ANDRE CONTINUE FROM HERE*/
 			if ($aBid['credits'] > $bid) {
 				echo $sTab.'<result>Placed bid must be higher than previous bid.</result>'.$sCRLF;
 				exit;
@@ -2042,6 +2051,13 @@ function auctionBid($bid, $username, $iUserID) {
 			
 			$query = "update mytcg_user set credits = credits + ".$prevBidFree.", premium = IFNULL(premium,0) + ".$prevBidPremium." where user_id = ".$prevUserId;
 			myqu($query);
+			
+			myqu("INSERT INTO mytcg_transactionlog (user_id, description, date, val)
+						VALUES(".$prevUserId.", 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', NOW(), ".$aBid['credits'].")");
+						
+			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type)
+					VALUES(".$prevUserId.", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$aBid['market_id']."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$aBid['market_id']."), 
+					now(), 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', ".$aBid['credits'].", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$prevUserId."), 8)");
 		}
 		
 		if ($auctionType == 1) {
@@ -2072,6 +2088,13 @@ function auctionBid($bid, $username, $iUserID) {
 				.", ".$iUserID.", 0, now(), ".$bid.")";
 			myqu($query);
 		}
+		
+		myqu("INSERT INTO mytcg_transactionlog (user_id, description, date, val)
+						VALUES(".$iUserID.", 'Placed bid of ".$bid." on ".$auctionCard."', NOW(), ".$bid.")");
+						
+		myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type)
+				VALUES(".$iUserID.", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$auctionCardId."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$auctionCardId."), 
+				now(), 'Refunded with ".$bid." credits for losing highest bid on ".$auctionCard."', ".$bid.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 8)");
 		
 		$query = "select credits, premium from mytcg_user where user_id = ".$iUserID;
 		$result = myqu($query);
@@ -3813,7 +3836,7 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 
 		$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
 		A.left, top, width, height, frontorback, 
-		colour_r, colour_g, colour_b 
+		colour_r, colour_g, colour_b, A.mustdraw  
 		FROM mytcg_cardstat A, mytcg_categorystat B 
 		WHERE A.categorystat_id = B.categorystat_id 
 		AND A.card_id = '.$aOneCard['card_id']);
@@ -3823,7 +3846,7 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		While ($aOneStat=$aStats[$iCountStat]) {
 			$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
 				left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
-				frontorback="'.$aOneStat['frontorback'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
+				frontorback="'.$aOneStat['frontorback'].'" mustdraw="'.$aOneStat['mustdraw'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
 			$iCountStat++;
 		}
 		$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
@@ -3968,7 +3991,7 @@ function getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeig
 
 		$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable,  
 		A.left, top, width, height, frontorback, 
-		colour_r, colour_g, colour_b 
+		colour_r, colour_g, colour_b, A.mustdraw 
 		FROM mytcg_cardstat A, mytcg_categorystat B 
 		WHERE A.categorystat_id = B.categorystat_id 
 		AND A.card_id = '.$aOneCard['card_id']);
@@ -3978,7 +4001,7 @@ function getCardsInBooster($boosterid, $iHeight,$iWidth,$root,$iUserID, $iBBHeig
 		While ($aOneStat=$aStats[$iCountStat]) {
 			$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
 				left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
-				frontorback="'.$aOneStat['frontorback'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
+				frontorback="'.$aOneStat['frontorback'].'" mustdraw="'.$aOneStat['mustdraw'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
 			$iCountStat++;
 		}
 		$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;

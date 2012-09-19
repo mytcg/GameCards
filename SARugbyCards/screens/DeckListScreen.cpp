@@ -30,7 +30,7 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 	emp = true;
 
 	album = NULL;
-
+	deck = NULL;
 	next = NULL;
 
 	selecting = true;
@@ -103,6 +103,11 @@ DeckListScreen::~DeckListScreen() {
 		albums[i] = NULL;
 	}
 	albums.clear();
+	for (int i = 0; i < decks.size(); i++) {
+		delete decks[i];
+		decks[i] = NULL;
+	}
+	decks.clear();
 }
 
 void DeckListScreen::refresh() {

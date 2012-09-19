@@ -22,6 +22,7 @@ MainScreen *origAlbum;
 MainScreen *origMenu;
 int scrWidth;
 int scrHeight;
+bool portrait;
 
 Util::Util() {}
 Util::~Util() {}
@@ -312,7 +313,6 @@ Widget* Util::createSoftKeyBar(int height, const char *left, const char *right, 
 	layout->setSkin(Util::getIconListBack());
 	layout->setDrawBackground(true);
 
-	//Label *label = new Label(0,0, scrWidth/3, height, NULL, left, 0, Util::getButtonFont());
 	Button *label = new Button(0,0, scrWidth/3, height, NULL);
 	label->setCaption(left);
 	label->setBackgroundColor(0);
@@ -329,7 +329,6 @@ Widget* Util::createSoftKeyBar(int height, const char *left, const char *right, 
 	layout->add(label);
 
 	//the %3 part is to make up for pixels lost due to int dropping fractions
-	//label = new Label(0,0, scrWidth/3 + (scrWidth%3), height, NULL, centre, 0, Util::getButtonFont());
 	label = new Button(0,0, scrWidth/3, height, NULL);
 	label->setCaption(centre);
 	label->setBackgroundColor(0);
@@ -526,7 +525,6 @@ bool Util::getData(const char* storefile, String &data) {
 	if(store>0)
 	{
 		MAHandle dataHandle = maCreatePlaceholder();
-		//int len = data.length();
 		if( maReadStore(store, dataHandle) != RES_OUT_OF_MEMORY  )
 		{
 			int size = maGetDataSize(dataHandle);
@@ -543,29 +541,6 @@ bool Util::getData(const char* storefile, String &data) {
 		}
 	}
 	return false;
-
-
-/*
-	MAHandle tmp = maCreatePlaceholder();
-	if (store != STERR_NONEXISTENT) {
-		maReadStore(store, tmp);
-		int size = maGetDataSize(tmp);
-		if (size > 0) {
-			char *res = new char[size+1];
-			memset(res,0,size+1);
-			maReadData(tmp, res, 0, size);
-			maCloseStore(store, 0);
-			store = -1;
-			maDestroyObject(tmp);
-			return res;
-		} else {
-			return "";
-		}
-	}
-	maDestroyObject(tmp);
-	store = -1;
-	tmp = -1;
-	return "";*/
 }
 
 void Util::returnImage(MobImage *img, MAHandle i, int height)
@@ -827,7 +802,11 @@ int Util::getMaxImageWidth() {
 	return scrWidth - (PADDING * 4);
 }
 int Util::getMaxImageHeight() {
-	return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
+	if(portrait){
+		return scrHeight - getSoftKeyBarHeight() - (PADDING * 4);
+	}else{
+		return ((int)(((double)scrHeight)/*1.40625*/));
+	}
 }
 
 String Util::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {

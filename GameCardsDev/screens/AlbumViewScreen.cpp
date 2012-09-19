@@ -45,6 +45,7 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 	note = "";
 	statDesc = "";
 	statIVal = "";
+	mustDraw = 0;
 	int port = 1;
 	if(portrait == false){
 		port = 2;
@@ -620,6 +621,7 @@ AlbumViewScreen::~AlbumViewScreen() {
 	updated="";
 	deckId="";
 	friendId="";
+	mustDraw = 0;
 }
 
 void AlbumViewScreen::selectionChanged(Widget *widget, bool selected) {
@@ -944,6 +946,8 @@ void AlbumViewScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 			statBlue = atoi(attrValue);
 		}else if(!strcmp(attrName, "selectable")) {
 			selectable = atoi(attrValue);
+		}else if(!strcmp(attrName, "mustdraw")) {
+			mustDraw = atoi(attrValue);
 		}
 	}
 }
@@ -1057,6 +1061,7 @@ void AlbumViewScreen::mtxTagEnd(const char* name, int len) {
 		stat->setColorGreen(statGreen);
 		stat->setColorBlue(statBlue);
 		stat->setSelectable(selectable);
+		stat->setMustDraw(mustDraw==1);
 		stats.add(stat);
 		statDesc = "";
 		statDisplay = "";

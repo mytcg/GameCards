@@ -18,6 +18,7 @@
 #include "URLEncode.h"
 #include "PIM.h"
 
+#include "../UI/Widgets/MobFont.h"
 
 using namespace MAUI;
 
@@ -94,6 +95,8 @@ class Util
 		static WidgetSkin* getSkinPopupHeader();
 		static WidgetSkin* getIconListBack();
 		static WidgetSkin* getIconSelect();
+
+		static MobFont* getMobFontGrey();
 
 
 	private:

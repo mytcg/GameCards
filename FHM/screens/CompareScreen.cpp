@@ -192,11 +192,11 @@ void CompareScreen::keyPressEvent(int keyCode) {
 				if (cmpge->getResource() != NULL) {
 					maDestroyObject(cmpge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				imge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				imge->update();
 				imge->requestRepaint();
 
-				cmpge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				cmpge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				cmpge->update();
 				cmpge->requestRepaint();
 
@@ -239,10 +239,10 @@ void CompareScreen::keyPressEvent(int keyCode) {
 				if (cmpge->getResource() != NULL) {
 					maDestroyObject(cmpge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				imge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				imge->update();
 				imge->requestRepaint();
-				cmpge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				cmpge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				cmpge->update();
 				cmpge->requestRepaint();
 
@@ -284,11 +284,11 @@ void CompareScreen::keyPressEvent(int keyCode) {
 				if (cmpge->getResource() != NULL) {
 					maDestroyObject(cmpge->getResource());
 				}
-				imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				imge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				imge->update();
 				imge->requestRepaint();
 
-				cmpge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
+				cmpge->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 				cmpge->update();
 				cmpge->requestRepaint();
 				maUpdateScreen();

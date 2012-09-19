@@ -1,11 +1,13 @@
 #include "DetailScreen.h"
 #include "OptionsScreen.h"
+#include "AlbumLoadScreen.h"
 #include "ShopProductsScreen.h"
 #include "NewMenuScreen.h"
 #include <mastdlib.h>
 #include "../utils/Util.h"
 #include "../utils/Stat.h"
 #include "../UI/CheckBox.h"
+#include "../UI/Button.h"
 
 DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Card *card, String category, String categoryname) : mHttp(this),
 		screenType(screenType), card(card) {
@@ -16,6 +18,8 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 	kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
 	next=NULL;
 	answers=NULL;
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	count = 0;
 	isBusy=true;
 	desc = "";
@@ -132,6 +136,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 
 	if (screenType == PROFILE) {
 
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -153,6 +158,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == BALANCE) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -175,28 +181,30 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == RANKING) {
-			int urlLength = 100 + URLSIZE;
-			char *url = new char[urlLength+1];
-			memset(url,'\0',urlLength+1);
-			sprintf(url, "%s?leaderboard=%s", URL, category.c_str());
-			lprintfln("%s", url);
-			int res = mHttp.create(url, HTTP_GET);
+		busy = true;
+		int urlLength = 100 + URLSIZE;
+		char *url = new char[urlLength+1];
+		memset(url,'\0',urlLength+1);
+		sprintf(url, "%s?leaderboard=%s", URL, category.c_str());
+		lprintfln("%s", url);
+		int res = mHttp.create(url, HTTP_GET);
 
-			if(res < 0) {
+		if(res < 0) {
+			busy = false;
+		} else {
+			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
+			label->setCaption("Checking for latest rankings...");
 
-			} else {
-				label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
-				label->setCaption("Checking for latest rankings...");
+			mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
+			mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
+			feed->addHttp();
+			mHttp.finish();
 
-				mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
-				mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
-				feed->addHttp();
-				mHttp.finish();
-
-			}
-			delete [] url;
-			url = NULL;
+		}
+		delete [] url;
+		url = NULL;
 	} else if (screenType == FRIEND) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -205,7 +213,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {
-
+			busy = false;
 		} else {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("Checking for latest rankings...");
@@ -219,6 +227,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == NOTIFICATIONS) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -227,7 +236,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {
-
+			busy = false;
 		} else {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("Updating notifications...");
@@ -242,6 +251,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		delete [] url;
 		url = NULL;
 	} else if (screenType == FRIENDS) {
+		busy = true;
 		int urlLength = 100 + URLSIZE;
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -250,7 +260,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {
-
+			busy = false;
 		} else {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("Getting friends list...");
@@ -326,6 +336,14 @@ DetailScreen::~DetailScreen() {
 		}
 	}
 	answers.clear();
+
+	for (int i = 0; i < friends.size(); i++) {
+		if (friends[i] != NULL) {
+			delete friends[i];
+			friends[i] = NULL;
+		}
+	}
+	friends.clear();
 
 }
 
@@ -417,9 +435,18 @@ void DetailScreen::hide() {
 }
 
 void DetailScreen::keyPressEvent(int keyCode) {
-	int ind, max;
+	int ind = kinListBox->getSelectedIndex();
+	int max = kinListBox->getChildren().size();
+	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch(keyCode) {
 		case MAK_FIRE:
+			if(currentSoftKeys->getChildren()[0]->isSelected()){
+				keyPressEvent(MAK_SOFTLEFT);
+			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
+				keyPressEvent(MAK_SOFTRIGHT);
+			}else if(screenType == FRIENDS){
+				keyPressEvent(MAK_SOFTLEFT);
+			}
 			break;
 		case MAK_SOFTLEFT:
 			switch (screenType) {
@@ -460,6 +487,19 @@ void DetailScreen::keyPressEvent(int keyCode) {
 					maPlatformRequest("http://buy.mytcg.net/");
 					//next->show();
 					break;
+				case FRIENDS:
+					if(ind > 0){
+						if(strcmp(friends[ind-1]->getFriendId().c_str(),"-1")){
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_FRIENDS,NULL,false,NULL,friends[ind-1]->getFriendId());
+							next->show();
+							break;
+						}
+					}
 			}
 			break;
 		case MAK_BACK:
@@ -470,16 +510,21 @@ void DetailScreen::keyPressEvent(int keyCode) {
 			previous->show();
 			break;
 		case MAK_UP:
-			ind = kinListBox->getSelectedIndex();
-			max = kinListBox->getChildren().size();
-			if ((screenType == PROFILE)||(screenType == RANKING)||(screenType == FRIEND)) {
+			if(currentSelectedKey!=NULL){
+				currentSelectedKey->setSelected(false);
+				currentSelectedKey = NULL;
+				currentKeyPosition = -1;
+				if (!busy) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
+			} else if (!busy && ((screenType == PROFILE)||(screenType == RANKING)||(screenType == FRIEND))) {
 				if (ind == 0) {
 					kinListBox->setSelectedIndex(max-1);
 				} else {
 					kinListBox->selectPreviousItem();
 					kinListBox->selectPreviousItem();
 				}
-			} else {
+			} else if (!busy) {
 				if (ind == 0) {
 					kinListBox->setSelectedIndex(max-1);
 				} else {
@@ -488,11 +533,19 @@ void DetailScreen::keyPressEvent(int keyCode) {
 			}
 			break;
 		case MAK_DOWN:
-			ind = kinListBox->getSelectedIndex();
-			max = kinListBox->getChildren().size();
-			if (ind == max-1) {
-				kinListBox->setSelectedIndex(0);
-			} else if ((ind == 0)&&(screenType != CARD)) {
+			if (ind == max-1 && currentSelectedKey==NULL) {
+				if(kinListBox->getChildren().size()>0){
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
+				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
+					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+						currentKeyPosition=i;
+						currentSelectedKey= currentSoftKeys->getChildren()[i];
+						currentSelectedKey->setSelected(true);
+						break;
+					}
+				}
+			} else if (!busy && (ind == 0) && (screenType != CARD)) {
 				if ((screenType == FRIENDS)||(screenType == NOTIFICATIONS)) {
 					kinListBox->setSelectedIndex(1);
 				} else if ((screenType == RANKING)||(screenType == FRIEND)) {
@@ -500,10 +553,42 @@ void DetailScreen::keyPressEvent(int keyCode) {
 				} else {
 					kinListBox->setSelectedIndex(3);
 				}
-			} else {
+			} else if (!busy) {
 				kinListBox->selectNextItem();
 				if ((screenType == PROFILE)||(screenType == RANKING)||(screenType == FRIEND)) {
 					kinListBox->selectNextItem();
+				}
+			}
+			break;
+		case MAK_LEFT:
+			if(currentSelectedKey!=NULL){
+				if(currentKeyPosition > 0){
+					currentKeyPosition = currentKeyPosition - 1;
+					for(int i = currentKeyPosition; i >= 0;i--){
+						if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+							currentSelectedKey->setSelected(false);
+							currentKeyPosition=i;
+							currentSelectedKey= currentSoftKeys->getChildren()[i];
+							currentSelectedKey->setSelected(true);
+							break;
+						}
+					}
+				}
+			}
+			break;
+		case MAK_RIGHT:
+			if(currentSelectedKey!=NULL){
+				if(currentKeyPosition+1 < currentSelectedKey->getParent()->getChildren().size()){
+					currentKeyPosition = currentKeyPosition + 1;
+					for(int i = currentKeyPosition; i < currentSoftKeys->getChildren().size();i++){
+						if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+							currentSelectedKey->setSelected(false);
+							currentKeyPosition=i;
+							currentSelectedKey= currentSoftKeys->getChildren()[i];
+							currentSelectedKey->setSelected(true);
+							break;
+						}
+					}
 				}
 			}
 			break;
@@ -588,6 +673,7 @@ void DetailScreen::httpFinished(MAUtil::HttpConnection* http, int result) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	}
 }
 
@@ -635,6 +721,8 @@ void DetailScreen::mtxTagData(const char* data, int len) {
 		val = data;
 	} else if(!strcmp(parentTag.c_str(), "usr")) {
 		usr = data;
+	} else if(!strcmp(parentTag.c_str(), "user_id")) {
+		friendid = data;
 	}
 }
 
@@ -643,6 +731,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 		label->setCaption("");
 		isBusy = false;
+		busy = false;
 	} else if(!strcmp(name, "premium")) {
 		feed->setCredits(cred.c_str());
 		feed->setPremium(prem.c_str());
@@ -651,6 +740,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		premiumLabel->setCaption(prem.c_str());
 		cred = "0";
 		prem = "0";
+		busy = false;
 	} else if(!strcmp(name, "transactions")) {
 		if (count == 0) {
 			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "No transactions yet.", 0, Util::getDefaultFont());
@@ -666,6 +756,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		kinListBox->setSelectedIndex(3);
 		label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 		label->setCaption("");
+		busy = false;
 	} else if(!strcmp(name, "transaction")) {
 		count++;
 
@@ -726,10 +817,12 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 
 		kinListBox->setSelectedIndex(1);
 
+		busy = false;
 	} else if(!strcmp(name, "error")) {
 		if (label != NULL) {
 			label->setCaption(error_msg.c_str());
 		}
+		busy = false;
 	} else if(!strcmp(name, "notifications")) {
 		if (count == 0) {
 			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "No notifications yet.", 0, Util::getDefaultFont());
@@ -750,6 +843,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	} else if(!strcmp(name, "note")) {
 		count++;
 
@@ -795,6 +889,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			usr="";
 			val="";
 		}
+		busy = false;
 	} else if(!strcmp(name, "friend")) {
 
 		count++;
@@ -809,9 +904,15 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 		label->addWidgetListener(this);
 		kinListBox->add(label);
 
+		frien = new Friend();
+		frien->setFriendId(friendid.c_str());
+		friends.add(frien);
+
+		frien=NULL;
 		usr="";
 		val="";
 		desc="";
+		friendid = "-1";
 	} else if(!strcmp(name, "friends")) {
 		if (count == 0) {
 			label->setCaption("");
@@ -830,6 +931,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	} else {
 		if (screenType == PROFILE) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
@@ -851,6 +953,7 @@ void DetailScreen::mtxTagEnd(const char* name, int len) {
 			label = (Label *) mainLayout->getChildren()[0]->getChildren()[1];
 			label->setCaption("");
 		}
+		busy = false;
 	}
 }
 

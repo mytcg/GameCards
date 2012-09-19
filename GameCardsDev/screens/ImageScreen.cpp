@@ -46,9 +46,27 @@ ImageScreen::ImageScreen(MainScreen *previous, MAHandle img, Feed *feed, bool fl
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[1];
 		height = kinListBox->getHeight()-70;
 	}
-	imge = new MobImage(0, 0, scrWidth-PADDING*2, height, kinListBox, false, false, img);
+	imge = new MobImage(0, 0, scrWidth-PADDING*2, height, kinListBox, false, false, img, true);
 	this->setMain(mainLayout);
 	if (card != NULL) {
+		stat tempStat;
+		for (int i = 0; i < card->getStats().size(); i++) {
+			if (card->getStats()[i]->getMustDraw()) {
+				tempStat.key = card->getStats()[i]->getDesc();
+				tempStat.display = card->getStats()[i]->getDisplay();
+				tempStat.x = card->getStats()[i]->getLeft();
+				tempStat.y = card->getStats()[i]->getTop();
+				tempStat.height = card->getStats()[i]->getHeight();
+				tempStat.width = card->getStats()[i]->getWidth();
+				tempStat.red = card->getStats()[i]->getColorRed();
+				tempStat.green = card->getStats()[i]->getColorGreen();
+				tempStat.blue = card->getStats()[i]->getColorBlue();
+				tempStat.front = card->getStats()[i]->getFrontOrBack()==0;
+
+				imge->addStat(tempStat);
+			}
+		}
+
 		if (flip) {
 			Util::retrieveBack(imge, card, height-PADDING*2, imageCacheBack);
 			Util::retrieveFront(NULL, card, height-PADDING*2, imageCacheFront);
@@ -303,6 +321,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				imge->statAdded = false;
 				currentSelectedStat = -1;
 				flip=!flip;
+				imge->flip();
 				if (imge->getResource() != NULL) {
 					maDestroyObject(imge->getResource());
 				}
@@ -379,6 +398,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				currentSelectedStat = -1;
 
 				flip=!flip;
+				imge->flip();
 				if (imge->getResource() != NULL) {
 					maDestroyObject(imge->getResource());
 				}
@@ -514,6 +534,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				keyPressEvent(MAK_SOFTLEFT);
 			}else if(currentSoftKeys->getChildren()[1]->isSelected()){
 					flip=!flip;
+					imge->flip();
 					if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS) {
 						currentSelectedKey = NULL;
 						currentKeyPosition = -1;

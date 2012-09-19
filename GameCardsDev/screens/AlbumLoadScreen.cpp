@@ -978,7 +978,20 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		drawList();
 		if (album->size() == 0) {
 			lprintfln("album->size() %d", album->size());
-			if (album->size()==0) {
+			if (screenType == ST_TUT) {
+				MenuScreen *confirmation = new MenuScreen(RES_BLANK, "We have not added any tutorials yet. They will be coming soon!");
+				confirmation->setMenuWidth(180);
+				confirmation->setMarginX(5);
+				confirmation->setMarginY(5);
+				confirmation->setDock(MenuScreen::MD_CENTER);
+				confirmation->setListener(this);
+				confirmation->setMenuFontSel(Util::getFontBlack());
+				confirmation->setMenuFontUnsel(Util::getFontWhite());
+				confirmation->setMenuSkin(Util::getSkinDropDownItem());
+				confirmation->addItem("Ok");
+				confirmation->show();
+			}
+			else {
 				MenuScreen *confirmation = new MenuScreen(RES_BLANK, "We noticed you have not purchased cards yet. You can go to the Shop to purchase some.");
 				confirmation->setMenuWidth(180);
 				confirmation->setMarginX(5);

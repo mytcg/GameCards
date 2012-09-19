@@ -107,6 +107,8 @@ Font* Util::getFontGrey() {
 	return grey;
 }
 
+
+
 Font* Util::getDefaultFont() {
 #if defined(RES_FONT_GREY)
 	return getFontGrey();
@@ -127,6 +129,16 @@ Font* Util::getDefaultSelected() {
 }
 Font* Util::getButtonFont() {
 	return getFontBlack();
+}
+
+MobFont* Util::getMobFontGrey() {
+	static MobFont* mobGrey;
+	if (mobGrey == NULL) {
+#if defined(RES_FONT_GREY)
+		mobGrey = new MobFont(RES_FONT_GREY);
+#endif
+	}
+	return mobGrey;
 }
 
 WidgetSkin* Util::getSkinEditBox() {

@@ -4,6 +4,7 @@
 #include "ShopDetailsScreen.h"
 #include "ShopCategoriesScreen.h"
 #include "../utils/Util.h"
+#include "../UI/Button.h"
 
 void ShopProductsScreen::refresh()
 {
@@ -16,12 +17,15 @@ void ShopProductsScreen::pop() {
 	refresh();
 
 	if (products.size() == 1) {
-		previous->show();
+		previous->pop();
 	}
 }
 
 ShopProductsScreen::ShopProductsScreen(MainScreen *previous, Feed *feed, String category, bool free, bool first) : mHttp(this), category(category), first(first), free(free) {
 	next = NULL;
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
+	busy = true;
 	lprintfln("ShopProductsScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
 	this->feed = feed;
@@ -77,6 +81,7 @@ ShopProductsScreen::ShopProductsScreen(MainScreen *previous, Feed *feed, String 
 	if(res < 0) {
 		notice->setCaption("Unable to connect, try again later...");
 		drawList();
+		busy = true;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -200,6 +205,11 @@ void ShopProductsScreen::drawList() {
 		label->setAutoSizeY();
 		label->setMultiLine();
 	}
+	if(currentSelectedKey!=NULL){
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
+	}
 	if (products.size() > 1) {
 		emp = false;
 	} else if (products.size() == 1) {
@@ -269,18 +279,51 @@ void ShopProductsScreen::selectionChanged(Widget *widget, bool selected) {
 }
 
 void ShopProductsScreen::keyPressEvent(int keyCode) {
+	int ind = kinListBox->getSelectedIndex();
+	int max = kinListBox->getChildren().size();
+	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch(keyCode) {
 		case MAK_UP:
-			kinListBox->selectPreviousItem();
+			if(currentSelectedKey!=NULL){
+				currentSelectedKey->setSelected(false);
+				currentSelectedKey = NULL;
+				currentKeyPosition = -1;
+				if (!busy) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
+			} else if (!busy && ind > 0) {
+				kinListBox->setSelectedIndex(ind-1);
+			}
 			break;
 		case MAK_DOWN:
-			kinListBox->selectNextItem();
+			if (!busy && ind+1 < kinListBox->getChildren().size()) {
+				kinListBox->setSelectedIndex(ind+1);
+			} else {
+				if (!busy) {
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
+				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
+					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+						currentKeyPosition=i;
+						currentSelectedKey= currentSoftKeys->getChildren()[i];
+						currentSelectedKey->setSelected(true);
+						break;
+					}
+				}
+			}
 			break;
 		case MAK_BACK:
 		case MAK_SOFTRIGHT:
-			previous->show();
+			previous->pop();
 			break;
 		case MAK_FIRE:
+			if(currentSoftKeys->getChildren()[0]->isSelected()){
+				keyPressEvent(MAK_SOFTLEFT);
+				break;
+			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
+				keyPressEvent(MAK_SOFTRIGHT);
+				break;
+			}
 		case MAK_SOFTLEFT:
 			if (!emp) {
 				if (next != NULL) {
@@ -294,6 +337,38 @@ void ShopProductsScreen::keyPressEvent(int keyCode) {
 					next = new ShopDetailsScreen(this, feed, ShopDetailsScreen::ST_PRODUCT, false, products[kinListBox->getSelectedIndex()], NULL, false);
 				}
 				next->show();
+			}
+			break;
+		case MAK_LEFT:
+			if(currentSelectedKey!=NULL){
+				if(currentKeyPosition > 0){
+					currentKeyPosition = currentKeyPosition - 1;
+					for(int i = currentKeyPosition; i >= 0;i--){
+						if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+							currentSelectedKey->setSelected(false);
+							currentKeyPosition=i;
+							currentSelectedKey= currentSoftKeys->getChildren()[i];
+							currentSelectedKey->setSelected(true);
+							break;
+						}
+					}
+				}
+			}
+			break;
+		case MAK_RIGHT:
+			if(currentSelectedKey!=NULL){
+				if(currentKeyPosition+1 < currentSelectedKey->getParent()->getChildren().size()){
+					currentKeyPosition = currentKeyPosition + 1;
+					for(int i = currentKeyPosition; i < currentSoftKeys->getChildren().size();i++){
+						if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+							currentSelectedKey->setSelected(false);
+							currentKeyPosition=i;
+							currentSelectedKey= currentSoftKeys->getChildren()[i];
+							currentSelectedKey->setSelected(true);
+							break;
+						}
+					}
+				}
 			}
 			break;
 	}
@@ -426,6 +501,8 @@ void ShopProductsScreen::mtxTagEnd(const char* name, int len) {
 				notice->setCaption("");
 			}
 			drawList();
+
+			busy = false;
 		} else {
 			notice->setCaption("");
 		}

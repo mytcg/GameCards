@@ -29,7 +29,7 @@ mTitleString(titleString),
 mString(NULL),
 mOptions(options), x(x), y(y), width(width), height(height)
 {
-	//setInputMode(EditBox::IM_QWERTY);
+	setInputMode(EditBox::IM_QWERTY);
 	setMaxSize(maxSize);
 	setCaption(initialText);
 	Environment::getEnvironment().addPointerListener(this);
@@ -72,7 +72,15 @@ void NativeEditBox::keyPressEvent(int keyCode, int nativeCode){
 	if(nativeCode > 0){
 		setInputMode(EditBox::IM_QWERTY);
 	}
-	EditBox::keyPressEvent(keyCode, nativeCode);
+	if(nativeCode==8){
+		String text = getCaption().c_str();
+		if(text.length()>0){
+			setCaption(text.substr(0,text.length()-1));
+		}
+		text = "";
+	}else{
+		EditBox::keyPressEvent(keyCode, nativeCode);
+	}
 }
 
 void NativeEditBox::keyReleaseEvent(int keyCode, int nativeCode){
@@ -107,20 +115,24 @@ bool NativeEditBox::pointerReleased(MAPoint2d p, int id) {
 }
 void NativeEditBox::pointerPressEvent(MAPoint2d point)
 {
+	moved = 0;
 }
 
 void NativeEditBox::pointerMoveEvent(MAPoint2d point)
 {
+	moved++;
 }
 
 void NativeEditBox::pointerReleaseEvent(MAPoint2d point)
 {
-	if (point.y < scrHeight-Util::getSoftKeyBarHeight()) {
-		if(this->isActive()&&this->contains(point.x, point.y)) {
-			activate();
-		} else
-		if (isSelected()) {
-			activate();
+	if (moved <= 5) {
+		if (point.y < scrHeight-Util::getSoftKeyBarHeight()) {
+			if(this->isActive()&&this->contains(point.x, point.y)) {
+				activate();
+			} else
+			if (isSelected()) {
+				activate();
+			}
 		}
 	}
 }
