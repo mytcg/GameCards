@@ -54,11 +54,15 @@ function addCreditsSMS($iUserID,$amount=350){
     $sql = "UPDATE mytcg_user SET premium = IFNULL(premium,0) + ".$amount." WHERE user_id = ".$iUserID;
     myqu($sql);
     $sql = "INSERT INTO mytcg_transactionlog (user_id, description, date,
-val, transactionlogtype_id) VALUES (".$iUserID.", 'Purchased ".$amount." credits via SMS', NOW(),".$amount.", 2)";
+			val, transactionlogtype_id) VALUES (".$iUserID.", 'Purchased ".$amount." credits via SMS', NOW(),".$amount.", 2)";
     myqu($sql);
     $sql = "INSERT INTO mytcg_notifications (user_id, notification,
-notedate, notificationtype_id) VALUES (".$iUserID.",'Received ".$amount." credits via SMS purchase',now(), 3)";
+			notedate, notificationtype_id) VALUES (".$iUserID.",'Received ".$amount." credits via SMS purchase',now(), 3)";
     myqu($sql);
+	
+	myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, tcg_freemium, tcg_premium, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type)
+		VALUES(".$iUserID.", NULL, NULL, NULL, 
+			now(), 'Purchased ".$amount." credits via SMS', ".$amount.", 0, ".$amount.", 5, 'SMS',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 2)");
   }
 }
 
