@@ -13,6 +13,7 @@
 #include "TradeFriendDetailScreen.h"
 #include "MenuTestScreen.h"
 #include "TutorialScreen.h"
+#include "ViewAchisScreen.h"
 #include "../utils/Util.h"
 
 static item menuItems[] =
@@ -22,6 +23,7 @@ static item menuItems[] =
 	{ RES_DECKS_THUMB, RES_DECKS, OP_DECKS },
 	{ RES_SHOP_THUMB, RES_SHOP, OP_SHOP },
 	{ RES_AUCTIONS_THUMB, RES_AUCTIONS, OP_AUCTIONS },
+	{ RES_ACHIEVEMENTS_THUMB, RES_ACHIEVEMENTS, OP_ACHIEVEMENTS },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
 	{ RES_CREDITS_THUMB, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE, OP_PROFILE },
@@ -32,17 +34,6 @@ static item menuItems[] =
 	{ RES_REDEEM_THUMB, RES_REDEEM, OP_REDEEM },
 	{ RES_LOGOUT_THUMB, RES_LOGOUT, OP_LOGOUT }
 };
-
-/*static tutItem tutItems[] =
-{
-	{RES_TUT_1, "1", 1},
-	{RES_TUT_2, "2", 2},
-	{RES_TUT_3, "3", 3},
-	{RES_TUT_4, "4", 4},
-	{RES_TUT_5, "5", 5},
-	{RES_TUT_6, "6", 6},
-	{RES_TUT_7, "7", 7}
-};*/
 
 NewMenuScreen::NewMenuScreen(Feed *feed) : mHttp(this), screenType(screenType) {
 	lprintfln("NewMenuScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
@@ -209,6 +200,14 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS);
+				next->show();
+			} else if (index == OP_ACHIEVEMENTS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ViewAchisScreen(this, feed);
 				next->show();
 			} else if(index == OP_CREDITS) {
 				if(next!=NULL){

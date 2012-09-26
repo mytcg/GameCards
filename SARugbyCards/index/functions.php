@@ -509,6 +509,125 @@ function resizeLoadingCard($iHeight, $iWidth, $root, $iBBHeight=0, $jpg=1) {
 	return $iHeight;
 }
 
+function resizeTut($iHeight, $iWidth, $iImage, $root) {
+
+	//we need to check if the width after scaling would be too wide for the screen.
+	$filename = $root.'img/tuts/'.$iImage;
+	if (file_exists($filename)) {
+		$image = new Upload($filename);
+		$ratio = $iHeight / $image->image_src_y;
+		if (($ratio * ($image->image_src_x)) > $iWidth) {
+			$ratio = $iWidth / $image->image_src_x;
+			$iHeight =  intval($ratio * $image->image_src_y);
+		}
+	}
+	else {
+		die('File does not exist -> '.$filename);
+	}
+	
+	//we want a maximum image size, so larger devices dont have to download huge images
+	if ($iHeight > 480) {
+		//for now, max = 480
+		$iHeight = 480;
+	}
+	
+	if ($iWidth > 480) {
+		//for now, max = 480
+		$iWidth = 480;
+	}
+	
+	$iPortrait=1;
+	//portrait, 1=protrait, 2=landscape
+	if ($iWidth > $iHeight) {
+		$iPortrait=2;
+	}
+	
+	$fliprotate='90';
+	$landscape="";
+	if ($iPortrait==2) {
+		$fliprotate='-90';
+		$landscape="/landscape";
+	}
+	
+	//Check directory for resized version
+	chmod($root,0777);
+	$dir = $root.'img/tuts/'.$iHeight;
+	$dir .= $landscape;
+	if (!is_dir($dir)){
+		if (!mkdir($dir, 0777, true)) {
+			die('Failed to create folders -> '.$dir);
+		}
+	}
+	
+	$dir .= "/";
+	
+	$iLandscapeRotateWidth = $iWidth;
+	$iLandscapeRotateHeight = $iHeight*1.40625;
+	$iRotateWidth = ($iWidth-40<=0)?$iWidth:$iWidth-40;
+	$iRotateHeight = ($iHeight-40<=0)?$iHeight:$iHeight-40;
+	$iBBRotateHeight =  ($iBBHeight-40<=0)?$iBBHeight:$iBBHeight-40;
+	
+	//Check and create new resized front image
+	$filenameResized = $root.'img/tuts/'.$iHeight.$landscape.'/'.$iImage;
+	
+	if((!file_exists($filenameResized)) && (file_exists($filename))){
+		$image = new Upload($filename);
+		$image->image_resize = true;
+		if ($iPortrait==1) {
+			$image->image_ratio_x = true;
+			$image->image_y = $iHeight;
+		} else {
+			$ratio = $iLandscapeRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iLandscapeRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iLandscapeRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iLandscapeRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iLandscapeRotateWidth;
+			$image->image_rotate = '90';
+		}
+		$image->Process($dir);
+	}
+	
+	/*$filename = $root.'img/cards/'.$iImage.'_front'.$ext;
+	$filenameResized = $dir.$iImage.'_front_flip'.$ext;
+	if((!file_exists($filenameResized)) && (file_exists($filename))){
+		$image = new Upload($filename);
+		$image->image_resize = true;
+		$image->file_new_name_body = $iImage.'_front_flip';
+		if ($iBBHeight) {
+			$ratio = $iRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iBBRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iBBRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iRotateWidth;
+			
+			$image->image_rotate = $fliprotate;
+		} else {
+			$ratio = $iRotateWidth / $image->image_src_y;
+			$cardwidth = $image->image_src_x * $ratio;
+			if ($iRotateHeight/2 < $cardwidth) {
+				$cardwidth = $iRotateHeight/2;
+				$ratio = $cardwidth / $image->image_src_x;
+				$iRotateWidth = $image->image_src_y * $ratio;
+			}
+			$image->image_x = $cardwidth;
+			$image->image_y = $iRotateWidth;
+			
+			$image->image_rotate = $fliprotate;
+		}
+		$image->Process($dir);
+	}*/
+	
+	return $iHeight.$landscape;
+}
+
 //clears any actions that when limit is up
 function updateAuctions() {
 	//Select details of the auction
@@ -545,7 +664,9 @@ function updateAuctions() {
 		//add the credits to the user who was auctioning the card
 		$query = "update mytcg_user set credits = credits + ".$auction['price'].", premium = IFNULL(premium, 0) + ".$auction['premium']." where user_id = ".$auction['owner'];
 		myqu($query);
-		
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+				SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+				FROM mytcg_user WHERE user_id=".$auction['owner']);
 		//set the cards status back to Album
 		if ($auction['bidder'] == -1) {
 			myqui('UPDATE mytcg_usercard set loaded = 1 where usercard_id = '.$auction['usercard_id']);
@@ -562,13 +683,21 @@ function updateAuctions() {
 			$query = "update mytcg_usercard set usercardstatus_id = (select usercardstatus_id from mytcg_usercardstatus where description = 'Received'), user_id = ".$auction['bidder']." where usercard_id = ".$auction['usercard_id'];
 			
 			myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
-				VALUES ('.$auction['owner'].', "Received '.$auction['price'].' credits for auctioning '.$auction['description'].' to '.$auction['username'].'.", now(), '.$auction['price'].', '.$transactionType.')');
+				VALUES ('.$auction['owner'].', "Received '.($auction['price']+$auction['premium']).' credits for auctioning '.$auction['description'].' to '.$auction['username'].'.", now(), '.$auction['price'].', '.$transactionType.')');
+				
+			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$auction['owner'].", NULL, ".$auction['usercard_id'].", NULL, 
+				now(), 'Received ".($auction['price']+$auction['premium'])." credits for auctioning ".$auction['description']." to ".$auction['username'].".', ".($auction['price']+$auction['premium']).", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$auction['owner']."), 18,".$auction['price'].",".$auction['premium'].")");
 				
 			myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
 				VALUES ('.$auction['owner'].', "Auctioned '.$auction['description'].' to '.$auction['username'].' for '.$auction['price'].' credits.", now(), '.$notificationType.')');
 				
 			myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
-				VALUES ('.$auction['bidder'].', "Spent '.$auction['price'].' credits for winning the auction '.$auction['description'].' from '.$auction['ownername'].'.", now(), -'.$auction['price'].', '.$transactionType.')');
+				VALUES ('.$auction['bidder'].', "Spent '.($auction['price']+$auction['premium']).' credits for winning the auction '.$auction['description'].' from '.$auction['ownername'].'.", now(), -'.($auction['price']+$auction['premium']).', '.$transactionType.')');
+			
+			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$auction['bidder'].", NULL, ".$auction['usercard_id'].", NULL, 
+				now(), 'Spent ".($auction['price']+$auction['premium'])." credits for winning the auction ".$auction['description']." from ".$auction['ownername'].".', -".($auction['price']+$auction['premium']).", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$auction['bidder']."), 9,-".$auction['price'].",-".$auction['premium'].")");
 				
 			myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
 				VALUES ('.$auction['bidder'].', "Won auction '.$auction['description'].' from '.$auction['ownername'].' for '.$auction['price'].' credits.", now(), , '.$notificationType.')');
@@ -1433,9 +1562,19 @@ function selectStat($userId, $oppUserId, $gameId, $statTypeId) {
 					myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 					VALUES ((SELECT user_id from mytcg_gameplayer where gameplayer_id = '.$winnerId.'), "Received 50 credits for beating '.$oppPlayerUsername.'", now(), 50, 1)');
 			
+					myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+						VALUES((SELECT user_id from mytcg_gameplayer where gameplayer_id = ".$winnerId."), NULL, NULL, NULL, 
+						now(), 'Received 50 credits for beating ".$oppPlayerUsername."', 50, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = (SELECT user_id from mytcg_gameplayer where gameplayer_id = ".$winnerId.")), 19,50,0)");
+				
 					myqui('UPDATE mytcg_user SET credits = credits + 50, gameswon = (gameswon+1) WHERE user_id =(SELECT user_id from mytcg_gameplayer where gameplayer_id = '.$winnerId.')');
+					myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+						SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+						FROM mytcg_user WHERE user_id=".$iUserID);
 				} else if ($iUpdate['gameswon'] == 3) {
 					myqui('UPDATE mytcg_user SET gameswon = (gameswon+1) WHERE user_id =(SELECT user_id from mytcg_gameplayer where gameplayer_id = '.$winnerId.')');
+					myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+						SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+						FROM mytcg_user WHERE user_id=".$iUserID);
 				}
 			}
 			else {
@@ -1831,9 +1970,14 @@ function auctionBid($bid, $username, $iUserID) {
 	$auctionCardId = $_GET['auctioncardid'];
 	
 	//Select details of the auction
-	$query = "SELECT price, auctiontype_id, usercard_id FROM mytcg_market WHERE market_id = ".$auctionCardId;
+	$query = "SELECT m.price, m.auctiontype_id, m.usercard_id, c.description  
+		FROM mytcg_market m
+		INNER JOIN mytcg_usercard uc ON uc.usercard_id = m.usercard_id
+		INNER JOIN mytcg_card c ON c.card_id = uc.card_id
+		WHERE m.market_id = ".$auctionCardId;
 	$result = myqu($query);
 	$auctionType = $result[0]['auctiontype_id'];
+	$auctionCard = $result[0]['description'];
   
 	if (($auctionType == 1 && $credits >= $bid) || ($auctionType == 2 && $premium >= $bid)) {
 		$rest = "SELECT minimum_bid "
@@ -1848,10 +1992,14 @@ function auctionBid($bid, $username, $iUserID) {
 			}
 		}
 		
-		$rest = "select IFNULL(price,0)+IFNULL(premium,0) credits, IFNULL(price,0) free, IFNULL(premium,0) premium, user_id 
+		$rest = "select IFNULL(mc.price,0)+IFNULL(mc.premium,0) credits, IFNULL(mc.price,0) free, IFNULL(mc.premium,0) premium, 
+			mc.user_id, c.description, m.market_id
 			from mytcg_marketcard mc
 			inner join (select max(marketcard_id) marketcard_id from mytcg_marketcard where market_id = ".$auctionCardId.") max
-			on max.marketcard_id = mc.marketcard_id";
+			on max.marketcard_id = mc.marketcard_id
+			inner join mytcg_market m on m.market_id = mc.market_id
+			inner join mytcg_usercard uc on uc.usercard_id = m.usercard_id
+			inner join mytcg_card c on c.card_id = uc.card_id";
 		$testresult = myqu($rest);
 		
 		if ($aBid=$testresult[0]) {
@@ -1864,26 +2012,30 @@ function auctionBid($bid, $username, $iUserID) {
 				exit;
 			}
 			//if there was a previous bid
-			$prevBidFree = $aBid['price'];
+			$prevBidFree = $aBid['free'];
 			$prevBidPremium = $aBid['premium'];
 			$prevUserId = $aBid['user_id'];
 			
 			$query = "update mytcg_user set credits = credits + ".$prevBidFree.", premium = IFNULL(premium,0) + ".$prevBidPremium." where user_id = ".$prevUserId;
 			myqu($query);
-			
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+				SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+				FROM mytcg_user WHERE user_id=".$prevUserId);
 			myqu("INSERT INTO mytcg_transactionlog (user_id, description, date, val)
-						VALUES(".$lastBidder['user_id'].", 'Refunded with ".$lastBidder['price']." credits for losing highest bid on ".$carName."', NOW(), ".$lastBidder['price'].")");
+						VALUES(".$prevUserId.", 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', NOW(), ".$aBid['credits'].")");
 						
 			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type)
-					VALUES(".$lastBidder['user_id'].", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$market_id."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$market_id."), 
-					now(), 'Refunded with ".$lastBidder['price']." credits for losing highest bid on ".$carName."', ".$lastBidder['price'].", NULL, 'facebook',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$lastBidder['user_id']."), 8)");
+					VALUES(".$prevUserId.", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$aBid['market_id']."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$aBid['market_id']."), 
+					now(), 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', ".$aBid['credits'].", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$prevUserId."), 8)");
 		}
 		
 		if ($auctionType == 1) {
 			if ($free >= $bid) {
 				$query = "update mytcg_user set credits = credits - ".$bid." where user_id = ".$iUserID;
 				myqu($query);
-				
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 				$query = "INSERT INTO mytcg_marketcard (market_id, user_id, price, date_of_transaction) VALUES (".$auctionCardId
 					.", ".$iUserID.", ".$bid.", now())";
 				myqu($query);
@@ -1893,7 +2045,9 @@ function auctionBid($bid, $username, $iUserID) {
 				
 				$query = "update mytcg_user set credits = 0, premium = premium - ".$cost." where user_id = ".$iUserID;
 				myqu($query);
-				
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 				$query = "INSERT INTO mytcg_marketcard (market_id, user_id, price, date_of_transaction, premium) VALUES (".$auctionCardId
 					.", ".$iUserID.", ".$free.", now(), ".$cost.")";
 				myqu($query);
@@ -1902,11 +2056,20 @@ function auctionBid($bid, $username, $iUserID) {
 		else if ($auctionType == 2) {
 			$query = "update mytcg_user set premium = premium - ".$bid." where user_id = ".$iUserID;
 			myqu($query);
-			
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 			$query = "INSERT INTO mytcg_marketcard (market_id, user_id, price, date_of_transaction, premium) VALUES (".$auctionCardId
 				.", ".$iUserID.", 0, now(), ".$bid.")";
 			myqu($query);
 		}
+		
+		myqu("INSERT INTO mytcg_transactionlog (user_id, description, date, val)
+						VALUES(".$iUserID.", 'Placed bid of ".$bid." on ".$auctionCard."', NOW(), ".$bid.")");
+						
+		myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type)
+				VALUES(".$iUserID.", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$auctionCardId."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$auctionCardId."), 
+				now(), 'Refunded with ".$bid." credits for losing highest bid on ".$auctionCard."', ".$bid.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 8)");
 		
 		$query = "select credits, premium from mytcg_user where user_id = ".$iUserID;
 		$result = myqu($query);
@@ -1947,12 +2110,15 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 		
 		if ($aBid=$testresult[0]) {
 			//if there was a previous bid
-			$prevBidFree = $aBid['price'];
+			$prevBidFree = $aBid['free'];
 			$prevBidPremium = $aBid['premium'];
 			$prevUserId = $aBid['user_id'];
 			
 			$query = "update mytcg_user set credits = credits + ".$prevBidFree.", premium = IFNULL(premium,0) + ".$prevBidPremium." where user_id = ".$prevUserId;
 			myqu($query);
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$prevUserId);
 		}
 
 		//set the auction to expired
@@ -1960,21 +2126,34 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 		myqu($query);
 
 		$cost = 0;
+		$freecost = 0;
 		//add the credits to the user who was auctioning the card
 		if ($auctionType == 1) {
 			if ($free >= $buyNowPrice) {
+				$freecost = $buyNowPrice;
 				$query = "update mytcg_user set credits = credits + ".$buyNowPrice." where user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")";
 				myqu($query);
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")");
 			}
 			else {
+				$freecost = $free;
 				$cost = $buyNowPrice - $free;
 				$query = "update mytcg_user set credits = credits + ".$free.", premium = IFNULL(premium, 0) + ".$cost." where user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")";
 				myqu($query);
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")");
 			}
 		}
 		else if ($auctionType == 2) {
+			$cost = $buyNowPrice;
 			$query = "update mytcg_user set premium = IFNULL(premium, 0) + ".$buyNowPrice." where user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")";
 			myqu($query);
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")");
 		}
 		
 		$query = "SELECT user_id, username FROM mytcg_user WHERE user_id = (select user_id from mytcg_usercard where usercard_id = ".$userCardId.")";
@@ -1996,31 +2175,48 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 			if ($cost > 0) {
 				$query = "update mytcg_user set credits = 0, premium = IFNULL(premium, 0) - ".$cost." where user_id = ".$iUserID;
 				myqu($query);
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 			}
 			else {
 				$query = "update mytcg_user set credits = credits - ".$buyNowPrice." where user_id = ".$iUserID;
 				myqu($query);
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 			}
 		}
 		else if ($auctionType == 2) {
 			$query = "update mytcg_user set premium = IFNULL(premium, 0) - ".$buyNowPrice." where user_id = ".$iUserID;
 			myqu($query);
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 		}
 		
 		$transactionType = $auctionType==1?($cost > 0?3:1):2;
 		
 		myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 				VALUES ('.$ownerid.', "'.$username. ' bought '.$description.' for '.$buyNowPrice.' credits.", now(), '.$buyNowPrice.', '.$transactionType.')');
-				
+		
+		myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+						VALUES(".$ownerid.", NULL, ".$userCardId.", NULL, 
+						now(), '".$username." bought ".$description." for ".$buyNowPrice." credits.', ".$buyNowPrice.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$ownerid."), 14,".$freecost.",".$cost.")");
+		
 		myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 				VALUES ('.$iUserID.', "Bought '.$description.' for '.$buyNowPrice.' credits from '.$owner.'.", now(), -'.$buyNowPrice.', '.$transactionType.')');
+				
+		myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$iUserID.", NULL, ".$userCardId.", NULL, 
+				now(), 'Bought ".$description." for ".$buyNowPrice." credits from ".$owner.".', -".$buyNowPrice.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 13,-".$freecost.",-".$cost.")");
 
 		echo $sTab.'<result>1</result>'.$sCRLF;
 	}
 	else {
 		echo $sTab.'<result>0</result>'.$sCRLF;
 	}
-	exit;
+	return;
 }
 
 function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product, $root, $iBBHeight=0, $jpg=1, $purchase=1, $iPortrait=1) {
@@ -2072,19 +2268,37 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 			if ($purchase == 1) {
 				$iCreditsAfterPurchase = $iCredits - $itemCost;
 				$aCreditsLeft=myqui("UPDATE mytcg_user SET credits={$iCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 				myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 						VALUES ('.$iUserID.', "Spent '.$itemCost.' credits on '.$aDetails[0]['description'].'.", now(), -'.$itemCost.', 1)');
+				myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+					VALUES(".$iUserID.", ".$iProductID.", NULL, NULL, 
+					now(), 'Spent ".$itemCost." credits on ".$aDetails[0]['description'].".', -".$itemCost.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 10,-".$itemCost.",0)");
 			} else if ($purchase == 2) {
 				if (($iPremium >= $premiumCost) && ($premiumCost > 0)) {
 					$iCreditsAfterPurchase = $iPremium - $premiumCost;
 					$aCreditsLeft=myqui("UPDATE mytcg_user SET premium={$iCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
+					myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+						SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+						FROM mytcg_user WHERE user_id=".$iUserID);
 					myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 							VALUES ('.$iUserID.', "Spent '.$premiumCost.' credits on '.$aDetails[0]['description'].'.", now(), -'.$premiumCost.', 2)');
+					myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+							VALUES(".$iUserID.",  ".$iProductID.", NULL, NULL, 
+							now(), 'Spent ".$premiumCost." credits on ".$aDetails[0]['description'].".', -".$premiumCost.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 10,0,-".$premiumCost.")");
 				} else if (($iPremium >= $itemCost) && ($itemCost > 0)) {
 					$iCreditsAfterPurchase = $iPremium - $itemCost;
 					$aCreditsLeft=myqui("UPDATE mytcg_user SET premium={$iCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
+					myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+						SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+						FROM mytcg_user WHERE user_id=".$iUserID);
 					myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 							VALUES ('.$iUserID.', "Spent '.$itemCost.' credits on '.$aDetails[0]['description'].'.", now(), -'.$itemCost.', 2)');
+					myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+							VALUES(".$iUserID.",  ".$iProductID.", NULL, NULL, 
+							now(), 'Spent ".$itemCost." credits on ".$aDetails[0]['description'].".', -".$itemCost.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 10,0,-".$itemCost.")");
 				}
 			} else if ($purchase == 3) {
 				if ($iCredits < $itemCost) {
@@ -2095,12 +2309,24 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 				}
 				$query = "UPDATE mytcg_user SET credits=0 WHERE user_id='{$iUserID}'";
 				$aCreditsLeft=myqui($query);
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 				$aCreditsLeft=myqui("UPDATE mytcg_user SET premium={$ipremiumCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 				myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 						VALUES ('.$iUserID.', "Spent '.$itemCost.' credits on '.$aDetails[0]['description'].'.", now(), -'.$itemCost.', 3)');
+				myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+						VALUES(".$iUserID.",  ".$iProductID.", NULL, NULL, 
+						now(), 'Spent ".$itemCost." credits on ".$aDetails[0]['description'].".', -".$itemCost.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 10,-".$iCredits.",-".$iCreditsAfterPurchase.")");
 			}
 		} else {
 			myqui("UPDATE mytcg_user SET freebie = 1 WHERE user_id='{$iUserID}'");
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 		}
     
 		$packCards = array();
@@ -2208,7 +2434,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 		$sOP .= '</cards>';
 		header('xml_length: '.strlen($sOP));
 		echo $sOP;
-		exit;
+		return;
   }
   
   $aUserDetails=myqu('SELECT credits, premium 
@@ -2218,7 +2444,7 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 	$sOP.='<result>Insufficient funds.</result>';
   header('xml_length: '.strlen($sOP));
   echo $sOP;
-  exit;
+  return;
  }
 
 function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
@@ -2252,9 +2478,15 @@ function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
 					SELECT '.$iUserID.', descript, now(), val, 3 
 					FROM mytcg_transactiondescription
 					WHERE transactionid = 5');	
-					
+			myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+					SELECT ".$iUserID.", NULL, NULL, NULL, 
+					now(), descript, val, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 20,val,0
+					FROM mytcg_transactiondescription
+					WHERE transactionid = 5");
 			myqui('UPDATE mytcg_user SET credits = credits + IFNULL((SELECT val FROM mytcg_transactiondescription WHERE transactionid = 5),0) WHERE user_id ='.$iUserID);
-			
+			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 			$sOP = "<rewardCredits>60</rewardCredits>";
 			header('xml_length: '.strlen($sOP));
 			echo $sOP;
@@ -2297,7 +2529,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 		}*/
 	}
 	if ($topcar == -1) {
-		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, -1) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
+		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, a.category_id) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
 										cx.category_parent_id,
@@ -2728,7 +2960,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
     $sOP='<result>Card no longer in possession</result>'.$sCRLF;
     header('xml_length: '.strlen($sOP));
     echo $sOP;
-    exit;
+    return;
   }
 	
 	//check if the target user exists
@@ -2761,7 +2993,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
 			}
 		header('xml_length: '.strlen($sOP));
 		echo $sOP;
-		exit;
+		return;
 	}
 		
 	myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
@@ -2773,7 +3005,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
   $sOP='<result>Card sending currently not supported.</result>'.$sCRLF;
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
-	exit;
+	return;
 	
   //usercardstatus_id = 4 = Received.
   myqui('UPDATE mytcg_usercard set loaded = 1 where usercard_id = '.$aCheckCard[0]['usercard_id']);
@@ -2803,7 +3035,7 @@ function tradeCard($tradeMethod, $receiveNumber, $iUserID, $cardID, $messageID) 
 	$sOP='<result>Card sent successfully</result>'.$sCRLF;
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
-	exit;
+	return;
 }
 function invite($tradeMethod, $receiveNumber, $iUserID, $messageID) {
 	//check if the target user exists
@@ -2951,10 +3183,14 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 			if ($iCount <= 3) {
 				$query = "update mytcg_user set credits = credits + 10 where user_id = ".$refererid;
 				myqu($query);
-					
+				myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$refererid);
 				myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 					VALUES ('.$refererid.', "Received 10 credits for referring '.$username.'", now(), 10, 1)');
-					
+				myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+						VALUES(".$refererid.",  NULL, NULL, NULL, 
+						now(), 'Received 10 credits for referring ".$username."', 10, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$refererid."), 21,10,0)");	
 				myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
 					VALUES ('.$refererid.', "'.$username.' has joined the Game Cards experience from your referral.", now(), 1)');
 			} else {
@@ -2970,10 +3206,9 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 		$iMod=(intval($iUserID) % 10)+1;
 		$crypPass = substr(md5($iUserID),$iMod,10).md5($password);
 		myqu("UPDATE mytcg_user SET password = '{$crypPass}' WHERE user_id = {$iUserID}");
-		
 		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
-			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
-			FROM mytcg_user WHERE user_id=".$iUserID);
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 		
 		if (sizeof($aReferer) > 0 && strlen($referer) > 0) {
 			myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
@@ -3010,11 +3245,18 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 				SELECT '.$iUserID.', descript, now(), val, 1
 				FROM mytcg_transactiondescription
 				WHERE transactionid = 1');
-				
+		myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				SELECT ".$iUserID.",  NULL, NULL, NULL, 
+				now(), descript, val, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 16,val,0
+				FROM mytcg_transactiondescription
+				WHERE transactionid = 1");
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
 			VALUES ('.$iUserID.', "Recieved 20 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
 			
 		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+20) WHERE user_id = '.$iUserID);
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+					FROM mytcg_user WHERE user_id=".$iUserID);
 			
 		myqui('INSERT INTO mytcg_frienddetail (user_id, friend_id)
 			VALUES ('.$iUserID.', '.$iUserID.')');
@@ -3089,6 +3331,9 @@ function notifications($iUserID, $notificationtypes) {
 function logtransaction($iDescription, $iValue, $iUserID, $iTransactionTypeId) {
 	myqui('INSERT INTO mytcg_transactionlog (user_id, description, val, date, transactionlogtype_id) 
 			VALUES('.$iUserID.',"'.$iDescription.'",'.$iValue.',now(), '.$iTransactionTypeId.')');
+	myqui("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+			VALUES(".$iUserID.",  NULL, NULL, NULL, 
+			now(), '".$iDescription."', ".$iValue.", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 22,".$iValue.",0)");
 }
 
 //recurring function to check if a category has children with auctions
@@ -3276,7 +3521,7 @@ usercardstatus = 3: Deleted
 usercardstatus = 4: Newly Received
 */
 //cardsincategory 
-function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$iUserID,$iDeckID, $root, $iBBHeight=0, $jpg=1, $iFriendID='0', $iPortrait=1) {
+function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$iUserID,$iDeckID, $root, $iBBHeight=0, $jpg=1, $iFriendID='0', $iPortrait=1, $DeckType='1') {
 	if (!($iHeight)) {
 		$iHeight = '350';
 	}
@@ -3440,7 +3685,7 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND (B.category_id='.$iCategory.' OR B.category_id IN (SELECT category_child_id FROM mytcg_category_x WHERE category_parent_id = '.$iCategory.')) 
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id ');
-	} else if($iDeckID > -1){
+	} else if($iDeckID > -1 && $DeckType == "1"){
 		$aCards=myqu('SELECT A.card_id, count(*) quantity, B.image, A.usercard_id,  B.value, 
 					B.description, B.thumbnail_phone_imageserver_id, B.front_phone_imageserver_id, B.back_phone_imageserver_id, B.ranking, D.description quality,
 					(CASE WHEN (B.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
@@ -3464,6 +3709,38 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND A.deck_id='.$iDeckID.' 
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id ');
+	} else if($iDeckID > -1 && $DeckType == "2"){
+		$aCards=myqu('SELECT p.position_id, p.description as position, IFNULL(dc.points,"0") as points, dc.deckcard_id, dc.usercard_id, cards.*
+					FROM mytcg_position p
+					LEFT OUTER JOIN (
+					select points, deckcard_id, usercard_id, position_id, card_id
+					from mytcg_deckcard
+					where deck_id = '.$iDeckID.'
+					) dc 
+					ON p.position_id = dc.position_id
+					LEFT OUTER JOIN (SELECT A.card_id, count(*) quantity, B.image, A.usercard_id,  B.value, 
+					B.description, B.thumbnail_phone_imageserver_id, B.front_phone_imageserver_id, B.back_phone_imageserver_id, B.ranking, D.description quality,
+					(CASE WHEN (B.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
+						THEN 1 ELSE 0 END) updated, D.note, D.date_updated  
+					FROM mytcg_card B 
+					INNER JOIN mytcg_usercard A 
+					ON A.card_id=B.card_id 
+					INNER JOIN mytcg_cardquality D
+					ON B.cardquality_id=D.cardquality_id
+					INNER JOIN mytcg_usercardstatus C 
+					ON C.usercardstatus_id=A.usercardstatus_id 
+					LEFT OUTER JOIN 
+					(SELECT note, date_updated, user_id, card_id
+						FROM mytcg_usercardnote
+						WHERE user_id = '.$iUserID.'
+						AND usercardnotestatus_id = 1
+					) D 
+					ON A.user_id = D.user_id 
+					AND A.card_id = D.card_id 
+					WHERE A.user_id='.$iUserID.'  
+					AND C.usercardstatus_id=1 	
+					GROUP BY B.card_id) cards
+					on dc.card_id = cards.card_id');
 	} else {
 		if($iFriendID=='0'){
 			$query = 'select count(*) loaded from mytcg_usercard a, mytcg_card b where a.card_id = b.card_id and a.usercardstatus_id = 1 and loaded = 1 and a.user_id = '.$iUserID.' and category_id = '.$iCategory;
@@ -3586,79 +3863,85 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.'<card>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<cardid>'.$aOneCard['card_id'].'</cardid>'.$sCRLF;		
 		$sOP.=$sTab.$sTab.'<description>'.$aOneCard['description'].'</description>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<quantity>'.$aOneCard['quantity'].'</quantity>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<quantity>'.($aOneCard['quantity']==""?"0":$aOneCard['quantity']).'</quantity>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<updated>'.$aOneCard['updated'].'</updated>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<note>'.$aOneCard['note'].'</note>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<ranking>'.$aOneCard['ranking'].'</ranking>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<quality>'.$aOneCard['quality'].'</quality>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<value>'.$aOneCard['value'].'</value>'.$sCRLF;
-		$sFound='';
-		$iCountServer=0;
-		$ids.=(($ids=='')?$aOneCard['card_id']:(','.$aOneCard['card_id']));
+		if($aOneCard['position_id']!=""){
+			$sOP.=$sTab.$sTab.'<positionid>'.$aOneCard['position_id'].'</positionid>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<position>'.$aOneCard['position'].'</position>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<points>'.$aOneCard['points'].'</points>'.$sCRLF;
+		}
+		if($aOneCard['card_id']!=""){
+			$sFound='';
+			$iCountServer=0;
+			$ids.=(($ids=='')?$aOneCard['card_id']:(','.$aOneCard['card_id']));
 		
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['thumbnail_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['thumbnail_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
-		$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
+			
+			//before setting the front and back urls, make sure the card is resized for the height
+			$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
-		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
-		
-		$sFound='';
-		$iCountServer=0;
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['front_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['front_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
-		
-		$dir = '/cards/';
-		if ($iBBHeight) {
-			$dir = '/cardsbb/';
-		}
-		if ($iPortrait==2) {
-			$dir.="landscape/";
-		}
-		
-		$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
+			
+			$dir = '/cards/';
+			if ($iBBHeight) {
+				$dir = '/cardsbb/';
+			}
+			if ($iPortrait==2) {
+				$dir.="landscape/";
+			}
+			
+			$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
 
-		$sFound='';
-		$iCountServer=0;
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['back_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['back_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
     
-		$sOP.=$sTab.$sTab.'<backurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back'.$ext.'</backurl>'.$sCRLF; 
-		$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
+			$sOP.=$sTab.$sTab.'<backurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back'.$ext.'</backurl>'.$sCRLF; 
+			$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
 
-		$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
-		A.left, top, width, height, frontorback, 
-		colour_r, colour_g, colour_b 
-		FROM mytcg_cardstat A, mytcg_categorystat B 
-		WHERE A.categorystat_id = B.categorystat_id 
-		AND A.card_id = '.$aOneCard['card_id']);
+			$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
+			A.left, top, width, height, frontorback, 
+			colour_r, colour_g, colour_b 
+			FROM mytcg_cardstat A, mytcg_categorystat B 
+			WHERE A.categorystat_id = B.categorystat_id 
+			AND A.card_id = '.$aOneCard['card_id']);
 		
-		$iCountStat=0;
-		$sOP.=$sTab.$sTab.'<stats>'.$sCRLF;
-		While ($aOneStat=$aStats[$iCountStat]) {
-			$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
-				left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
-				frontorback="'.$aOneStat['frontorback'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
-			$iCountStat++;
+			$iCountStat=0;
+			$sOP.=$sTab.$sTab.'<stats>'.$sCRLF;
+			While ($aOneStat=$aStats[$iCountStat]) {
+				$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
+					left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
+					frontorback="'.$aOneStat['frontorback'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
+				$iCountStat++;
+			}
+			$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
 		}
-		$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
-		
 		$iCount++;
 		$sOP.=$sTab.'</card>'.$sCRLF;
 	}
@@ -3837,11 +4120,76 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 	return $sOP;
 }
 
+function getTuts($iHeight, $iWidth, $topcar, $root) {
+	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
+		.'FROM mytcg_imageserver b '
+		.'ORDER BY b.description DESC '
+	);
+	
+	$tutQu = ('select t.id, t.description, ti.index, ti.imageserver, ti.image
+		from mytcg_tutorial t, mytcg_tutorialimage ti
+		where ti.tutorial_id = t.id
+		and t.app_id = '.$topcar.'
+		order by t.description, ti.index');
+	
+	$tutQuery = myqu($tutQu);
+	
+	$count = 0;
+	$currentParent = '';
+	
+	$retXml = '<tuts>';
+	while ($aOneTut=$tutQuery[$count]) {
+		$tutId = $aOneTut['id'];
+		
+		if ($tutId != $currentParent) {
+			$currentParent = $tutId;
+		
+			if ($count > 0) {
+				$retXml .= '</tut>';
+			}
+			$retXml .= '<tut>';
+			
+			$retXml .= '<id>'.$aOneTut['id'].'</id>';
+			$retXml .= '<description>'.$aOneTut['description'].'</description>';
+		}
+		
+		$retXml .= '<tutimage>';
+		
+		$sFound='';
+		$iCountServer=0;
+		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+			if ($aOneServer['imageserver_id']==$aOneTut['imageserver']){
+				$sFound=$aOneServer['URL'];
+			} else {
+				$iCountServer++;
+			}
+		}
 
+		$height = resizeTut($iHeight, $iWidth, $aOneTut['image'], $root);
+		
+		$retXml .= '<image>'.$sFound.'tuts/'.$height.'/'.$aOneTut['image'].'</image>';
+		
+		$retXml .= '</tutimage>';
+		
+		$count++;
+	}
+	if ($count > 0) {
+		$retXml .= '</tut>';
+	}
+	$retXml .= '</tuts>';
+	
+	return $retXml;
+}
 
 function getAchis($iUserID) {
+	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
+		.'FROM mytcg_imageserver b '
+		.'ORDER BY b.description DESC '
+	);
+
 	$achiQu = ('SELECT progress, target, date_completed, complete_image, 
-		name, description, incomplete_image, achievement_id 
+		name, description, incomplete_image, achievement_id, 
+		a.phone_imageserver_id as aserver_id, al.phone_imageserver_id as alserver_id 
 		FROM mytcg_userachievementlevel ual 
 		LEFT OUTER JOIN mytcg_achievementlevel al 
 		ON ual.achievementlevel_id = al.id 
@@ -3869,15 +4217,37 @@ function getAchis($iUserID) {
 			
 			$retXml .= '<name>'.$aOneAchi['name'].'</name>';
 			$retXml .= '<description>'.$aOneAchi['description'].'</description>';
-			$retXml .= '<incomplete_image>'.$aOneAchi['incomplete_image'].'</incomplete_image>';
+			
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneAchi['aserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
+			}
+
+			$retXml .= '<incomplete_image>'.$sFound.'achi/phone/'.$aOneAchi['incomplete_image'].'</incomplete_image>';
 		}
 		
 		$retXml .= '<subachi>';
 		
 		$retXml .= '<progress>'.$aOneAchi['progress'].'</progress>';
 		$retXml .= '<target>'.$aOneAchi['target'].'</target>';
-		$retXml .= '<complete_image>'.$aOneAchi['complete_image'].'</complete_image>';
 		$retXml .= '<date_completed>'.$aOneAchi['date_completed'].'</date_completed>';
+		
+		$sFound='';
+		$iCountServer=0;
+		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+			if ($aOneServer['imageserver_id']==$aOneAchi['alserver_id']){
+				$sFound=$aOneServer['URL'];
+			} else {
+				$iCountServer++;
+			}
+		}
+
+		$retXml .= '<complete_image>'.$sFound.'achi/phone/'.$aOneAchi['complete_image'].'</complete_image>';
 		
 		$retXml .= '</subachi>';
 		
@@ -3889,6 +4259,19 @@ function getAchis($iUserID) {
 	$retXml .= '</achis>';
 	
 	return $retXml;
+}
+
+function checkAllUserAchis () {
+	$userQu = myqu('SELECT user_id FROM mytcg_user');
+	$achiTypeQu = myqu('SELECT id FROM mytcg_achievementtype');
+	
+	for ($i = 0; $i < sizeof($userQu); $i++) {
+		for ($j = 0; $j < sizeof($achiTypeQu); $j++) {
+			$user = $userQu[$i];
+			$achi = $achiTypeQu[$j];
+			checkAchis($user['user_id'], $achi['id']);
+		}
+	}
 }
 
 function checkAchis($iUserID, $iAchiTypeId) {

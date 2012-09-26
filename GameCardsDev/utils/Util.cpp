@@ -107,6 +107,8 @@ Font* Util::getFontGrey() {
 	return grey;
 }
 
+
+
 Font* Util::getDefaultFont() {
 #if defined(RES_FONT_GREY)
 	return getFontGrey();
@@ -127,6 +129,16 @@ Font* Util::getDefaultSelected() {
 }
 Font* Util::getButtonFont() {
 	return getFontBlack();
+}
+
+MobFont* Util::getMobFontGrey() {
+	static MobFont* mobGrey;
+	if (mobGrey == NULL) {
+#if defined(RES_FONT_GREY)
+		mobGrey = new MobFont(RES_FONT_GREY);
+#endif
+	}
+	return mobGrey;
 }
 
 WidgetSkin* Util::getSkinEditBox() {
@@ -749,6 +761,37 @@ void Util::retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *m
 		cacheimage = -1;
 	} else {
 		req1 = new ImageCacheRequest(img, card, 64, 4);
+		mImageCache->request(req1);
+	}
+}
+
+void Util::retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache, int type)
+{
+	if (mImageCache == NULL) {
+		return;
+	}
+
+	MAHandle store = maOpenStore((FILE_PREFIX+(name+".sav")).c_str(), 0);
+	ImageCacheRequest* req1;
+	if(store != STERR_NONEXISTENT) {
+		MAHandle cacheimage = maCreatePlaceholder();
+		maReadStore(store, cacheimage);
+		maCloseStore(store, 0);
+
+		if (maGetDataSize(cacheimage) > 0) {
+			if (img == NULL) {
+				return;
+			}
+			returnImage(img, cacheimage, height);
+		}
+		else {
+			req1 = new ImageCacheRequest(img, name, url, height, type);
+			mImageCache->request(req1);
+		}
+		cacheimage = -1;
+	}
+	else {
+		req1 = new ImageCacheRequest(img, name, url, height, type);
 		mImageCache->request(req1);
 	}
 }

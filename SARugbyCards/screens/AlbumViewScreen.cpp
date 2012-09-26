@@ -13,8 +13,8 @@
 #include "../UI/Button.h"
 #include "../UI/MenuScreen/MenuScreen.h"
 
-AlbumViewScreen::AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType, bool bAction, Card *card, String deckId, String friendId) : mHttp(this),
-filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albumType(albumType), isAuction(bAction), card(card), deckId(deckId), friendId(friendId) {
+AlbumViewScreen::AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType, bool bAction, Card *card, String deckId, String friendId, String positionId) : mHttp(this),
+filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albumType(albumType), isAuction(bAction), card(card), deckId(deckId), friendId(friendId), positionId(positionId) {
 	this->previous = previous;
 	this->feed = feed;
 	busy = true;
@@ -593,6 +593,7 @@ AlbumViewScreen::~AlbumViewScreen() {
 	updated="";
 	deckId="";
 	friendId="";
+	positionId="";
 }
 
 void AlbumViewScreen::selectionChanged(Widget *widget, bool selected) {
@@ -1215,12 +1216,12 @@ void AlbumViewScreen::setDeckId(String d) {
 }
 
 void AlbumViewScreen::addCard(String cardId) {
-	int urlLength = 65 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
-		cardId.length();
+	int urlLength = 78 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
+		cardId.length()+positionId.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?addtodeck=1&deck_id=%s&card_id=%s", URL,
-			deckId.c_str(), cardId.c_str());
+	sprintf(url, "%s?addtodeck=1&deck_id=%s&card_id=%s&position_id=%s", URL,
+			deckId.c_str(), cardId.c_str(), positionId.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();

@@ -18,7 +18,7 @@ using namespace MAUtil;
 
 class AlbumViewScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener, MenuListener {
 public:
-	AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType=AT_NORMAL, bool bAction=false, Card *card = NULL, String deckId = "", String friendId = "");
+	AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType=AT_NORMAL, bool bAction=false, Card *card = NULL, String deckId = "", String friendId = "", String positionId = "");
 	~AlbumViewScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
@@ -56,7 +56,7 @@ private:
 	HttpConnection mHttp;
 	ImageCache *mImageCache;
 
-	String parentTag, statDesc, statIVal, statDisplay, note, category, deckId, playable;
+	String parentTag, statDesc, statIVal, statDisplay, note, category, deckId, playable, positionId;
 
 	String id,description,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, updated, premium, credits,friendId;
 

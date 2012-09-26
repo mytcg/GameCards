@@ -13,12 +13,17 @@
 #include "TradeFriendDetailScreen.h"
 #include "TutorialScreen.h"
 #include "../utils/Util.h"
+#include "ViewAchisScreen.h"
 
 static item menuItems[] =
 {
 	{ RES_ALBUM_THUMB, RES_ALBUM, OP_ALBUMS },
+	{ RES_DECKS_THUMB, RES_DECKS, OP_DECKS },
 	{ RES_SHOP_THUMB, RES_SHOP, OP_SHOP },
 	{ RES_AUCTIONS_THUMB, RES_AUCTIONS, OP_AUCTIONS },
+	{ RES_ACHIEVEMENTS_THUMB, RES_ACHIEVEMENTS, OP_ACHIEVEMENTS },
+	{ RES_LEADERBOARDS_THUMB, RES_LEADERBOARDS, OP_LEADERBOARDS },
+	{ RES_TUTORIALS_THUMB, RES_TUTORIALS, OP_TUTORIALS },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
 	{ RES_CREDITS_THUMB, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE, OP_PROFILE },
@@ -178,6 +183,14 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_SHOP);
 				next->show();
+			} else if(index == OP_DECKS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new DeckListScreen(this, feed);
+				next->show();
 			} else if(index == OP_AUCTIONS) {
 				if(next!=NULL){
 					delete next;
@@ -185,6 +198,30 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS);
+				next->show();
+			} else if (index == OP_ACHIEVEMENTS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ViewAchisScreen(this, feed);
+				next->show();
+			} else if (index == OP_LEADERBOARDS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_RANKING);
+				next->show();
+			} else if (index == OP_TUTORIALS) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_TUT);
 				next->show();
 			} else if(index == OP_CREDITS) {
 				if(next!=NULL){

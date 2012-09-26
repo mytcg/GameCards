@@ -45,6 +45,12 @@ if ($_GET['addCreditsSMS']) {
 	addCreditsSMS($user_id);
 	exit;
 }
+
+if ($_GET['runAllUserAchis']) {
+	checkAllUserAchis();
+	exit;
+}
+
 if ($iUserID = $_GET['test']) {
 			
 }
@@ -53,9 +59,15 @@ function addCreditsSMS($iUserID,$amount=350){
   if(intval($iUserID) > 0){
     $sql = "UPDATE mytcg_user SET premium = IFNULL(premium,0) + ".$amount." WHERE user_id = ".$iUserID;
     myqu($sql);
+	myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+			FROM mytcg_user WHERE user_id=".$iUserID);
     $sql = "INSERT INTO mytcg_transactionlog (user_id, description, date,
 			val, transactionlogtype_id) VALUES (".$iUserID.", 'Purchased ".$amount." credits via SMS', NOW(),".$amount.", 2)";
     myqu($sql);
+	myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$userID.", NULL, NULL, NULL, 
+				now(), 'Received ".$amount." credits via SMS purchase', ".$amount.", 'SMS', 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$userID."), 2,0,".$amount.")");
     $sql = "INSERT INTO mytcg_notifications (user_id, notification,
 			notedate, notificationtype_id) VALUES (".$iUserID.",'Received ".$amount." credits via SMS purchase',now(), 3)";
     myqu($sql);
@@ -193,17 +205,25 @@ if ($iUserID == 0){
 				SELECT '.$iUserID.', descript, now(), val, 1
 				FROM mytcg_transactiondescription
 				WHERE transactionid = 1');
-				
+		myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type,tcg_freemium,tcg_premium)
+				VALUES(".$iUserID.", NULL, NULL, NULL, 
+				now(), 'Recieved 20 credits for logging in today', 20, NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$iUserID."), 16,20,0)");		
 		myqui('UPDATE mytcg_user SET gameswon=0, credits=(credits+20) WHERE user_id = '.$iUserID);
-			
+		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
+				SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+				FROM mytcg_user WHERE user_id=".$iUserID);
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
 			VALUES ('.$iUserID.', "Recieved 20 credits for logging in. Want more? Go to the Credits Screen to find out...", now(), 1, 2)');
 	}
 	
 	checkAchis($iUserID, 3);
 		
+<<<<<<< HEAD
 	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now(), date_last_visit=now() WHERE user_id = '.$iUserID);
 	
+=======
+	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now() WHERE user_id = '.$iUserID);
+>>>>>>> 643e2bd18638a016c014720d9484d8c33e82e620
 	myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
 			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
 			FROM mytcg_user WHERE user_id=".$iUserID);
@@ -263,7 +283,7 @@ if ($iTestVersion=$_GET['update']){
 		myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
 			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
 			FROM mytcg_user WHERE user_id=".$iUserID);
-		
+
 		$aVersion=myqu(
 			'SELECT v.url FROM mytcg_version v, mytcg_apps a '
 			.'WHERE v.os="'.$iOs.'" '
@@ -2013,8 +2033,7 @@ if ($_GET['usercategories']){
 			LEFT OUTER JOIN mytcg_category_x cx
 			ON cx.category_child_id = ca.category_id
 			WHERE LOWER(ucs.description) = LOWER("album")
-			AND uc.user_id = '.$userId.'
-			AND uc.loaded = 1');
+			AND uc.user_id = '.$userId);
 			
 		if ($aLoad[0]['loaded'] == 0) {
 			$sOP = "<result></result>";
@@ -2468,15 +2487,32 @@ if ($_GET['getdecks']){
 
 /** give all the user decks */
 if ($_GET['getalldecks']){
-	$aDeckDetails=myqu('SELECT deck_id, description 
-		FROM mytcg_deck 
-		WHERE user_id='.$iUserID);
+	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
+	
+	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image 
+	FROM mytcg_competitiondeck 
+	WHERE active = "1" 
+	AND competitiondeck_id NOT IN (SELECT competitiondeck_id FROM mytcg_deck WHERE user_id='.$iUserID.' AND type = 2)');
+	$iCount=0;
+	while ($aCompDeckDetail=$aCompDeckDetails[$iCount]){
+		myqui('INSERT INTO mytcg_deck (user_id, category_id, imageserver_id, description, image, type, competitiondeck_id) 
+		VALUES('.$iUserID.',1,'.(trim($aCompDeckDetail['imageserver_id'])==''?'NULL':trim($aCompDeckDetail['imageserver_id'])).',"'.trim($aCompDeckDetail['description']).'",'.(trim($aCompDeckDetail['image'])==''?'NULL':trim($aCompDeckDetail['image'])).',2,'.trim($aCompDeckDetail['competitiondeck_id']).')');
+		$iCount++;
+	}
+
+	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
+		FROM mytcg_deck md
+		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
+		WHERE md.user_id='.$iUserID.'
+		AND ((cd.active="1" AND md.type="2")OR (md.type != "2") OR (cd.active="2" AND md.type="2"))');
 	$sOP='<decks>'.$sCRLF;
 	$iCount=0;
 	while ($aDeckDetail=$aDeckDetails[$iCount]){
 		$sOP.='<deck>'.$sCRLF;
 		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
-		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;	
+		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		$sOP.=$sTab.'<active>'.trim($aDeckDetail['active']).'</active>'.$sCRLF;
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;		
 		$sOP.='</deck>'.$sCRLF;
 		$iCount++;
 	}
@@ -2522,6 +2558,9 @@ if ($_GET['getcategorydecks']){
 if ($_GET['addtodeck']){
 	$iDeckID=$_GET['deck_id'];
 	$iCardID=$_GET['card_id'];
+	if (!($iPositionID=$_GET['position_id'])) {
+		$iPositionID = '';
+	}
 	
 	$cardQuery = myqu('SELECT usercard_id 
 		FROM mytcg_usercard 
@@ -2533,9 +2572,17 @@ if ($_GET['addtodeck']){
 	
 	$iUserCardID = $cardQuery[0]['usercard_id'];
 	
-	myqui('UPDATE mytcg_usercard 
-			SET deck_id = '.$iDeckID.'  
-			WHERE usercard_id = '.$iUserCardID);
+	if($iPositionID!=''){
+		myqui('DELETE FROM mytcg_deckcard 
+				WHERE deck_id = '.$iDeckID.'  
+				AND position_id = '.$iPositionID);
+		myqui('INSERT INTO mytcg_deckcard (usercard_id,card_id,deck_id,position_id)
+				VALUES  ('.$iUserCardID.','.$iCardID.','.$iDeckID.','.$iPositionID.')');
+	}else{
+		myqui('UPDATE mytcg_usercard 
+				SET deck_id = '.$iDeckID.'  
+				WHERE usercard_id = '.$iUserCardID);
+	}
 	
 	$sOP = "<result>Card added to Deck!</result>";
 	header('xml_length: '.strlen($sOP));
@@ -2605,6 +2652,9 @@ if ($_GET['getcardsindeck']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($DeckType=$_GET['decktype'])) {
+		$DeckType = '1';
+	}
 	if (!($iPortrait=$_GET['portrait'])) {
 		$iPortrait = 1;
 	}
@@ -2618,7 +2668,7 @@ if ($_GET['getcardsindeck']){
 		WHERE deck_id='.$iDeckID);
 	
 	$sOP = "<deck>";
-	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait);
+	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait,$DeckType);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
 	$sOP .= "</deck>";
 	header('xml_length: '.strlen($sOP));
@@ -2651,6 +2701,20 @@ if ($_GET['deletedeck']){
 
 if ($_GET['getachis']){
 	$sOP = getAchis($iUserID);
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
+if ($_GET['gettuts']) {
+	if (!($iHeight=$_GET['height'])) {
+		$iHeight = '350';
+	}
+	if (!($iWidth=$_GET['width'])) {
+		$iWidth = '250';
+	}
+
+	$sOP = getTuts($iHeight, $iWidth, $topcar, $root);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;

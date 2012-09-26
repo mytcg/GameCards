@@ -10,6 +10,7 @@
 #include "../utils/XmlConnection.h"
 #include "../utils/Feed.h"
 #include "../utils/Album.h"
+#include "../utils/Deck.h"
 #include "../UI/KineticListBox.h"
 #include "MainScreen.h"
 
@@ -32,15 +33,18 @@ public:
 	void refresh();
 private:
 	Vector<Album*> albums;
+	Vector<Deck*> decks;
+
 	Album *album;
+	Deck *deck;
 	Widget* currentSelectedKey;
 
-	bool list, left, right, selecting;
+	bool list, left, right, selecting, emp;
 
 	HttpConnection mHttp;
 
 	String parentTag, categoryId;
-	String deckId, description;
+	String deckId, description, active, type;
 	int moved, screenType, currentKeyPosition;
 
 	void clearListBox();

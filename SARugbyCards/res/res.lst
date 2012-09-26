@@ -290,75 +290,107 @@
 .ubin
 .image "Shop_thumb.png"
 
-.res RES_DESELECTED_LIST_DOT /*74*/
+.res RES_DECKS /*74*/
+.ubin
+.image "Deck.png"
+
+.res RES_DECKS_THUMB /*75*/
+.ubin
+.image "Deck_thumb.png"
+
+.res RES_DESELECTED_LIST_DOT /*76*/
 .ubin
 .image "inactive_dot.png"
 
-.res RES_SELECTED_LIST_DOT /*75*/
+.res RES_SELECTED_LIST_DOT /*77*/
 .ubin
 .image "active_dot.png"
 
-.res RES_ICONS_BACK /*76*/
+.res RES_ICONS_BACK /*78*/
 .ubin
 .image "icon_bar.png"
 
-.res RES_SELECT_ICON /*77*/
+.res RES_SELECT_ICON /*79*/
 .ubin
 .image "select.png"
 
-.res RES_UNSELECT_ICON /*78*/
+.res RES_UNSELECT_ICON /*80*/
 .ubin
 .image "unselect.png"
 
-.res RES_HEAD /*79*/
+.res RES_HEAD /*81*/
 .ubin
 .image "head.png"
 
-.res BLANK /*80*/
+.res BLANK /*82*/
 .image "blank.png"
 
 /* Custom variables per app */
 
-.res RES_FONT_BLACK /*81*/
+.res RES_FONT_BLACK /*83*/
 .bin
 .include "arialblack.mof"
 
-.res RES_FONT_GREEN /*82*/
+.res RES_FONT_GREEN /*84*/
 .bin
 .include "arialgreen.mof"  
 
-.res RES_FONT_GREY /*83*/
+.res RES_FONT_GREY /*85*/
 .bin
 .include "arialgrey.mof"  
 
-.res RES_FONT_WHITE /*84*/
+.res RES_FONT_WHITE /*86*/
 .bin
 .include "arialwhite.mof"  
 
-.res RES_DROPDOWNITEM_SEL /*85*/
+.res RES_DROPDOWNITEM_SEL /*87*/
 .ubin 
 .image "dropdownitem_sel.png" 
 
-.res RES_DROPDOWNITEM_UNSEL /*86*/
+.res RES_DROPDOWNITEM_UNSEL /*88*/
 .ubin 
 .image "dropdownitem_unsel.png"  
 
-.res RES_DROPDOWN_SEL /*87*/
+.res RES_DROPDOWN_SEL /*89*/
 .ubin 
 .image "dropdownbox_sel.png"  
 
-.res RES_DROPDOWN_UNSEL /*88*/
+.res RES_DROPDOWN_UNSEL /*90*/
 .ubin 
 .image "dropdownbox_unsel.png"
 
-.res RES_POPUP_HEADER /*89*/
+.res RES_POPUP_HEADER /*91*/
 .ubin 
 .image "popup_header.png"
 
-.res RES_BIG_LEFT_ARROW /*90*/
+.res RES_BIG_LEFT_ARROW /*92*/
 .ubin
 .image "big_arrow_left.png"
 
-.res RES_BIG_RIGHT_ARROW /*91*/
+.res RES_BIG_RIGHT_ARROW /*93*/
 .ubin
 .image "big_arrow_right.png"
+
+.res RES_ACHIEVEMENTS /*94*/
+.ubin
+.image "Achievements.png"
+
+.res RES_ACHIEVEMENTS_THUMB /*95*/
+.ubin
+.image "Achievements_thumb.png"
+
+.res RES_TUTORIALS /*96*/
+.ubin
+.image "Tutorials.png"
+
+.res RES_TUTORIALS_THUMB /*97*/
+.ubin
+.image "Tutorials_thumb.png"
+
+.res RES_LEADERBOARDS /*98*/
+.ubin
+.image "Leaderboard.png"
+
+.res RES_LEADERBOARDS_THUMB /*99*/
+.ubin
+.image "Leaderboard_thumb.png"

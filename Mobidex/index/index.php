@@ -331,6 +331,12 @@ if ($iCard=$_GET['rejectcard']){
 			GROUP BY card_id) 
 	');
 	
+	myqui('UPDATE mytcg_tradecard 
+			SET status_id = 2
+			WHERE card_id = '.$iCard.'
+			AND status_id = 0
+			AND detail = (SELECT cell FROM mytcg_user where user_id = '.$iUserID.')');
+	
 	$sOP = "<result>Complete!</result>";
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
@@ -345,7 +351,7 @@ if ($iCard=$_GET['savecard']){
 			AND usercardstatus_id = 4
 			AND user_id = '.$iUserID.' ');
 			
-	myqui('UPDATE mytcg_tradecard SET 
+	myqui('UPDATE mytcg_tradecard 
 			SET status_id = 1
 			WHERE card_id = '.$iCard.'
 			AND status_id = 0

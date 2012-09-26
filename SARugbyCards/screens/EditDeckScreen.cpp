@@ -11,7 +11,7 @@
 #include "ShopDetailsScreen.h"
 #include "../UI/Button.h"
 
-EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) : mHttp(this), deckId(deckId) {
+EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String active, String type) : mHttp(this), deckId(deckId), active(active), type(type) {
 	busy = true;
 	emp = true;
 	this->previous = previous;
@@ -21,6 +21,8 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
 	next = NULL;
+
+	cardsPerList = 0;
 
 	lprintfln("EditDeckScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 
@@ -36,6 +38,9 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	ranking = "";
 	rarity = "";
 	value = "";
+	positionid = "";
+	position = "";
+	points = "";
 	error_msg = "";
 	updated = "";
 	statDisplay = "";
@@ -48,19 +53,19 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 		port = 2;
 	}
 
-	mainLayout = Util::createMainLayout("", "Back" , "", true);
+	mainLayout = Util::createMainLayout("", "Back" , "");
 
-	kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
-	kinListBox->setWrapping(true);
+	listBox = (ListBox*) mainLayout->getChildren()[0]->getChildren()[2];
+	listBox->setWrapping(true);
 	notice = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
 	notice->setCaption("Getting card list...");
 
 	mImageCache = new ImageCache();
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 92 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth)+type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&decktype=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(),type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -91,15 +96,18 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 void EditDeckScreen::refresh() {
 	clearListBox();
 	clearCards();
+
+	notice->setCaption("Refreshing card list...");
+
 	int port = 1;
 	if(portrait == false){
 		port = 2;
 	}
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 92 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth) + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&decktype=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(),type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -154,9 +162,9 @@ void EditDeckScreen::deleteDeck() {
 }
 
 void EditDeckScreen::removeCard() {
-	int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
-	if (cards.size() < 10) {
-		cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
+	int cardIndex = (cardsPerList * selectedList) + cardLists[selectedList]->getSelectedIndex();
+	if (!strcmp(type.c_str(), "1") && cards.size() < 15) {
+		cardIndex -= 1; //if there are less than 15 cards, there is also the "add card" option
 	}
 
 	int urlLength = 65 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
@@ -181,7 +189,6 @@ void EditDeckScreen::removeCard() {
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
 		feed->addHttp();
 		mHttp.finish();
-
 	}
 	delete [] url;
 	url = NULL;
@@ -194,6 +201,7 @@ void EditDeckScreen::removeCard() {
 }
 
 void EditDeckScreen::pointerPressEvent(MAPoint2d point) {
+	xStart = point.x;
     locateItem(point);
 }
 
@@ -203,6 +211,16 @@ void EditDeckScreen::pointerMoveEvent(MAPoint2d point) {
 }
 
 void EditDeckScreen::pointerReleaseEvent(MAPoint2d point) {
+	if (!emp && (list || listLeft || listRight)) {
+		int xEnd = point.x;
+		int distance = abs(xEnd - xStart);
+
+		if (distance >= (scrWidth * 0.4)) {
+			moved=0;
+			switchList(xEnd>xStart?-1:1);
+			return;
+		}
+	}
 	if (moved <= 8) {
 		if (right) {
 			keyPressEvent(MAK_SOFTRIGHT);
@@ -210,6 +228,10 @@ void EditDeckScreen::pointerReleaseEvent(MAPoint2d point) {
 			keyPressEvent(MAK_SOFTLEFT);
 		} else if (list) {
 			keyPressEvent(MAK_FIRE);
+		} else if (listLeft) {
+			keyPressEvent(MAK_LEFT);
+		} else if (listRight) {
+			keyPressEvent(MAK_RIGHT);
 		}
 	}
 	moved=0;
@@ -219,14 +241,25 @@ void EditDeckScreen::locateItem(MAPoint2d point) {
 	list = false;
 	left = false;
 	right = false;
-
+	listLeft = false;
+	listRight = false;
 	Point p;
 	p.set(point.x, point.y);
-	for(int i = 0; i < (this->getMain()->getChildren()[0]->getChildren()[2]->getChildren()).size(); i++)
+	if (leftArrow->contains(p)) {
+		listLeft = true;
+		return;
+	}
+	else if (rightArrow->contains(p)) {
+		listRight = true;
+		return;
+	}
+	for(int i = 0; selectedList < cardLists.size() &&
+		i < (cardLists[selectedList]->getChildren()).size(); i++)
 	{
-		if(this->getMain()->getChildren()[0]->getChildren()[2]->getChildren()[i]->contains(p))
+		if(cardLists[selectedList]->getChildren()[i]->contains(p))
 		{
 			list = true;
+			cardLists[selectedList]->setSelectedIndex(i);
 		}
 	}
 	for(int i = 0; i < (this->getMain()->getChildren()[1]->getChildren()).size(); i++)
@@ -245,13 +278,57 @@ void EditDeckScreen::locateItem(MAPoint2d point) {
 	}
 }
 
+void EditDeckScreen::switchList(int nextOrPrev) {
+	int currentIndex = cardLists[selectedList]->getSelectedIndex();
+
+	if ((selectedList + nextOrPrev >= 0) && (selectedList + nextOrPrev < cardLists.size())) {
+		selectedList += nextOrPrev;
+	}
+	else if (selectedList + nextOrPrev < 0) {
+		selectedList = cardLists.size() - 1;
+	}
+	else if (selectedList + nextOrPrev >= cardLists.size()) {
+		selectedList = 0;
+	}
+	midListBox->clear();
+	midListBox->add(cardLists[selectedList]);
+
+	currentIndex = currentIndex>=cardLists[selectedList]->getChildren().size()?cardLists[selectedList]->getChildren().size()-1:currentIndex;
+
+	cardLists[selectedList]->setSelectedIndex(currentIndex);
+	cardLists[selectedList]->getChildren()[currentIndex]->setSelected(true);
+
+	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
+	char *cap = new char[capLength+1];
+	memset(cap,'\0',capLength+1);
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
+	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
+
+	currentIndex = 0;
+}
+
 void EditDeckScreen::clearListBox() {
 	Vector<Widget*> tempWidgets;
-	for (int i = 0; i < kinListBox->getChildren().size(); i++) {
-		tempWidgets.add(kinListBox->getChildren()[i]);
+
+	if (!emp) {
+		midListBox->clear();
+		for (int i = 0; i < cardLists.size(); i++) {
+			tempWidgets.add(cardLists[i]);
+		}
+		cardLists.clear();
+		for (int i = 0; i < listBox->getChildren().size(); i++) {
+			tempWidgets.add(listBox->getChildren()[i]);
+		}
+		listBox->clear();
+		listBox->getChildren().clear();
 	}
-	kinListBox->clear();
-	kinListBox->getChildren().clear();
+	else {
+		for (int i = 0; i < listBox->getChildren().size(); i++) {
+			tempWidgets.add(listBox->getChildren()[i]);
+		}
+		listBox->clear();
+		listBox->getChildren().clear();
+	}
 
 	for (int j = 0; j < tempWidgets.size(); j++) {
 		delete tempWidgets[j];
@@ -265,89 +342,156 @@ void EditDeckScreen::drawList() {
 
 	Layout *feedlayout;
 
-	int index = kinListBox->getSelectedIndex();
-	index = index>=0?index:0;
-
-	clearListBox();
-
-	if (cards.size() < 10) {
-		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
-		feedlayout->setSkin(Util::getSkinList());
-		feedlayout->setDrawBackground(true);
-		feedlayout->addWidgetListener(this);
-
-		label = new Label(0, 0, 0, 0, NULL, "", 0, Util::getDefaultFont());
-		feedlayout->add(label);
-
-		//label = new Label(0,0, feedlayout->getWidth(), 48, feedlayout, "Add Card", 0, Util::getDefaultFont());
-		label = Util::createSubLabel("Add Card");
-		label->setDrawBackground(false);
-		feedlayout->add(label);
-		//label->setSkin(Util::getSkinList());
-		//label->setVerticalAlignment(Label::VA_CENTER);
-		//label->setHorizontalAlignment(Label::HA_CENTER);
+	int ind = listBox->getSelectedIndex();
+	if (ind < 0) {
+		ind = 0;
 	}
 
-	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
-	feedlayout->setSkin(Util::getSkinList());
-	feedlayout->setDrawBackground(true);
-	feedlayout->addWidgetListener(this);
+	int items = cards.size();
+	if (!strcmp(type.c_str(), "1")) {
+		items++;
+	}
 
-	label = new Label(0, 0, 0, 0, NULL, "", 0, Util::getDefaultFont());
-	feedlayout->add(label);
+	//clearListBox();
 
-	label = Util::createSubLabel("Delete Deck");
-	label->setDrawBackground(false);
-	feedlayout->add(label);
-	//label = new Label(0,0, feedlayout->getWidth(), 48, feedlayout, "Delete Deck", 0, Util::getDefaultFont());
-	//label->setSkin(Util::getSkinList());
-	//label->setVerticalAlignment(Label::VA_CENTER);
-	//label->setHorizontalAlignment(Label::HA_CENTER);
+	//we need a layout to have arrow images on the sides of the list
+	cardsPerList = listBox->getHeight() / ALBUM_ITEM_HEIGHT; //74 is the default card display item height
+	if(cardsPerList == 0){
+		cardsPerList = 1;
+	}
+	Layout *listLayout;
+	//check if we need more than 1 page
+	if (cardsPerList < items) {
+		listLayout = new Layout(0, 0, listBox->getWidth(), listBox->getHeight(), listBox, 3, 1);
+		listLayout->setDrawBackground(false);
+		listLayout->setVerticalAlignment(Layout::VA_CENTER);
 
-	String cardText = "";
-	for (int i = 0; i < cards.size(); i++) {
+		leftArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), listLayout, false, false, RES_BIG_LEFT_ARROW);
+		leftArrow->setDrawBackground(false);
+
+		midListBox = new ListBox(0, 0, listLayout->getWidth() - (BIG_ARROW_WIDTH*2) - (PADDING*2), listLayout->getHeight(), listLayout, ListBox::LBO_VERTICAL);
+		midListBox->setDrawBackground(false);
+
+		rightArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), listLayout, false, false, RES_BIG_RIGHT_ARROW);
+		rightArrow->setDrawBackground(false);
+	} else {
+		listLayout = new Layout(0, 0, listBox->getWidth(), listBox->getHeight(), listBox, 1, 1);
+		listLayout->setDrawBackground(false);
+		listLayout->setVerticalAlignment(Layout::VA_CENTER);
+
+		leftArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_BIG_LEFT_ARROW);
+		leftArrow->setDrawBackground(false);
+
+		midListBox = new ListBox(0, 0, listLayout->getWidth() - (PADDING*2), listLayout->getHeight(), listLayout, ListBox::LBO_VERTICAL);
+		midListBox->setDrawBackground(false);
+
+		rightArrow = new Image(0, 0, BIG_ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_BIG_RIGHT_ARROW);
+		rightArrow->setDrawBackground(false);
+	}
+
+	int currentList = -1;
+	ListBox *tempList = NULL;
+	int j = 0;
+	for(int i = 0; i < cards.size(); i++) {
+		//gotta make the tempList for the cards
+		if (j % cardsPerList == 0) {
+			tempList = new ListBox(0, 0, midListBox->getWidth(), midListBox->getHeight(), NULL);
+			tempList->setDrawBackground(false);
+			tempList->setOrientation(ListBox::LBO_VERTICAL);
+			currentList++;
+			cardLists.add(tempList);
+
+			if (i == 0 && !strcmp(type.c_str(), "1") && cards.size() < 15) {
+				feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), 48, tempList, 3, 1);
+				feedlayout->setSkin(Util::getSkinList());
+				feedlayout->setDrawBackground(true);
+				feedlayout->addWidgetListener(this);
+
+				label = new Label(0, 0, 0, 0, NULL, "", 0, Util::getDefaultFont());
+				feedlayout->add(label);
+
+				label = new Label(0, 0, feedlayout->getWidth(), DEFAULT_LABEL_HEIGHT, feedlayout);
+				label->setCaption("Add Card");
+				label->setHorizontalAlignment(Label::HA_CENTER);
+				label->setVerticalAlignment(Label::VA_CENTER);
+				label->setSkin(Util::getSkinList());
+				label->setDrawBackground(false);
+
+				j++;
+			}
+		}
 		String cardText = "";
-		cardText += cards[i]->getText();
-		cardText += " (";
-		cardText += cards[i]->getQuantity();
-		cardText += ")\n";
-		cardText += cards[i]->getRarity();
-		cardText += "\nRating: ";
-		cardText += cards[i]->getRanking();
+		if(!strcmp(type.c_str(), "1")){
+			cardText += cards[i]->getText();
+			cardText += " (";
+			cardText += cards[i]->getQuantity();
+			cardText += ")\n";
+			cardText += cards[i]->getRarity();
+			cardText += "\nRating: ";
+			cardText += cards[i]->getRanking();
+		}else if(!strcmp(type.c_str(), "2")){
+			if(strcmp(cards[i]->getText().c_str(),"")){
+				cardText += cards[i]->getText()+"\n";
+			}
+			cardText += "Position: ";
+			cardText += cards[i]->getPosition();
+			cardText += "\nPoints: ";
+			cardText += cards[i]->getPoints();
+		}
 
-		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 74, kinListBox, 3, 1);
+		feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 3, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());
 		feedlayout->setDrawBackground(true);
 		feedlayout->addWidgetListener(this);
+		feedlayout->setVerticalAlignment(Layout::VA_CENTER);
 
 		if (strcmp(cards[i]->getQuantity().c_str(), "0") != 0) {
-			//if the user has one or more of the card, the image must be downloaded
+			//if the card is in the deck, the image must be downloaded
 			tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_LOADINGTHUMB));
 			tempImage->setHasNote(cards[i]->getNote().length()>0);
 			Util::retrieveThumb(tempImage, cards[i], mImageCache);
 		}
 		else {
-			//we use the blank image for cards they dont have yet
+			//we use the blank image for empty positions
 			tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_MISSINGTHUMB));
 		}
 
-		label = new Label(0,0, scrWidth-86, 74, feedlayout, cardText, 0, Util::getDefaultFont());
-		label->setDrawBackground(false);
+		label = new Label(0,0, scrWidth-86, ALBUM_ITEM_HEIGHT, feedlayout, cardText, 0, Util::getDefaultFont());
 		cardText = "";
+
+		tempImage->setDrawBackground(false);
+		label->setDrawBackground(false);
 		label->setVerticalAlignment(Label::VA_CENTER);
 		label->setAutoSizeY();
 		label->setAutoSizeX();
 		label->setMultiLine();
+
+		j++;
 	}
 
-	if (index < cards.size()) {
-		kinListBox->setSelectedIndex(index);
+	if (items >= 1) {
+		emp = false;
+		int listIndex = ind / cardsPerList;
+		int listItem = ind % cardsPerList;
+		selectedList = listIndex;
+		midListBox->add(cardLists[listIndex]);
+		cardLists[listIndex]->setSelectedIndex(listItem);
+		cardLists[listIndex]->getChildren()[cardLists[listIndex]->getSelectedIndex()]->setSelected(true);
+	} else {
+		emp = true;
+		midListBox->add(Util::createSubLabel("Empty"));
+		midListBox->setSelectedIndex(0);
 	}
-	else if (index > cards.size()) {
-		kinListBox->setSelectedIndex(index - 1);
-	}
-	else {
-		kinListBox->setSelectedIndex(0);
+	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(items);
+	char *cap = new char[capLength+1];
+	memset(cap,'\0',capLength+1);
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
+	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
+
+	if (currentSelectedKey!=NULL) {
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
 	}
 }
 
@@ -356,7 +500,7 @@ void EditDeckScreen::drawConfirm() {
 
 	clearListBox();
 
-	label = new Label(0, 0, kinListBox->getWidth() - 10, 0, kinListBox, "Are you sure you want to delete this deck?", 0, Util::getDefaultFont());
+	label = new Label(0, 0, listBox->getWidth() - 10, 0, listBox, "Are you sure you want to delete this deck?", 0, Util::getDefaultFont());
 	label->setAutoSizeY();
 	label->setMultiLine(true);
 	label->setDrawBackground(false);
@@ -390,6 +534,8 @@ EditDeckScreen::~EditDeckScreen() {
 	statDisplay="";
 	note="";
 	deckId="";
+	active="";
+	type="";
 	id="";
 	description="";
 	quantity="";
@@ -416,14 +562,6 @@ void EditDeckScreen::selectionChanged(Widget *widget, bool selected) {
 			} else {
 				((Label *)widget->getChildren()[1])->setFont(Util::getDefaultFont());
 			}
-
-			//if ((kinListBox->getSelectedIndex() == 1 && cards.size() < 10) ||
-			//		(kinListBox->getSelectedIndex() == 0)) {
-			//	Util::updateSoftKeyLayout("", "Back", "", mainLayout);
-			//}
-			//else {
-			//	Util::updateSoftKeyLayout("Remove", "Back", "", mainLayout);
-			//}
 			break;
 	}
 }
@@ -438,8 +576,10 @@ void EditDeckScreen::hide() {
 
 void EditDeckScreen::keyPressEvent(int keyCode) {
 	String all = "";
-	int ind = kinListBox->getSelectedIndex();
-	int max = kinListBox->getChildren().size();
+	int ind = (cardsPerList * selectedList) + cardLists[selectedList]->getSelectedIndex();
+	if (cards.size() < 15 && !strcmp(type.c_str(), "1")) {
+		ind -= 1; //if there are less than 15 cards, there is also the "add card" option
+	}
 	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch (screenType) {
 		case ST_LIST:
@@ -449,19 +589,25 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						currentSelectedKey->setSelected(false);
 						currentSelectedKey = NULL;
 						currentKeyPosition = -1;
-						kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+						if (!busy) {
+							cardLists[selectedList]->getChildren()[cardLists[selectedList]->getChildren().size()-1]->setSelected(true);
+						}
 					}
-					else if (ind == 0) {
-						kinListBox->setSelectedIndex(max-1);
-					} else {
-						kinListBox->selectPreviousItem();
+					else if (!busy) {
+						if (cardLists[selectedList]->getSelectedIndex() == 0) {
+							cardLists[selectedList]->setSelectedIndex(cardLists[selectedList]->getChildren().size()-1);
+						} else {
+							cardLists[selectedList]->selectPreviousItem();
+						}
 					}
 					break;
 				case MAK_DOWN:
-					if (ind+1 < max ) {
-						kinListBox->setSelectedIndex(ind+1);
+					if (cardLists[selectedList]->getSelectedIndex() < (cardLists[selectedList]->getChildren().size() - 1) && !busy) {
+						cardLists[selectedList]->setSelectedIndex(cardLists[selectedList]->getSelectedIndex()+1);
 					} else if(currentSelectedKey==NULL) {
-						kinListBox->getChildren()[ind]->setSelected(false);
+						if (!busy) {
+							cardLists[selectedList]->getChildren()[cardLists[selectedList]->getSelectedIndex()]->setSelected(false);
+						}
 						for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 							if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 								currentKeyPosition=i;
@@ -484,7 +630,26 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						keyPressEvent(MAK_SOFTRIGHT);
 						break;
 					}
-					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
+					if(!strcmp(type.c_str(), "1")){
+						if (cardLists[selectedList]->getSelectedIndex() == 0 && selectedList == 0 && cards.size() < 15) {
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+							((AlbumLoadScreen*)next)->setDeckId(deckId);
+							next->show();
+						}else if(cardLists[selectedList]->getSelectedIndex() > 0){
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[ind],ImageScreen::ST_DECK_REMOVE);
+							next->show();
+						}
+					} else if(!strcmp(type.c_str(), "2")&&!strcmp(active.c_str(), "1")){
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
@@ -492,28 +657,12 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						}
 						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
 						((AlbumLoadScreen*)next)->setDeckId(deckId);
-						next->show();
-					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
-						drawConfirm();
-					}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() > 1 && cards.size() < 10)){
-						if (next != NULL) {
-							delete next;
-							feed->remHttp();
-							next = NULL;
-						}
-						int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
-						if (cards.size() < 10) {
-							cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
-						}
-						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
+						((AlbumLoadScreen*)next)->setPositionId(cards[ind]->getPositionId());
 						next->show();
 					}
 					break;
 				case MAK_SOFTLEFT:
-					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
+					if ((cardLists[selectedList]->getSelectedIndex() == 0 && selectedList == 0) && cards.size() < 15 && !strcmp(type.c_str(), "1")) {
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
@@ -523,13 +672,6 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						((AlbumLoadScreen*)next)->setDeckId(deckId);
 						next->show();
 					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
-						drawConfirm();
-					}
-					//else {
-					//	removeCard();
-					//}
 					break;
 				case MAK_LEFT:
 					if(currentSelectedKey!=NULL){
@@ -545,6 +687,8 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 								}
 							}
 						}
+					} else if (!emp) {
+						switchList(-1);
 					}
 					break;
 				case MAK_RIGHT:
@@ -561,6 +705,8 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 								}
 							}
 						}
+					} else if (!emp) {
+						switchList(1);
 					}
 					break;
 			}
@@ -579,19 +725,19 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						currentSelectedKey->setSelected(false);
 						currentSelectedKey = NULL;
 						currentKeyPosition = -1;
-						kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+						cardLists[selectedList]->getChildren()[cardLists[selectedList]->getChildren().size()-1]->setSelected(true);
 					}
 					else if (ind == 0) {
-						kinListBox->setSelectedIndex(max-1);
+						cardLists[selectedList]->setSelectedIndex((cardLists[selectedList]->getChildren().size())-1);
 					} else {
-						kinListBox->selectPreviousItem();
+						cardLists[selectedList]->selectPreviousItem();
 					}
 					break;
 				case MAK_DOWN:
-					if (ind+1 < max ) {
-						kinListBox->setSelectedIndex(ind+1);
+					if (cardLists[selectedList]->getSelectedIndex()+1 < cardLists[selectedList]->getChildren().size() ) {
+						cardLists[selectedList]->setSelectedIndex(ind+1);
 					} else if(currentSelectedKey==NULL) {
-						kinListBox->getChildren()[ind]->setSelected(false);
+						cardLists[selectedList]->getChildren()[cardLists[selectedList]->getSelectedIndex()]->setSelected(false);
 						for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 							if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 								currentKeyPosition=i;
@@ -732,6 +878,12 @@ void EditDeckScreen::mtxTagData(const char* data, int len) {
 		rarity += data;
 	} else if(!strcmp(parentTag.c_str(), "value")) {
 		value = data;
+	} else if(!strcmp(parentTag.c_str(), "positionid")) {
+		positionid = data;
+	} else if(!strcmp(parentTag.c_str(), "position")) {
+		position = data;
+	} else if(!strcmp(parentTag.c_str(), "points")) {
+		points = data;
 	} else if(!strcmp(parentTag.c_str(), "result")) {
 		error_msg = data;
 	} else if(!strcmp(parentTag.c_str(), "updated")) {
@@ -749,6 +901,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 	if(!strcmp(name, "card")) {
 		//notice->setCaption("");
 		Card *newCard = new Card();
+		newCard->setPositionId(positionid.c_str());
+		newCard->setPosition(position.c_str());
+		newCard->setPoints(points.c_str());
 		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
 		newCard->setStats(stats);
 		newCard->setUpdated(updated == "1");
@@ -761,6 +916,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		backurl = "";
 		rate = "";
 		value = "";
+		positionid = "";
+		position = "";
+		points = "";
 		rarity = "";
 		ranking = "";
 		frontflipurl = "";
@@ -837,6 +995,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		rarity="";
 		ranking="";
 		value="";
+		positionid = "";
+		position = "";
+		points = "";
 		updated="";
 	}
 }

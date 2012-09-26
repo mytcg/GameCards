@@ -112,7 +112,7 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	if(res < 0) {
 		drawList();
 		notice->setCaption("Unable to connect, try again later...");
-		busy = true;
+		busy = false;
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
 		mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
@@ -265,7 +265,6 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 	int ind = kinListBox->getSelectedIndex();
 	int max = kinListBox->getChildren().size();
 	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
-	lprintfln("busy: %s", busy?"true":"false");
 	switch(keyCode) {
 		case MAK_UP:
 			if(currentSelectedKey!=NULL){
@@ -281,9 +280,9 @@ void ShopCategoriesScreen::keyPressEvent(int keyCode) {
 			break;
 		case MAK_DOWN:
 			if (!busy && ind+1 < kinListBox->getChildren().size()) {
-				kinListBox->setSelectedIndex(ind+1);
-			} else {
-				if (!busy) {
+				kinListBox->selectNextItem();
+			} else if(currentSelectedKey==NULL) {
+				if(kinListBox->getChildren().size() > 0){
 					kinListBox->getChildren()[ind]->setSelected(false);
 				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){

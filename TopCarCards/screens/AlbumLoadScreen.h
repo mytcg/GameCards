@@ -37,15 +37,17 @@ public:
 	void setDeckId(String deckId);
 	void menuOptionSelected(int index);
 
-	enum screenTypes {ST_ALBUMS, ST_PLAY, ST_GAMES, ST_LOBBY, ST_COMPARE, ST_AUCTION, ST_DECK, ST_FRIENDS};
+	enum screenTypes {ST_ALBUMS, ST_PLAY, ST_GAMES, ST_LOBBY, ST_COMPARE, ST_AUCTION, ST_DECK, ST_FRIENDS, ST_TUT};
 private:
 	Widget* currentSelectedKey;
 
 	HttpConnection mHttp;
 
 	Vector<String> path;
+	Vector<String> tutimages;
+	HashMap<String,Vector<String> > tuts;
 	String parentTag;
-	String temp,temp1,error_msg,hasCards,updated,categoryId,deckId,friendId;
+	String temp,temp1,error_msg,hasCards,updated,categoryId,deckId,friendId,id,desc,image;
 	int size, i, moved, screenType, xStart, currentKeyPosition;
 	bool list, left, right, mid,listLeft, listRight, empt, hasConnection, isAuction, shown;
 

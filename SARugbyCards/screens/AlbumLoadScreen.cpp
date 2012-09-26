@@ -9,6 +9,7 @@
 #include "OptionsScreen.h"
 #include "../utils/Album.h"
 #include "DeckListScreen.h"
+#include "TutorialScreen.h"
 #include "../UI/Button.h"
 
 
@@ -89,6 +90,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	shown = false;
 	temp1 = "";
 	deckId = "";
+	positionId = "";
 	friendId="0";
 	updated = "0";
 
@@ -99,7 +101,6 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	notice = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
 
 	if (album == NULL) {
-		lprintfln("album = new Albums()");
 		album = new Albums();
 	} else {
 		album->clearAll();
@@ -186,6 +187,17 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
+		case ST_TUT:
+			notice->setCaption("Checking tutorials...");
+			int width = scrWidth - (BIG_ARROW_WIDTH * 2) - (PADDING*2);
+			int height = scrHeight-(mainLayout->getChildren()[mainLayout->getChildren().size() - 1]->getHeight());
+			urlLength = 71 + URLSIZE + Util::intlen(width) + Util::intlen(height);
+			url = new char[urlLength+1];
+			memset(url,'\0',urlLength+1);
+			sprintf(url, "%s?gettuts=1&height=%d&width=%d", URL, height, width);
+			lprintfln("%s", url);
+			res = mHttp.create(url, HTTP_GET);
+			break;
 	}
 	if(res < 0) {
 		hasConnection = false;
@@ -217,6 +229,13 @@ AlbumLoadScreen::~AlbumLoadScreen() {
 			cardLists[i] = NULL;
 		}
 		cardLists.clear();
+	tutimages.clear();
+	if(tuts.size() > 0){
+		for(HashMap<String,Vector<String> >::Iterator iterator = tuts.begin(); iterator != tuts.end(); iterator++) {
+			iterator->second.clear();
+		}
+	}
+	tuts.clear();
 	delete mainLayout;
 	mainLayout = NULL;
 	if(next!=NULL){
@@ -227,6 +246,8 @@ AlbumLoadScreen::~AlbumLoadScreen() {
 	parentTag="";
 	temp="";
 	temp1="";
+	id="";
+	desc="";
 	error_msg="";
 	hasCards="";
 	updated="";
@@ -715,7 +736,7 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 						break;
 					case ST_DECK:
 						if (val->getHasCards()) {
-							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId);
+							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
 							next->show();
 						}
 						else {
@@ -726,6 +747,9 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 							loadCategory();
 						}
 						break;
+					case ST_TUT:
+						next = new TutorialScreen(this, tuts.find(val->getId())->second);
+						next->show();
 				}
 			}
 			break;
@@ -887,6 +911,12 @@ void AlbumLoadScreen::mtxTagData(const char* data, int len) {
 		hasCards += data;
 	} else if (!strcmp(parentTag.c_str(), "updated")) {
 		updated += data;
+	} else if(!strcmp(parentTag.c_str(), "id")) {
+		id += data;
+	} else if(!strcmp(parentTag.c_str(), "description")) {
+		desc += data;
+	} else if(!strcmp(parentTag.c_str(), "image")) {
+		image += data;
 	}
 }
 
@@ -902,7 +932,17 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		hasCards = "";
 		updated = "";
 		temp1 = "";
-	} else if (!strcmp(name, "usercategories") || !strcmp(name, "categories") || !strcmp(name, "games")) {
+	} else if (!strcmp(name, "tut")) {
+		notice->setCaption("");
+		album->addAlbum(id.c_str(), desc.c_str(), (hasCards=="true"), (updated=="1"));
+		tuts.insert(id,tutimages);
+		id = "";
+		desc = "";
+		tutimages.clear();
+	} else if (!strcmp(name, "tutimage")) {
+		tutimages.add(image);
+		image = "";
+	} else if (!strcmp(name, "usercategories") || !strcmp(name, "categories") || !strcmp(name, "games") || !strcmp(name, "tuts")) {
 		switch (screenType) {
 			case ST_PLAY:
 				notice->setCaption("Choose game cards.");
@@ -992,6 +1032,19 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 							loadCategory();
 						}
 						break;
+					case ST_DECK:
+						if (val->getHasCards()) {
+							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
+							next->show();
+						}
+						else {
+							//if a category has no cards, it means it has sub categories.
+							//it is added to the path so we can back track
+							path.add(val->getId());
+							//then it must be loaded
+							loadCategory();
+						}
+						break;
 					case ST_PLAY:
 						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, val->getId());
 						next->show();
@@ -1008,6 +1061,8 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		hasCards = "";
 		updated = "";
 		temp1 = "";
+		id="";
+		desc="";
 		error_msg = "";
 	} else if(!strcmp(name, "error")) {
 		notice->setCaption(error_msg.c_str());
@@ -1109,4 +1164,8 @@ int AlbumLoadScreen::getCount() {
 
 void AlbumLoadScreen::setDeckId(String d) {
 	deckId = d;
+}
+
+void AlbumLoadScreen::setPositionId(String p) {
+	positionId = p;
 }

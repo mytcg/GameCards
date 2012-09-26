@@ -45,6 +45,7 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 	note = "";
 	statDesc = "";
 	statIVal = "";
+	mustDraw = 0;
 	int port = 1;
 	if(portrait == false){
 		port = 2;
@@ -74,6 +75,33 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 		memset(url,'\0',urlLength+1);
 		sprintf(url, "%s?buyproduct=%s&height=%d&portrait=%d&width=%d&freebie=%d&jpg=1&purchase=%s", URL,
 				category.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), 0, deckId.c_str());
+		lprintfln("%s", url);
+		if(mHttp.isOpen()){
+			mHttp.close();
+		}
+		mHttp = HttpConnection(this);
+		int res = mHttp.create(url, HTTP_GET);
+		if(res < 0) {
+			busy = false;
+			hasConnection = false;
+			notice->setCaption("");
+		} else {
+			hasConnection = true;
+			mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
+			mHttp.setRequestHeader("AUTH_PW", feed->getEncrypt().c_str());
+			feed->addHttp();
+			mHttp.finish();
+		}
+		delete url;
+		url = NULL;
+	} else if (albumType == AT_REDEEM) {
+		loadImages("");
+		notice->setCaption("Redeeming...");
+		int urlLength = 99 + URLSIZE + category.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+		char *url = new char[urlLength+1];
+		memset(url,'\0',urlLength+1);
+		sprintf(url, "%s?buyproduct=%s&height=%d&portrait=%d&width=%d&freebie=%d&jpg=1&purchase=%d", URL,
+				category.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), 0, 4);
 		lprintfln("%s", url);
 		if(mHttp.isOpen()){
 			mHttp.close();
@@ -485,7 +513,7 @@ void AlbumViewScreen::drawList() {
 		cardText += "\nRating: ";
 		cardText += itr->second->getRanking();
 
-		feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 3, 1);
+		feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 2, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());
 		feedlayout->setDrawBackground(true);
 		feedlayout->addWidgetListener(this);
@@ -593,6 +621,7 @@ AlbumViewScreen::~AlbumViewScreen() {
 	updated="";
 	deckId="";
 	friendId="";
+	mustDraw = 0;
 }
 
 void AlbumViewScreen::selectionChanged(Widget *widget, bool selected) {
@@ -917,6 +946,8 @@ void AlbumViewScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 			statBlue = atoi(attrValue);
 		}else if(!strcmp(attrName, "selectable")) {
 			selectable = atoi(attrValue);
+		}else if(!strcmp(attrName, "mustdraw")) {
+			mustDraw = atoi(attrValue);
 		}
 	}
 }
@@ -1030,6 +1061,7 @@ void AlbumViewScreen::mtxTagEnd(const char* name, int len) {
 		stat->setColorGreen(statGreen);
 		stat->setColorBlue(statBlue);
 		stat->setSelectable(selectable);
+		stat->setMustDraw(mustDraw==1);
 		stats.add(stat);
 		statDesc = "";
 		statDisplay = "";

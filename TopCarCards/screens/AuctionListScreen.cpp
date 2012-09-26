@@ -3,6 +3,7 @@
 #include "AuctionListScreen.h"
 #include "ShopDetailsScreen.h"
 #include "../utils/Util.h"
+#include "../UI/Button.h"
 
 AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int screenType, String catId) : mHttp(this), screenType(screenType), categoryId(catId) {
 	lprintfln("AuctionListScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
@@ -12,8 +13,10 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 	left = false;
 	right = false;
 	list = false;
+	busy = true;
 	shouldUpdateAuction = false;
-
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 
 	clearAuctions();
 	deleteAuctions();
@@ -32,6 +35,10 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 	error_msg = "";
 	endDate = "";
 	lastBidUser = "";
+	int port = 1;
+	if(portrait == false){
+		port = 2;
+	}
 
 	moved = 0;
 
@@ -54,7 +61,7 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 	int urlLength = 0;
 	switch (screenType) {
 		case ST_CATEGORY:
-			urlLength = 74 + URLSIZE + categoryId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+			urlLength = 85 + URLSIZE + categoryId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 			break;
 		case ST_USER:
 			urlLength = 73 + URLSIZE + feed->getUsername().length() +  + Util::intlen(scrHeight) + Util::intlen(scrWidth);
@@ -64,8 +71,8 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 	memset(url,'\0',urlLength+1);
 	switch (screenType) {
 		case ST_CATEGORY:
-			sprintf(url, "%s?categoryauction=1&category_id=%s&height=%d&width=%d&jpg=1", URL,
-					categoryId.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+			sprintf(url, "%s?categoryauction=1&category_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
+					categoryId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 			lprintfln("%s", url);
 			break;
 		case ST_USER:
@@ -83,6 +90,8 @@ AuctionListScreen::AuctionListScreen(MainScreen *previous, Feed *feed, int scree
 		drawList();
 
 		notice->setCaption("Unable to connect, try again later...");
+
+		busy = false;
 
 	} else {
 		mHttp.setRequestHeader("AUTH_USER", feed->getUsername().c_str());
@@ -185,7 +194,7 @@ void AuctionListScreen::drawList() {
 
 		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT, kinListBox, 2, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());
-		feedlayout->setDrawBackground(false);
+		feedlayout->setDrawBackground(true);
 		feedlayout->addWidgetListener(this);
 		tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_LOADINGTHUMB));
 
@@ -297,9 +306,13 @@ void AuctionListScreen::refresh()
 
 	//work out how long the url will be, the number is for the & and = symbols as well as hard coded params
 	int urlLength = 0;
+	int port = 1;
+	if(portrait == false){
+		port = 2;
+	}
 	switch (screenType) {
 		case ST_CATEGORY:
-			urlLength = 74 + URLSIZE + categoryId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+			urlLength = 85 + URLSIZE + categoryId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 			break;
 		case ST_USER:
 			urlLength = 73 + URLSIZE + feed->getUsername().length() +  + Util::intlen(scrHeight) + Util::intlen(scrWidth);
@@ -309,8 +322,8 @@ void AuctionListScreen::refresh()
 	memset(url,'\0',urlLength+1);
 	switch (screenType) {
 		case ST_CATEGORY:
-			sprintf(url, "%s?categoryauction=1&category_id=%s&height=%d&width=%d&jpg=1", URL,
-					categoryId.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+			sprintf(url, "%s?categoryauction=1&category_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
+					categoryId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 			lprintfln("%s", url);
 			break;
 		case ST_USER:
@@ -345,12 +358,15 @@ void AuctionListScreen::updateAuctions()
 {
 	clearAuctions();
 	shouldUpdateAuction = true;
-
+	int port = 1;
+	if(portrait == false){
+		port = 2;
+	}
 	//work out how long the url will be, the number is for the & and = symbols as well as hard coded params
 	int urlLength = 0;
 	switch (screenType) {
 		case ST_CATEGORY:
-			urlLength = 74 + URLSIZE + categoryId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+			urlLength = 85 + URLSIZE + categoryId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 			break;
 		case ST_USER:
 			urlLength = 73 + URLSIZE + feed->getUsername().length() +  + Util::intlen(scrHeight) + Util::intlen(scrWidth);
@@ -360,8 +376,8 @@ void AuctionListScreen::updateAuctions()
 	memset(url,'\0',urlLength+1);
 	switch (screenType) {
 		case ST_CATEGORY:
-			sprintf(url, "%s?categoryauction=1&category_id=%s&height=%d&width=%d&jpg=1", URL,
-					categoryId.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+			sprintf(url, "%s?categoryauction=1&category_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
+					categoryId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 			lprintfln("%s", url);
 			break;
 		case ST_USER:
@@ -434,18 +450,50 @@ void AuctionListScreen::selectionChanged(Widget *widget, bool selected) {
 
 void AuctionListScreen::keyPressEvent(int keyCode) {
 	int selected = kinListBox->getSelectedIndex();
+	int max = kinListBox->getChildren().size();
+	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch(keyCode) {
 		case MAK_UP:
-			kinListBox->selectPreviousItem();
+			if (currentSelectedKey!=NULL) {
+				currentSelectedKey->setSelected(false);
+				currentSelectedKey = NULL;
+				currentKeyPosition = -1;
+				if (!busy) {
+					kinListBox->getChildren()[max-1]->setSelected(true);
+				}
+			} else if (!busy) {
+				kinListBox->selectPreviousItem();
+			}
 			break;
 		case MAK_DOWN:
-			kinListBox->selectNextItem();
+			if (selected+1 < max & !busy) {
+				kinListBox->selectNextItem();
+			} else if(currentSelectedKey==NULL){
+				if (!busy) {
+					kinListBox->getChildren()[selected]->setSelected(false);
+				}
+				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
+					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+						currentKeyPosition=i;
+						currentSelectedKey= currentSoftKeys->getChildren()[i];
+						currentSelectedKey->setSelected(true);
+						break;
+					}
+				}
+			}
 			break;
 		case MAK_BACK:
 		case MAK_SOFTRIGHT:
 			previous->show();
 			break;
 		case MAK_FIRE:
+			if(currentSoftKeys->getChildren()[0]->isSelected()){
+				keyPressEvent(MAK_SOFTLEFT);
+				break;
+			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
+				keyPressEvent(MAK_SOFTRIGHT);
+				break;
+			}
 		case MAK_SOFTLEFT:
 			if (!emp) {
 				if (next != NULL) {
@@ -475,6 +523,8 @@ void AuctionListScreen::httpFinished(MAUtil::HttpConnection* http, int result) {
 		feed->remHttp();
 
 		notice->setCaption("Unable to connect, try again later...");
+
+		busy = false;
 	}
 }
 
@@ -591,6 +641,8 @@ void AuctionListScreen::mtxTagEnd(const char* name, int len) {
 		error_msg = "";
 		endDate = "";
 		lastBidUser = "";
+
+		busy = false;
 	} else if (!strcmp(name, "auctionsincategory")) {
 		notice->setCaption("Building list...");
 		cardId = "";
@@ -610,6 +662,8 @@ void AuctionListScreen::mtxTagEnd(const char* name, int len) {
 		endDate = "";
 		lastBidUser = "";
 		drawList();
+
+		busy = false;
 	}
 }
 

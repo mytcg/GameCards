@@ -54,9 +54,13 @@ public:
 
 	int getSelectable();
 	void setSelectable(int);
+
+	bool getMustDraw();
+	void setMustDraw(bool mustDraw);
 private:
 	String desc, display, iVal, cardStatId, categoryStatId;
 	int top, left, width, height, frontOrBack, colorRed, colorGreen, colorBlue, selectable;
+	bool mustDraw;
 };
 
 #endif	//_STAT_H_

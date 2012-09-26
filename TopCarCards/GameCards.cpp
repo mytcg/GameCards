@@ -4,7 +4,6 @@
 #include "utils/Util.h"
 #include "screens/OptionsScreen.h"
 #include "screens/Login.h"
-
 #include "screens/NewMenuScreen.h"
 
 MAUIMoblet *moblet;
@@ -17,6 +16,11 @@ MAUIMoblet::MAUIMoblet() {
 	scrWidth = EXTENT_X(screenSize);
 	scrHeight = EXTENT_Y(screenSize);
 
+	if(scrWidth > scrHeight){
+		portrait = false;
+	}else{
+		portrait = true;
+	}
 	feed = Feed();
 	String data = "";
 	Util::getData("fd.sav", data);

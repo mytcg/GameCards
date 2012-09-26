@@ -1153,10 +1153,12 @@ void Login::menuOptionSelected(int index) {
 		else if (index == 1) {
 			termsBox->setChecked(true);
 			this->show();
+			isTerms = false;
 		}
 		else if (index == 2) {
 			termsBox->setChecked(false);
 			this->show();
+			isTerms = false;
 		}
 	}
 	else if (isCountry) {
@@ -1169,7 +1171,7 @@ void Login::menuOptionSelected(int index) {
 		this->show();
 	}
 
-	isTerms = false;
+
 	isCountry = false;
 }
 

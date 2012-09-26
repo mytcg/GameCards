@@ -71,33 +71,41 @@
 #define RES_PROFILE_THUMB 71
 #define RES_SHOP 72
 #define RES_SHOP_THUMB 73
+#define RES_DECKS 74
+#define RES_DECKS_THUMB 75
+#define RES_ACHIEVEMENTS 94
+#define RES_ACHIEVEMENTS_THUMB 95
+#define RES_TUTORIALS 96
+#define RES_TUTORIALS_THUMB 97
+#define RES_LEADERBOARDS 98
+#define RES_LEADERBOARDS_THUMB 99
 
-#define RES_DESELECTED_LIST_DOT 74
-#define RES_SELECTED_LIST_DOT 75
+#define RES_DESELECTED_LIST_DOT 76
+#define RES_SELECTED_LIST_DOT 77
 
-#define RES_ICONS_BACK 76
-#define RES_SELECT_ICON 77
-#define RES_UNSELECT_ICON 78
+#define RES_ICONS_BACK 78
+#define RES_SELECT_ICON 79
+#define RES_UNSELECT_ICON 80
 
-#define RES_HEAD 79
+#define RES_HEAD 81
 
-#define RES_BLANK 80
+#define RES_BLANK 82
 
 /* Custom Variables per App */
 
-#define RES_FONT_BLACK 81
-#define RES_FONT_GREEN 82
-#define RES_FONT_GREY 83
-#define RES_FONT_WHITE 84
+#define RES_FONT_BLACK 83
+#define RES_FONT_GREEN 84
+#define RES_FONT_GREY 85
+#define RES_FONT_WHITE 86
 
-#define RES_DROPDOWNITEM_SEL 85
-#define RES_DROPDOWNITEM_UNSEL 86
-#define RES_DROPDOWNBOX_SEL 87
-#define RES_DROPDOWNBOX_UNSEL 88
-#define RES_POPUP_HEADER 89
+#define RES_DROPDOWNITEM_SEL 87
+#define RES_DROPDOWNITEM_UNSEL 88
+#define RES_DROPDOWNBOX_SEL 89
+#define RES_DROPDOWNBOX_UNSEL 90
+#define RES_POPUP_HEADER 91
 
-#define RES_BIG_LEFT_ARROW 90
-#define RES_BIG_RIGHT_ARROW 91
+#define RES_BIG_LEFT_ARROW 92
+#define RES_BIG_RIGHT_ARROW 93
 
 #define THUMB_HEIGHT 74
 #define ITEM_HEIGHT 48
@@ -180,6 +188,7 @@
 #define ARROW_WIDTH 35
 #define BIG_ARROW_WIDTH 31
 #define MIN_MENU_ICON_WIDTH 64
+#define ACHI_ITEM_HEIGHT 80
 
 #define DEFAULT_DROPDOWN_HEIGHT 38
 #define DEFAULT_DROPDOWNITEM_HEIGHT 30
@@ -187,12 +196,16 @@
 //renumber the menu options if one is removed
 //numbers must always run sequential for index
 #define OP_ALBUMS 0
-#define OP_SHOP 1
-#define OP_AUCTIONS 2
-#define OP_NOTIFICATIONS 3
-#define OP_CREDITS 4
-#define OP_PROFILE 5
-#define OP_LOGOUT 6
+#define OP_DECKS 1
+#define OP_SHOP 2
+#define OP_AUCTIONS 3
+#define OP_ACHIEVEMENTS 5
+#define OP_LEADERBOARDS 6
+#define OP_TUTORIALS 7
+#define OP_NOTIFICATIONS 8
+#define OP_CREDITS 9
+#define OP_PROFILE 10
+#define OP_LOGOUT 11
 
 #include <MAUtil/String.h>
 

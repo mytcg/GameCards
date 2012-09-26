@@ -18,6 +18,7 @@
 #include "URLEncode.h"
 #include "PIM.h"
 
+#include "../UI/Widgets/MobFont.h"
 
 using namespace MAUI;
 
@@ -54,6 +55,7 @@ class Util
 		static void retrieveBack(MobImage *img, Card *card, int height, ImageCache *mImageCache);
 		static void retrieveFrontFlip(MobImage *img, Card *card, int height, ImageCache *mImageCache);
 		static void retrieveBackFlip(MobImage *img, Card *card, int height, ImageCache *mImageCache);
+		static void retrieveImage(MobImage *img, String name, String url, int height, ImageCache *mImageCache, int type=6);
 		static void returnImage(MobImage *img, MAHandle i, int height);
 		static int intlen(float start);
 		static int absoluteValue(int num);
@@ -93,6 +95,8 @@ class Util
 		static WidgetSkin* getSkinPopupHeader();
 		static WidgetSkin* getIconListBack();
 		static WidgetSkin* getIconSelect();
+
+		static MobFont* getMobFontGrey();
 
 
 	private:

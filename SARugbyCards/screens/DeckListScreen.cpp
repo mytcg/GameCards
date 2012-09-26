@@ -24,7 +24,10 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 
 	deckId = "";
 	description = "";
+	active="";
+	type="";
 	moved = 0;
+	emp = true;
 
 	album = NULL;
 
@@ -85,7 +88,9 @@ DeckListScreen::~DeckListScreen() {
 	currentSelectedKey = NULL;
 	parentTag= "";
 	description = "";
+	active="";
 	deckId = "";
+	type="";
 	categoryId = "";
 
 	if (next != NULL) {
@@ -140,10 +145,14 @@ void DeckListScreen::refresh() {
 void DeckListScreen::clearAlbums() {
 	for (int i = 0; i < albums.size(); i++) {
 		delete albums[i];
-		albums = NULL;
+		albums[i] = NULL;
 	}
-
+	for (int i = 0; i < decks.size(); i++) {
+		delete decks[i];
+		decks[i] = NULL;
+	}
 	albums.clear();
+	decks.clear();
 }
 
 void DeckListScreen::clearListBox() {
@@ -162,15 +171,29 @@ void DeckListScreen::clearListBox() {
 }
 
 void DeckListScreen::drawList() {
-	if (screenType == ST_EDIT) {
-		label = Util::createSubLabel("New Deck");
-		label->addWidgetListener(this);
+	//if (screenType == ST_EDIT) {
+		//label = Util::createSubLabel("New Deck");
+		//label->addWidgetListener(this);
+		//kinListBox->add(label);
+	//}
+	if(screenType == ST_EDIT&&albums.size()==0){
+		emp = true;
+		label = Util::createSubLabel("Empty");
 		kinListBox->add(label);
+
+	} else {
+		emp = false;
 	}
 	for(int i = 0; i < albums.size(); i++) {
 		label = Util::createSubLabel(albums[i]->getDescription());
 		label->addWidgetListener(this);
 		kinListBox->add(label);
+	}
+
+	if (currentSelectedKey!=NULL) {
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
 	}
 	kinListBox->setSelectedIndex(0);
 
@@ -252,24 +275,26 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 			if (!selecting) {
 				switch (screenType) {
 					case ST_EDIT:
-						if (kinListBox->getSelectedIndex() == 0) {
-							if (next != NULL) {
-								delete next;
-								feed->remHttp();
-								next = NULL;
+						//if (kinListBox->getSelectedIndex() == 0) {
+						//	if (next != NULL) {
+						//		delete next;
+						//		feed->remHttp();
+						//		next = NULL;
+						//	}
+						//	next = new NewDeckScreen(this, feed);
+						//	next->show();
+						//}
+						//else {
+							if(!emp){
+								if (next != NULL) {
+									delete next;
+									feed->remHttp();
+									 next = NULL;
+								}
+								next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()]->getId(),decks[kinListBox->getSelectedIndex()]->getActive(),decks[kinListBox->getSelectedIndex()]->getType());
+								next->show();
 							}
-							next = new NewDeckScreen(this, feed);
-							next->show();
-						}
-						else {
-							if (next != NULL) {
-								delete next;
-								feed->remHttp();
-								 next = NULL;
-							}
-							next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()-1]->getId());
-							next->show();
-						}
+						//}
 						break;
 					case ST_SELECT:
 						next = new OptionsScreen(feed, OptionsScreen::ST_NEW_GAME_OPTIONS, this, NULL,
@@ -280,10 +305,12 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 			}
 			break;
 		case MAK_DOWN:
-			if (ind+1 < max) {
+			if (ind+1 < max && !selecting) {
 				kinListBox->setSelectedIndex(ind+1);
 			} else {
-				kinListBox->getChildren()[ind]->setSelected(false);
+				if (!selecting) {
+					kinListBox->getChildren()[ind]->setSelected(false);
+				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
 					if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
 						currentKeyPosition=i;
@@ -299,12 +326,16 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				if (!selecting) {
+					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+				}
 			}
-			else if (ind == 0) {
-				kinListBox->setSelectedIndex(max-1);
-			} else {
-				kinListBox->selectPreviousItem();
+			else if (!selecting) {
+				if (ind == 0) {
+					kinListBox->setSelectedIndex(max-1);
+				} else {
+					kinListBox->selectPreviousItem();
+				}
 			}
 			break;
 		case MAK_LEFT:
@@ -382,6 +413,10 @@ void DeckListScreen::mtxTagData(const char* data, int len) {
 		deckId += data;
 	} else if(!strcmp(parentTag.c_str(), "desc")) {
 		description += data;
+	} else if(!strcmp(parentTag.c_str(), "active")) {
+		active += data;
+	} else if(!strcmp(parentTag.c_str(), "type")) {
+		type += data;
 	}
 }
 
@@ -389,9 +424,13 @@ void DeckListScreen::mtxTagEnd(const char* name, int len) {
 	if (!strcmp(name, "deck")) {
 		album = new Album(deckId, description);
 		albums.add(album);
+		deck = new Deck(deckId,description,type,active);
+		decks.add(deck);
 
 		deckId = "";
 		description = "";
+		active="";
+		type="";
 	}
 	else if (!strcmp(name, "decks")) {
 		if (albums.size() <= 1 && screenType == ST_SELECT) {

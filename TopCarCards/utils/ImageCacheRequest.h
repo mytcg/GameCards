@@ -18,6 +18,7 @@ class ImageCacheRequest
     ImageCacheRequest();
     ImageCacheRequest(MobImage *img, Card *card, int height, int type);
     ImageCacheRequest(MobImage *img, Product *product, int height, int type);
+    ImageCacheRequest(MobImage *img, String name, String url, int height, int type);
     ~ImageCacheRequest();
 
     String getUrl();
@@ -32,6 +33,7 @@ class ImageCacheRequest
     Product *product;
     MobImage *img;
 	int height, type;
+	String name, url;
 };
 
 
