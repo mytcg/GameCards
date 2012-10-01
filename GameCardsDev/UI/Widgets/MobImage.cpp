@@ -13,12 +13,7 @@ MobImage::MobImage(int x, int y, int width, int height,
 }
 
 MobImage::~MobImage() {
-	for (int i = 0; i < labels.size(); i++) {
-		labels[i]->setParent(NULL);
-		delete labels[i];
-		labels[i] = NULL;
-	}
-	labels.clear();
+	clearStats();
 
 	if (getResource() != NULL) {
 		maDestroyObject(getResource());
@@ -132,7 +127,11 @@ void MobImage::drawWidget() {
 		}
 	}
 
+	lprintfln("drawWidget");
+
 	if (stats.size() > 0) {
+		lprintfln("stats.size() > 0");
+		lprintfln("stats.size(): %d", stats.size());
 		bool portrait = (imageHeight>imageWidth);
 		int diffX = (paddedBounds.width - imageWidth)/2, diffY = (paddedBounds.height - imageHeight)/2;
 		for (int i = 0; i < labels.size(); i++) {
@@ -140,6 +139,7 @@ void MobImage::drawWidget() {
 		}
 
 		for (int i = 0; i < stats.size(); i++) {
+			lprintfln("stats[i].front: %s", stats[i].front?"true":"false");
 			if (stats[i].front == front) {
 				if (portrait) {
 					labels[i]->setPosition(((int)(stats[i].x * ((double)imageWidth/250))) + diffX, ((int)(stats[i].y * ((double)imageHeight/350))) + diffY);
@@ -160,6 +160,7 @@ void MobImage::drawWidget() {
 }
 
 void MobImage::addStat(stat stat) {
+	lprintfln("addStat");
 	stats.add(stat);
 
 	MobLabel *temp = new MobLabel(0, 0, 0, 0, NULL, (imageHeight>imageWidth)?TRANS_NONE:TRANS_ROT90);
@@ -169,6 +170,18 @@ void MobImage::addStat(stat stat) {
 	temp->setFont(Util::getMobFontGrey());
 
 	labels.add(temp);
+}
+
+void MobImage::clearStats() {
+	for (int i = 0; i < labels.size(); i++) {
+		if (labels[i]->getParent() != NULL) {
+			labels[i]->setParent(NULL);
+		}
+		delete labels[i];
+		labels[i] = NULL;
+	}
+	labels.clear();
+	stats.clear();
 }
 
 void MobImage::flip() {

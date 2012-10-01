@@ -42,6 +42,7 @@ public:
 	enum orientations {PORTRAIT = 0, LANDSCAPE };
 
 	void addStat(stat stat);
+	void clearStats();
 	void flip();
 protected:
 	virtual void drawWidget();
