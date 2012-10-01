@@ -87,6 +87,7 @@ filename(category+"-lst.sav"), category(category),cardExists(cards.end()), album
 			memset(url,'\0',urlLength);
 			sprintf(url, "%s?cardsincategory=%s&seconds=%s&height=%d&width=%d&%s", URL_PHONE.c_str(), category.c_str(), feed->getSeconds().c_str(),
 					Util::getMaxImageHeight(), Util::getMaxImageWidth(), JPG);
+			lprintfln(url);
 			if(mHttp.isOpen()){
 				mHttp.close();
 			}
@@ -104,6 +105,16 @@ filename(category+"-lst.sav"), category(category),cardExists(cards.end()), album
 				mHttp.finish();
 			}
 			delete [] url;
+
+			if (!strcmp(category.c_str(), "-3")) {
+				int seconds = maLocalTime();
+				int secondsLength = Util::intlen(seconds);
+				char *secString = new char[secondsLength];
+				memset(secString,'\0',secondsLength);
+				sprintf(secString, "%d", seconds);
+				feed->setSeconds(secString);
+				delete secString;
+			}
 			break;
 	}
 
@@ -339,6 +350,7 @@ void AlbumViewScreen::deleteDeck() {
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
 	sprintf(url, "%s?deletedeck=1&deck_id=%s", URL_PHONE.c_str(),	category.c_str());
+	lprintfln(url);
 	if(mHttp.isOpen()){
 		mHttp.close();
 	}
@@ -525,7 +537,6 @@ void AlbumViewScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 	if(!strcmp(parentTag.c_str(), "stat")) {
 		if(!strcmp(attrName, "desc")) {
 			statDesc += attrValue;
-			lprintfln("statDesc %s", statDesc.c_str());
 		}else if(!strcmp(attrName, "ival")) {
 			statIVal += attrValue;
 		}else if(!strcmp(attrName, "top")) {
@@ -553,7 +564,6 @@ void AlbumViewScreen::mtxTagData(const char* data, int len) {
 		id += data;
 	} else if(!strcmp(parentTag.c_str(), "description")) {
 		description += data;
-		lprintfln("description %s", description.c_str());
 	} else if(!strcmp(parentTag.c_str(), "quantity")) {
 		quantity += data;
 	} else if(!strcmp(parentTag.c_str(), "thumburl")) {

@@ -80,6 +80,7 @@ AlbumLoadScreen::AlbumLoadScreen(Feed *feed, Albums *al):mHttp(this) {
 	url = new char[urlLength];
 	memset(url,'\0',urlLength);
 	sprintf(url, "%s?usercategories=1&seconds=%s", URL_PHONE.c_str(), feed->getSeconds().c_str());
+	lprintfln(url);
 	res = mHttp.create(url, HTTP_GET);
 
 	if(res < 0) {
@@ -509,6 +510,7 @@ void AlbumLoadScreen::xcConnError(int code) {
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
 		sprintf(url, "%s?notedate=1", URL_PHONE.c_str());
+		lprintfln(url);
 		int res = mHttp.create(url, HTTP_GET);
 		if(res < 0) {
 		} else {

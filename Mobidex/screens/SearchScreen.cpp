@@ -172,6 +172,7 @@ void SearchScreen::doSearch() {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?search=%s&seconds=%s&height=%d&width=%d&%s", URL_PHONE.c_str(), base64SearchString.c_str(),
 				feed->getSeconds().c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth(), JPG);
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}

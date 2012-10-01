@@ -39,6 +39,7 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, Card *card):mHt
 	url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
 	sprintf(url, "%s?getalldecks=1", URL_PHONE.c_str());
+	lprintfln(url);
 	if(mHttp.isOpen()){
 		mHttp.close();
 	}
@@ -229,6 +230,7 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 								char* url = new char[urlLength];
 								memset(url,'\0',urlLength);
 								sprintf(url, "%s?addtodeck=%s&deckid=%s", URL_PHONE.c_str(), card->getId().c_str(), albums[ind-1]->getId().c_str());
+								lprintfln(url);
 								int res = mHttp.create(url, HTTP_GET);
 								if(res < 0) {
 									notice->setCaption("Connection error");

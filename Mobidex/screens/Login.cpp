@@ -542,6 +542,7 @@ void Login::drawRegisterScreen() {
 	url = new char[urlLength];
 	memset(url,'\0',urlLength);
 	sprintf(url, "%s?checkcountry=1", URL_PHONE.c_str());
+	lprintfln(url);
 	mHttp = HttpConnection(this);
 	int res = mHttp.create(url, HTTP_GET);
 	if(res < 0) {
@@ -622,6 +623,7 @@ void Login::drawViewCardsScreen() {
 	url = new char[urlLength];
 	memset(url,'\0',urlLength);
 	sprintf(url, "%s?checkcountry=1", URL_PHONE.c_str());
+	lprintfln(url);
 	mHttp = HttpConnection(this);
 	int res = mHttp.create(url, HTTP_GET);
 	if(res < 0) {
@@ -797,6 +799,7 @@ void Login::keyPressEvent(int keyCode) {
 							char *url = new char[urlLength+1];
 							memset(url,'\0',urlLength+1);
 							sprintf(url, "%s?userdetails=1", URL_PHONE.c_str());
+							lprintfln(url);
 							int res = mHttp.create(url, HTTP_GET);
 
 							if(res < 0) {
@@ -875,6 +878,7 @@ void Login::keyPressEvent(int keyCode) {
 							sprintf(url, "%s?registeruser=1&name=%s&username=%s&cell=%s&password=%s&email=%s&country=%s", URL_PHONE.c_str(), encodedName.c_str(),
 									editBoxLogin->getText().c_str(), encodedNumber.c_str(),
 									editBoxPass->getText().c_str(), editBoxEmail->getText().c_str(), encodedCountry.c_str());
+							lprintfln(url);
 							mHttp = HttpConnection(this);
 							int res = mHttp.create(url, HTTP_GET);
 							if(res < 0) {
@@ -1051,7 +1055,7 @@ void Login::mtxTagEnd(const char* name, int len) {
 		int secondsLength = Util::intlen(seconds);
 		char *secString = new char[secondsLength];
 		memset(secString,'\0',secondsLength);
-		sprintf(secString, "%d", "seconds");
+		sprintf(secString, "%d", seconds);
 		feed->setSeconds(secString);
 		delete secString;
 		username,error_msg= "";
