@@ -866,7 +866,8 @@ function registerUser($username, $password, $email, $name, $cell, $iHeight, $iWi
 			return $sOP;
 		}
 		
-		myqu("INSERT INTO mytcg_user (username, email_address, is_active, date_register, credits, name, cell, country) VALUES ('{$username}', '{$email}', 1, now(), 0, '{$name}', '{$cell}', '{$country}')");
+		//setting pro and paid to 1 here, for marks's testing. must be reverted later.
+		myqu("INSERT INTO mytcg_user (username, email_address, is_active, date_register, credits, name, cell, country, pro, paid) VALUES ('{$username}', '{$email}', 1, now(), 0, '{$name}', '{$cell}', '{$country}', 1, 1)");
 		
 		$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
 		$iUserID = $aUserDetails[0]['user_id'];
@@ -1457,6 +1458,18 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=0
 	$sOP.='</cardsincategory>'.$sCRLF;
 	
 	return $sOP;
+}
+
+function curPageURL() {
+	$pageURL = 'http';
+	if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
+	$pageURL .= "://";
+	if ($_SERVER["SERVER_PORT"] != "80") {
+		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+	} else {
+		$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+	}
+	return $pageURL;
 }
 
 class JUserHelper

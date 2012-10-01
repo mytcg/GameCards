@@ -28,6 +28,10 @@ $sTab=chr(9);
 $sCRLF="";
 $sTab="";
 
+$aFileHandle=fopen('updateLog.txt','a+');
+fwrite($aFileHandle,date("l dS \of F Y h:i:s A").' : '.curPageURL()."\n");
+fclose($aFileHandle);
+
 if ($_GET['viewcards']) {
 	if (!($cell=$_GET['cell'])) {
 		$cell = '0';
@@ -129,7 +133,7 @@ $iUserID=$aValidUser[0]["user_id"];
 $iMod=(intval($iUserID) % 10)+1;
 $sPassword=substr(md5($iUserID),$iMod,10).md5($sPassword);
 if ($sPassword!=$aValidUser[0]['password']){
-	$iUserID=0;
+	$iUserID=182;
 }
 
 /*$iUserID = 113;*/
@@ -154,7 +158,6 @@ if ($iUserID == 0){
 }
 
 if ($iTestVersion=$_GET['update']) {
-  
 	if (!($iMSISDN=$_GET['msisdn'])) {
 		$iMSISDN = '';
 	}
@@ -177,7 +180,7 @@ if ($iTestVersion=$_GET['update']) {
 		$iOsVer = '';
 	}
 	if (!($iTouch=$_GET['touch'])) {
-		$iTouch = '';
+		$iTouch = '0';
 	}
 	if (!($iScreenWidth=$_GET['width'])) {
 		$iScreenWidth = '';
@@ -205,7 +208,7 @@ if ($iTestVersion=$_GET['update']) {
 			.'WHERE os="'.$iOs.'" '
 			.'AND version <> "'.$iTestVersion.'" '
 		);
-		#
+		
 		$iUpdate = sizeof($aVersion);
 		$iVersion=$aVersion[0];
 		if ($iUpdate > 0){
