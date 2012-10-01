@@ -24,7 +24,7 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 
 	deckId = "";
 	description = "";
-	type="1";
+	type="";
 	moved = 0;
 
 	album = NULL;

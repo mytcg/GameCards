@@ -36,6 +36,12 @@ ImageScreen::ImageScreen(MainScreen *previous, MAHandle img, Feed *feed, bool fl
 		else if(screenType == ST_DECK_OPTIONS){
 			mainLayout =  Util::createImageLayout("Options", "Back" , "Flip");
 		}
+		else if(screenType == ST_DECK_ADDON){
+			mainLayout =  Util::createImageLayout("Unequip", "Back" , "Flip");
+		}
+		else if(screenType == ST_DECK_ADDON_EQUIP){
+			mainLayout =  Util::createImageLayout("Equip", "Back" , "Flip");
+		}
 		else {
 			mainLayout =  Util::createImageLayout((hasConnection&&canAuction)?"Options":"", "Back" , "Flip");
 		}
@@ -313,6 +319,10 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					//mainLayout =  Util::createImageLayout("Remove", "Back" , "Flip");
 				}else if (screenType == ST_DECK_OPTIONS) {
 					//mainLayout =  Util::createImageLayout("Options", "Back" , "Flip");
+				}else if (screenType == ST_DECK_ADDON) {
+					//mainLayout =  Util::createImageLayout("Unequip", "Back" , "Flip");
+				}else if (screenType == ST_DECK_ADDON_EQUIP){
+					//mainLayout =  Util::createImageLayout("Equip", "Back" , "Flip");
 				}
 				else {
 					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
@@ -389,6 +399,10 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					//mainLayout =  Util::createImageLayout("Remove", "Back" , "Flip");
 				}else if (screenType == ST_DECK_OPTIONS) {
 					//mainLayout =  Util::createImageLayout("Options", "Back" , "Flip");
+				}else if (screenType == ST_DECK_ADDON) {
+					//mainLayout =  Util::createImageLayout("Unequip", "Back" , "Flip");
+				}else if (screenType == ST_DECK_ADDON_EQUIP){
+					//mainLayout =  Util::createImageLayout("Equip", "Back" , "Flip");
 				}
 				else {
 					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
@@ -482,7 +496,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				busy = true;
 				acceptCard();
 			}
-			else if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS) {
+			else if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS && screenType != ST_DECK_ADDON && screenType != ST_DECK_ADDON_EQUIP) {
 				if (card != NULL && hasConnection && canAuction) {
 					if (next != NULL) {
 						delete next;
@@ -503,9 +517,15 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				next = new OptionsScreen(feed, OptionsScreen::ST_DECK_OPTIONS, this, card);
-				refresh = true;
+				//refresh = true;
 				next->show();
+			}else if(screenType == ST_DECK_ADDON){
+				((EditDeckScreen *)previous)->removeCard();
+				previous->show();
 			}else if(screenType == ST_DECK){
+				((AlbumViewScreen *)previous)->addCard();
+				previous->show();
+			}else if(screenType == ST_DECK_ADDON_EQUIP){
 				((AlbumViewScreen *)previous)->addCard();
 				previous->show();
 			}
@@ -535,7 +555,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 			}else if(currentSoftKeys->getChildren()[1]->isSelected()){
 					flip=!flip;
 					imge->flip();
-					if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS) {
+					if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS && screenType != ST_DECK_ADDON && screenType != ST_DECK_ADDON_EQUIP) {
 						currentSelectedKey = NULL;
 						currentKeyPosition = -1;
 						Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);

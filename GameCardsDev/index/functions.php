@@ -2463,7 +2463,7 @@ function saveProfileDetail($iAnswerID, $iAnswer, $iUserID) {
 	exit;
 }
 
-function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topcar, $iFriendID='0') {
+function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topcar, $iFriendID='0', $iPlayable='0') {
 	if($iFriendID=='0'){
 		$aLoad=myqu('select count(*) loaded from mytcg_usercard where loaded = 1 and user_id = '.$iUserID);
 			
@@ -2485,7 +2485,8 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										INNER JOIN mytcg_category ca
 										ON ca.category_id = c.category_id
 										LEFT OUTER JOIN mytcg_category_x cx
-										ON cx.category_child_id = ca.category_id
+										ON cx.category_child_id = ca.category_id 
+										'.($iPlayable=='1'?'WHERE ca.categorytype_id = 1':'').'
 										GROUP BY ca.category_id
 										ORDER BY ca.description
 							) a LEFT OUTER JOIN 
@@ -2503,7 +2504,8 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										LEFT OUTER JOIN mytcg_category_x cx
 										ON cx.category_child_id = ca.category_id
 										WHERE LOWER(ucs.description) = LOWER("album")
-										AND uc.user_id = '.$iUserID.'
+										AND uc.user_id = '.$iUserID.' 
+										'.($iPlayable=='1'?'AND ca.categorytype_id = 1':'').'
 										GROUP BY ca.category_id
 										ORDER BY ca.description
 							) b
@@ -2521,7 +2523,8 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										ON ca.category_id = c.category_id
 										LEFT OUTER JOIN mytcg_category_x cx
 										ON cx.category_child_id = ca.category_id
-										WHERE cx.category_parent_id = '.$topcar.'
+										WHERE cx.category_parent_id = '.$topcar.' 
+										'.($iPlayable=='1'?'AND ca.categorytype_id = 1':'').'
 										GROUP BY ca.category_id
 										ORDER BY ca.description
 							) a LEFT OUTER JOIN 
@@ -2540,7 +2543,8 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										ON cx.category_child_id = ca.category_id
 										WHERE LOWER(ucs.description) = LOWER("album")
 										AND uc.user_id = '.$iUserID.'
-										AND cx.category_parent_id = '.$topcar.'
+										AND cx.category_parent_id = '.$topcar.' 
+										'.($iPlayable=='1'?'AND ca.categorytype_id = 1':'').' 
 										GROUP BY ca.category_id
 										ORDER BY ca.description
 							) b
@@ -3638,10 +3642,10 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id ');
 	}else if($iDeckID > -1 && $DeckType == "3"){
-		$aCards=myqu('SELECT c.description slotdescription, c.category_id, ca.categoryaddon_id, uca.addonusercard_id, car.description,
-					'' as quantity, car.thumbnail_phone_imageserver_id, car.front_phone_imageserver_id, car.back_phone_imageserver_id, car.ranking, car.value, car.image,
-					'' as quality, (CASE WHEN (car.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
-						  THEN 1 ELSE 0 END) updated, '' as note, '' as date_updated
+		$aCards=myqu('SELECT uc.card_id, uc.usercard_id, c.description slotdescription, c.category_id, ca.categoryaddon_id, uca.addonusercard_id, car.description,
+					"1" as quantity, car.thumbnail_phone_imageserver_id, car.front_phone_imageserver_id, car.back_phone_imageserver_id, car.ranking, car.value, car.image,
+					"" as quality, (CASE WHEN (car.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
+						  THEN 1 ELSE 0 END) updated, "" as note, "" as date_updated
 					FROM (SELECT c.card_id, c.category_id FROM mytcg_card c, mytcg_usercard uc WHERE uc.card_id = c.card_id AND uc.usercard_id = '.$iDeckID.') card
 					INNER JOIN mytcg_categoryaddon ca
 					ON ca.category_id = card.category_id
@@ -3777,80 +3781,83 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.$sTab.'<usercardid>'.$aOneCard['usercard_id'].'</usercardid>'.$sCRLF;		
 		$sOP.=$sTab.$sTab.'<description>'.$aOneCard['description'].'</description>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<slotdescription>'.$aOneCard['slotdescription'].'</slotdescription>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<quantity>'.$aOneCard['quantity'].'</quantity>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<cardcategory_id>'.$aOneCard['category_id'].'</cardcategory_id>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<categoryaddon_id>'.$aOneCard['categoryaddon_id'].'</categoryaddon_id>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<quantity>'.($aOneCard['card_id']==""?"0":$aOneCard['quantity']).'</quantity>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<updated>'.$aOneCard['updated'].'</updated>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<note>'.$aOneCard['note'].'</note>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<ranking>'.$aOneCard['ranking'].'</ranking>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<quality>'.$aOneCard['quality'].'</quality>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<value>'.$aOneCard['value'].'</value>'.$sCRLF;
-		$sFound='';
-		$iCountServer=0;
-		$ids.=(($ids=='')?$aOneCard['card_id']:(','.$aOneCard['card_id']));
-		
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['thumbnail_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+		if($aOneCard['card_id']!=""){
+			$sFound='';
+			$iCountServer=0;
+			$ids.=(($ids=='')?$aOneCard['card_id']:(','.$aOneCard['card_id']));
+			
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['thumbnail_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
-		$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<thumburl>'.$sFound.'cards/'.$aOneCard['image'].'_thumb'.$ext.'</thumburl>'.$sCRLF;
+			
+			//before setting the front and back urls, make sure the card is resized for the height
+			$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
 		
-		//before setting the front and back urls, make sure the card is resized for the height
-		$iHeight = resizeCard($iHeight, $iWidth, $aOneCard['image'], $root, $iBBHeight, $jpg, $iPortrait);
-		
-		$sFound='';
-		$iCountServer=0;
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['front_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['front_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
+			
+			$dir = '/cards/';
+			if ($iBBHeight) {
+				$dir = '/cardsbb/';
+			}
+			
+			if ($iPortrait==2) {
+				$dir.="landscape/";
+			}
 		
-		$dir = '/cards/';
-		if ($iBBHeight) {
-			$dir = '/cardsbb/';
-		}
-		
-		if ($iPortrait==2) {
-			$dir.="landscape/";
-		}
-    
-		$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<fronturl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front'.$ext.'</fronturl>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<frontflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_front_flip'.$ext.'</frontflipurl>'.$sCRLF;
 
-		$sFound='';
-		$iCountServer=0;
-		while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
-			if ($aOneServer['imageserver_id']==$aOneCard['back_phone_imageserver_id']){
-				$sFound=$aOneServer['URL'];
-			} else {
-				$iCountServer++;
+			$sFound='';
+			$iCountServer=0;
+			while ((!$sFound)&&($aOneServer=$aServers[$iCountServer])){
+				if ($aOneServer['imageserver_id']==$aOneCard['back_phone_imageserver_id']){
+					$sFound=$aOneServer['URL'];
+				} else {
+					$iCountServer++;
+				}
 			}
-		}
-    
-		$sOP.=$sTab.$sTab.'<backurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back'.$ext.'</backurl>'.$sCRLF; 
-		$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
+		
+			$sOP.=$sTab.$sTab.'<backurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back'.$ext.'</backurl>'.$sCRLF; 
+			$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['image'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
 
-		$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
-		A.left, top, width, height, frontorback, 
-		colour_r, colour_g, colour_b, A.mustdraw  
-		FROM mytcg_cardstat A, mytcg_categorystat B 
-		WHERE A.categorystat_id = B.categorystat_id 
-		AND A.card_id = '.$aOneCard['card_id']);
-		
-		$iCountStat=0;
-		$sOP.=$sTab.$sTab.'<stats>'.$sCRLF;
-		While ($aOneStat=$aStats[$iCountStat]) {
-			$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
-				left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
-				frontorback="'.$aOneStat['frontorback'].'" mustdraw="'.$aOneStat['mustdraw'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
-			$iCountStat++;
+			$aStats=myqu('SELECT A.description as des, B.description as val, statvalue, A.selectable, 
+			A.left, top, width, height, frontorback, 
+			colour_r, colour_g, colour_b, A.mustdraw  
+			FROM mytcg_cardstat A, mytcg_categorystat B 
+			WHERE A.categorystat_id = B.categorystat_id 
+			AND A.card_id = '.$aOneCard['card_id']);
+			
+			$iCountStat=0;
+			$sOP.=$sTab.$sTab.'<stats>'.$sCRLF;
+			While ($aOneStat=$aStats[$iCountStat]) {
+				$sOP.=$sTab.$sTab.$sTab.'<stat desc="'.$aOneStat['val'].'" ival="'.$aOneStat['statvalue'].'"
+					left="'.$aOneStat['left'].'" top="'.$aOneStat['top'].'" width="'.$aOneStat['width'].'" height="'.$aOneStat['height'].'" 
+					frontorback="'.$aOneStat['frontorback'].'" mustdraw="'.$aOneStat['mustdraw'].'" red="'.$aOneStat['colour_r'].'" green="'.$aOneStat['colour_g'].'" blue="'.$aOneStat['colour_b'].'" selectable="'.$aOneStat['selectable'].'">'.$aOneStat['des'].'</stat>'.$sCRLF;
+				$iCountStat++;
+			}
+			$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
 		}
-		$sOP.=$sTab.$sTab.'</stats>'.$sCRLF;
-		
 		$iCount++;
 		$sOP.=$sTab.'</card>'.$sCRLF;
 	}
