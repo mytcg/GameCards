@@ -8,7 +8,7 @@
 
 .res RES_FONT_BLACK
 .bin
-.include "nobileblack.mof"
+.include "nobileblack.mof" 
  
 .res RES_FONT_WHITE
 .bin

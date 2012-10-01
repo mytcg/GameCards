@@ -703,17 +703,17 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 					next = NULL;
 				}
 				if (albumType == AT_COMPARE) {
-					next = new CompareScreen(this, RES_LOADING_FLIP1, feed, false, cards.find(index[selected])->second, card);
+					next = new CompareScreen(this, portrait?RES_LOADING_FLIP1:RES_LOADING1, feed, false, cards.find(index[selected])->second, card);
 					next->show();
 				} else if (albumType == AT_AUCTION) {
 					next = new AuctionCreateScreen(this, feed, cards.find(index[selected])->second);
 					next->show();
 				} else {
 					if (albumType == AT_NEW_CARDS) {
-						next = new ImageScreen(this, Util::loadImageFromResource(RES_LOADING1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_NEW_CARD);
+						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_NEW_CARD);
 					}
 					else {
-						next = new ImageScreen(this, Util::loadImageFromResource(RES_LOADING1), feed, false, cards.find(index[selected])->second);
+						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second);
 					}
 					next->show();
 				}

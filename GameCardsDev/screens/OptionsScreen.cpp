@@ -6,6 +6,7 @@
 #include "AlbumLoadScreen.h"
 #include "AlbumViewScreen.h"
 #include "GameDetailsScreen.h"
+#include "EditDeckScreen.h"
 #include "NoteScreen.h"
 #include "DetailScreen.h"
 #include "Login.h"
@@ -93,6 +94,20 @@ card(card), screenType(screenType), number(number), deckId(deckId) {
 			//label->addWidgetListener(this);
 			//kinListBox->add(label);
 			label = Util::createSubLabel("Auction");
+			label->addWidgetListener(this);
+			kinListBox->add(label);
+			label = Util::createSubLabel("Compare");
+			label->addWidgetListener(this);
+			kinListBox->add(label);
+			label = Util::createSubLabel("Details");
+			label->addWidgetListener(this);
+			kinListBox->add(label);
+			break;
+		case ST_DECK_OPTIONS:
+			label = Util::createSubLabel("Remove");
+			label->addWidgetListener(this);
+			kinListBox->add(label);
+			label = Util::createSubLabel("Mod");
 			label->addWidgetListener(this);
 			kinListBox->add(label);
 			label = Util::createSubLabel("Compare");
@@ -446,8 +461,40 @@ void OptionsScreen::keyPressEvent(int keyCode) {
 							feed->remHttp();
 							next = NULL;
 						}
-						next = new DetailScreen(this, feed,
-								DetailScreen::CARD, card);
+						next = new DetailScreen(this, feed, DetailScreen::CARD, card);
+						next->show();
+					}
+					break;
+				case ST_DECK_OPTIONS:
+					if (index == 0) {
+						((EditDeckScreen*) previous->previous)->removeCard();
+						previous->previous->show();
+					}
+					else if (index == 1) {
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new EditDeckScreen(this, feed, card->getUserCardId(),"3");
+						next->show();
+					}
+					else if (index == 2) {
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_COMPARE, NULL, false, card);
+						next->show();
+					}
+					else if (index == 3) {
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new DetailScreen(this, feed, DetailScreen::CARD, card);
 						next->show();
 					}
 					break;

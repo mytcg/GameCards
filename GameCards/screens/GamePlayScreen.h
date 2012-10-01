@@ -40,7 +40,8 @@ private:
 	ImageCache *imageCacheUser, *imageCacheOpp;
 	MobImage *userImage, *oppImage;
 	Layout **feedLayouts;
-	Widget *widImage, *widNotice;
+	Layout *subLayout;
+	Widget *widImage, *widNotice, *currentSelectedKey;
 
 	MAUtil::HttpConnection* tempHttp;
 	HttpConnection mHttp;
@@ -50,7 +51,7 @@ private:
 	String statType, statDescription, cardStatId, cardName, statDesc, statIVal, message, userCards, oppCards, userName, oppName, categoryStatId;
 	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue, ticks, lfmTicks;
 	String explanation, outcome, creator, newGameType;
-	int i, moved, phase, cardIndex, yOffset, storeHeight, flipOrSelect, currentSelectedStat;
+	int i, moved, phase, cardIndex, yOffset, storeHeight, flipOrSelect, currentSelectedStat, currentKeyPosition;
 	bool list, left, right, hasConnection, newGame, busy, flip, active, selected, checking, selectingStat;
 	MAPoint2d pointPressed, pointReleased;
 	Card *card, *oppCard, *gcCard;

@@ -8,6 +8,10 @@ Card::Card() {
 	front = "";
 	back = "";
 	id = "";
+	usercardid = "";
+	categoryid = "";
+	categoryaddonid = "";
+	deckid = "";
 	rate = "";
 	value = "";
 	fullDesc = "";
@@ -27,6 +31,10 @@ Card::~Card() {
 	front = "";
 	back = "";
 	id = "";
+	usercardid = "";
+	categoryid = "";
+	categoryaddonid = "";
+	deckid = "";
 	rate = "";
 	value = "";
 	frontflip = "";
@@ -77,6 +85,34 @@ void Card::setText(const char *tex) {
 	text = tex;
 }
 
+String Card::getSlotDescription() {
+	return slotdescription;
+}
+void Card::setSlotDescription(const char *desc) {
+	slotdescription = desc;
+}
+
+void Card::setCategoryId(const char *catid) {
+	categoryid = catid;
+}
+String Card::getCategoryId() {
+	return categoryid;
+}
+
+void Card::setCategoryAddonId(const char *cataddid) {
+	categoryaddonid = cataddid;
+}
+String Card::getCategoryAddonId() {
+	return categoryaddonid;
+}
+
+void Card::setDeckId(const char *catid) {
+	deckid = catid;
+}
+String Card::getDeckId() {
+	return deckid;
+}
+
 String Card::getThumb() {
 	return thumb;
 }
@@ -123,6 +159,14 @@ String Card::getId() {
 
 void Card::setId(const char *i) {
 	id = i;
+}
+
+String Card::getUserCardId() {
+	return usercardid;
+}
+
+void Card::setUserCardId(const char *uci) {
+	usercardid = uci;
 }
 
 String Card::getRate() {

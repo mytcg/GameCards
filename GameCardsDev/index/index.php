@@ -2226,6 +2226,9 @@ if ($_GET['usersubcategories']){
 	if (!($lastCheckSeconds = $_GET['seconds'])) {
 		$lastCheckSeconds = "0";
 	}
+	if (!($iPlayable=$_GET['playable'])) {
+		$iPlayable = '0';
+	}
 	if (!($iFriendID=$_GET['friendid'])) {
 		$iFriendID = '0';
 	}
@@ -2236,7 +2239,7 @@ if ($_GET['usersubcategories']){
 	}
 	$cat = $_GET['category'];
 	//this gets the categories that the user has cards in, and their parents
-	echo subcategories($lastCheckSeconds, $cat, $userId, '', '', $topcar, $iFriendID);
+	echo subcategories($lastCheckSeconds, $cat, $userId, '', '', $topcar, $iFriendID,$iPlayable);
 	exit;
 }
 
@@ -2638,7 +2641,7 @@ if ($_GET['getdecks']){
 
 /** give all the user decks */
 if ($_GET['getalldecks']){
-	$aDeckDetails=myqu('SELECT deck_id, description 
+	$aDeckDetails=myqu('SELECT deck_id, description, type 
 		FROM mytcg_deck 
 		WHERE user_id='.$iUserID);
 	$sOP='<decks>'.$sCRLF;
@@ -2647,6 +2650,7 @@ if ($_GET['getalldecks']){
 		$sOP.='<deck>'.$sCRLF;
 		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
 		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;	
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;
 		$sOP.='</deck>'.$sCRLF;
 		$iCount++;
 	}
@@ -2692,6 +2696,9 @@ if ($_GET['getcategorydecks']){
 if ($_GET['addtodeck']){
 	$iDeckID=$_GET['deck_id'];
 	$iCardID=$_GET['card_id'];
+	if (!($iCategoryAddonID=$_GET['categoryaddon_id'])) {
+		$iCategoryAddonID = '';
+	}
 	
 	$cardQuery = myqu('SELECT usercard_id 
 		FROM mytcg_usercard 
@@ -2702,12 +2709,17 @@ if ($_GET['addtodeck']){
 		LIMIT 1');
 	
 	$iUserCardID = $cardQuery[0]['usercard_id'];
-	
-	myqui('UPDATE mytcg_usercard 
+	if($iCategoryAddonID!=''){
+		myqu("DELETE FROM mytcg_usercardaddon WHERE usercard_id = ".$iDeckID." AND categoryaddon_id = ".$iCategoryAddonID."");
+		myqu("INSERT INTO mytcg_usercardaddon (usercard_id,categoryaddon_id,addonusercard_id) VALUES (".$iDeckID.",".$iCategoryAddonID.",(SELECT usercard_id FROM mytcg_usercard WHERE card_id = ".$iCardID." AND user_id = ".$iUserID."))");
+		$sOP = "<result>Card equipped!</result>";
+	}else{
+		myqui('UPDATE mytcg_usercard 
 			SET deck_id = '.$iDeckID.'  
 			WHERE usercard_id = '.$iUserCardID);
+		$sOP = "<result>Card added to Deck!</result>";
+	}
 	
-	$sOP = "<result>Card added to Deck!</result>";
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;
@@ -2716,14 +2728,25 @@ if ($_GET['addtodeck']){
 if ($_GET['removefromdeck']){
 	$iCardID=$_GET['card_id'];
 	$iDeckID=$_GET['deck_id'];
-	
-	myqui('UPDATE mytcg_usercard 
-		SET deck_id = NULL 
-		WHERE user_id = '.$iUserID.' 
-		AND card_id = '.$iCardID.' 
-		AND deck_id = '.$iDeckID);
-	
-	$sOP = "<result>Card removed from Deck!</result>";
+	if (!($iType=$_GET['type'])) {
+		$iType = '1';
+	}
+	if($iType=='3'){
+		myqu("DELETE FROM mytcg_usercardaddon WHERE usercard_id = ".$iDeckID." AND addonusercard_id = (SELECT usercard_id FROM mytcg_usercard WHERE card_id = ".$iCardID." AND user_id = ".$iUserID.")");
+		$sOP = "<result>Mod unequipped!</result>";
+	}else{
+		if($iType=='2'){
+			myqu("DELETE FROM mytcg_usercardaddon WHERE usercard_id = (SELECT usercard_id FROM mytcg_usercard WHERE card_id = ".$iCardID." AND user_id = ".$iUserID." AND deck_id = ".$iDeckID.")");
+		}
+		
+		myqui('UPDATE mytcg_usercard 
+			SET deck_id = NULL 
+			WHERE user_id = '.$iUserID.' 
+			AND card_id = '.$iCardID.' 
+			AND deck_id = '.$iDeckID);
+		
+		$sOP = "<result>Card removed from Deck!</result>";
+	}
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;
@@ -2775,6 +2798,9 @@ if ($_GET['getcardsindeck']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '1';
 	}
+	if (!($DeckType=$_GET['type'])) {
+		$DeckType = '1';
+	}
 	if (!($iPortrait=$_GET['portrait'])) {
 		$iPortrait = 1;
 	}
@@ -2788,7 +2814,7 @@ if ($_GET['getcardsindeck']){
 		WHERE deck_id='.$iDeckID);
 	
 	$sOP = "<deck>";
-	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait);
+	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait,$DeckType);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
 	$sOP .= "</deck>";
 	header('xml_length: '.strlen($sOP));
@@ -2807,6 +2833,17 @@ if ($_GET['createdeck']){
 
 if ($_GET['deletedeck']){
 	$iDeckID=$_GET['deck_id'];
+	if (!($iType=$_GET['type'])) {
+		$iType = '1';
+	}
+	if($iType=='2'){
+		$aCards = myqu("SELECT usercard_id FROM mytcg_usercard WHERE deck_id = ".$iDeckID);
+		$iCount=0;
+		while ($aOneCard=$aCards[$iCount]){
+			myqu("DELETE FROM mytcg_usercardaddon WHERE usercard_id = ".$aOneCard['usercard_id']);
+			$iCount++;
+		}
+	}
 	myqui('UPDATE mytcg_usercard 
 			SET deck_id = NULL  
 			WHERE deck_id = '.$iDeckID);

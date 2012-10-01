@@ -30,13 +30,13 @@ public:
 
 	enum screenTypes {ST_AUCTIONS, ST_SHOP, ST_FREEBIE, ST_RANKING, ST_FRIEND};
 private:
-
+	Widget* currentSelectedKey;
 	HttpConnection mHttp;
 
 	String parentTag;
 	String temp,temp1,error_msg;
-	int i, moved, screenType;
-	bool list, left, right, empt;
+	int i, moved, screenType, currentKeyPosition;
+	bool list, left, right, empt, busy;
 
 	HashMap<String,String> categories;
 	Vector<String> category;

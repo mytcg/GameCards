@@ -180,10 +180,10 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 
 			notice->setCaption("Checking for new albums...");
 			//work out how long the url will be, the 4 is for the & and = symbols
-			urlLength = 70 + URLSIZE + path[path.size()-1].length() + feed->getSeconds().length();
+			urlLength = 81 + URLSIZE + path[path.size()-1].length() + feed->getSeconds().length();
 			url = new char[urlLength+1];
 			memset(url,'\0',urlLength+1);
-			sprintf(url, "%s?usersubcategories=1&category=%s&seconds=%s", URL, categoryId.c_str(), feed->getSeconds().c_str());
+			sprintf(url, "%s?usersubcategories=1&category=%s&seconds=%s&playable=1", URL, categoryId.c_str(), feed->getSeconds().c_str());
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
@@ -1167,3 +1167,4 @@ int AlbumLoadScreen::getCount() {
 void AlbumLoadScreen::setDeckId(String d) {
 	deckId = d;
 }
+

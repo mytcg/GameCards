@@ -25,7 +25,7 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 	currentKeyPosition = -1;
 
 	lprintfln("AlbumViewScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
-
+	lprintfln("deckId %s", deckId.c_str());
 	id = "";
 	description = "";
 	quantity = "";
@@ -776,6 +776,9 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 				previous->refresh();
 			} else if ((albumType == AT_NEW_CARDS) || (albumType == AT_AUCTION)) {
 				((AlbumLoadScreen *)previous)->refresh();
+			} else if ((albumType == AT_DECK_ADDON)) {
+				previous->refresh();
+				previous->show();
 			} else {
 				previous->pop();
 			}
@@ -806,6 +809,9 @@ void AlbumViewScreen::keyPressEvent(int keyCode) {
 				} else {
 					if (albumType == AT_DECK) {
 						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_DECK);
+						next->show();
+					} else if (albumType == AT_DECK_ADDON){
+						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards.find(index[selected])->second, ImageScreen::ST_DECK_ADDON_EQUIP);
 						next->show();
 					} else {
 						if (albumType == AT_NEW_CARDS) {
@@ -1247,12 +1253,17 @@ void AlbumViewScreen::setDeckId(String d) {
 }
 
 void AlbumViewScreen::addCard(String cardId) {
-	int urlLength = 65 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
+	String cataddon = "";
+	if(card!=NULL){
+		lprintfln("cataddinid %s",card->getCategoryAddonId().c_str());
+		cataddon = card->getCategoryAddonId().c_str();
+	}
+	int urlLength = 83 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") + cataddon.length() +
 		cardId.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?addtodeck=1&deck_id=%s&card_id=%s", URL,
-			deckId.c_str(), cardId.c_str());
+	sprintf(url, "%s?addtodeck=1&deck_id=%s&card_id=%s&categoryaddon_id=%s", URL,
+			deckId.c_str(), cardId.c_str(), cataddon.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -1273,4 +1284,5 @@ void AlbumViewScreen::addCard(String cardId) {
 	}
 	delete [] url;
 	url = NULL;
+	cataddon="";
 }

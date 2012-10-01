@@ -4,6 +4,7 @@
 #include "DeckListScreen.h"
 #include "EditDeckScreen.h"
 #include "AlbumLoadScreen.h"
+#include "AlbumViewScreen.h"
 #include "../utils/Util.h"
 #include "ImageScreen.h"
 #include "CompareScreen.h"
@@ -11,13 +12,14 @@
 #include "ShopDetailsScreen.h"
 #include "../UI/Button.h"
 
-EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) : mHttp(this), deckId(deckId) {
+EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type) : mHttp(this), deckId(deckId), type(type) {
 	busy = true;
 	emp = true;
 	this->previous = previous;
 	this->feed = feed;
 	deleting = false;
-
+	removed = false;
+	newdeck = false;
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
 	next = NULL;
@@ -25,7 +27,11 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	lprintfln("EditDeckScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 
 	id = "";
+	usercardid = "";
 	description = "";
+	slotdescription="";
+	cardcategory_id="";
+	categoryaddon_id="";
 	quantity = "";
 	thumburl = "";
 	fronturl = "";
@@ -56,11 +62,11 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	notice->setCaption("Getting card list...");
 
 	mImageCache = new ImageCache();
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 88 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth) + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&type=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -95,11 +101,11 @@ void EditDeckScreen::refresh() {
 	if(portrait == false){
 		port = 2;
 	}
-	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 88 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth) + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1&type=%s", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -127,10 +133,10 @@ void EditDeckScreen::deleteDeck() {
 
 	notice->setCaption("Deleting deck...");
 
-	int urlLength = 65 + URLSIZE + strlen("deck_id") + deckId.length();
+	int urlLength = 71 + URLSIZE + strlen("deck_id") + deckId.length() + type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?deletedeck=1&deck_id=%s", URL,	deckId.c_str());
+	sprintf(url, "%s?deletedeck=1&deck_id=%s&type=%s", URL,	deckId.c_str(),type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -154,17 +160,19 @@ void EditDeckScreen::deleteDeck() {
 }
 
 void EditDeckScreen::removeCard() {
-	int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
-	if (cards.size() < 10) {
+	int cardIndex = kinListBox->getSelectedIndex();
+	if ((!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2"))) {
+			cardIndex -= 1;
+	}//-1 for the "delete deck" option
+	if (cards.size() < 10 && (!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2"))) {
 		cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
 	}
-
-	int urlLength = 65 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
-		cards[cardIndex]->getId().length();
+	int urlLength = 71 + URLSIZE + strlen("deck_id") + deckId.length() + strlen("card_id") +
+		cards[cardIndex]->getId().length()+type.length();
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?removefromdeck=1&deck_id=%s&card_id=%s", URL,
-			deckId.c_str(), cards[cardIndex]->getId().c_str());
+	sprintf(url, "%s?removefromdeck=1&deck_id=%s&card_id=%s&type=%s", URL,
+			deckId.c_str(), cards[cardIndex]->getId().c_str(), type.c_str());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -186,11 +194,15 @@ void EditDeckScreen::removeCard() {
 	delete [] url;
 	url = NULL;
 
-	delete cards[cardIndex];
-	cards[cardIndex] = NULL;
-	cards.remove(cardIndex);
+	if((!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2"))){
+		delete cards[cardIndex];
+		cards[cardIndex] = NULL;
+		cards.remove(cardIndex);
 
-	drawList();
+		drawList();
+	}else{
+		removed = true;
+	}
 }
 
 void EditDeckScreen::pointerPressEvent(MAPoint2d point) {
@@ -270,7 +282,7 @@ void EditDeckScreen::drawList() {
 
 	clearListBox();
 
-	if (cards.size() < 10) {
+	if (cards.size() < 10 && (!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2"))) {
 		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
 		feedlayout->setSkin(Util::getSkinList());
 		feedlayout->setDrawBackground(true);
@@ -287,34 +299,37 @@ void EditDeckScreen::drawList() {
 		//label->setVerticalAlignment(Label::VA_CENTER);
 		//label->setHorizontalAlignment(Label::HA_CENTER);
 	}
+	if (!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2")) {
+		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
+		feedlayout->setSkin(Util::getSkinList());
+		feedlayout->setDrawBackground(true);
+		feedlayout->addWidgetListener(this);
 
-	feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 48, kinListBox, 3, 1);
-	feedlayout->setSkin(Util::getSkinList());
-	feedlayout->setDrawBackground(true);
-	feedlayout->addWidgetListener(this);
+		label = new Label(0, 0, 0, 0, NULL, "", 0, Util::getDefaultFont());
+		feedlayout->add(label);
 
-	label = new Label(0, 0, 0, 0, NULL, "", 0, Util::getDefaultFont());
-	feedlayout->add(label);
-
-	label = Util::createSubLabel("Delete Deck");
-	label->setDrawBackground(false);
-	feedlayout->add(label);
-	//label = new Label(0,0, feedlayout->getWidth(), 48, feedlayout, "Delete Deck", 0, Util::getDefaultFont());
-	//label->setSkin(Util::getSkinList());
-	//label->setVerticalAlignment(Label::VA_CENTER);
-	//label->setHorizontalAlignment(Label::HA_CENTER);
-
+		label = Util::createSubLabel("Delete Deck");
+		label->setDrawBackground(false);
+		feedlayout->add(label);
+		//label = new Label(0,0, feedlayout->getWidth(), 48, feedlayout, "Delete Deck", 0, Util::getDefaultFont());
+		//label->setSkin(Util::getSkinList());
+		//label->setVerticalAlignment(Label::VA_CENTER);
+		//label->setHorizontalAlignment(Label::HA_CENTER);
+	}
 	String cardText = "";
 	for (int i = 0; i < cards.size(); i++) {
 		String cardText = "";
-		cardText += cards[i]->getText();
-		cardText += " (";
-		cardText += cards[i]->getQuantity();
-		cardText += ")\n";
-		cardText += cards[i]->getRarity();
-		cardText += "\nRating: ";
-		cardText += cards[i]->getRanking();
-
+		if(!strcmp(type.c_str(), "3")){
+			cardText += cards[i]->getSlotDescription()+": "+(strcmp(cards[i]->getText().c_str(),"")?cards[i]->getText():"Empty");
+		}else{
+			cardText += cards[i]->getText();
+			cardText += " (";
+			cardText += cards[i]->getQuantity();
+			cardText += ")\n";
+			cardText += cards[i]->getRarity();
+			cardText += "\nRating: ";
+			cardText += cards[i]->getRanking();
+		}
 		feedlayout = new Layout(0, 0, kinListBox->getWidth()-(PADDING*2), 74, kinListBox, 3, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());
 		feedlayout->setDrawBackground(true);
@@ -353,7 +368,7 @@ void EditDeckScreen::drawList() {
 		kinListBox->setSelectedIndex(index - 1);
 	}
 	else {
-		kinListBox->setSelectedIndex(0);
+		//kinListBox->setSelectedIndex(0);
 	}
 }
 
@@ -397,7 +412,11 @@ EditDeckScreen::~EditDeckScreen() {
 	note="";
 	deckId="";
 	id="";
+	usercardid="";
 	description="";
+	slotdescription="";
+	cardcategory_id="";
+	categoryaddon_id="";
 	quantity="";
 	thumburl="";
 	fronturl="";
@@ -486,6 +505,9 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 					break;
 				case MAK_BACK:
 				case MAK_SOFTRIGHT:
+					if(newdeck){
+						((DeckListScreen*)previous)->refresh();
+					}
 					previous->show();
 					break;
 				case MAK_FIRE:
@@ -496,31 +518,56 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						keyPressEvent(MAK_SOFTRIGHT);
 						break;
 					}
-					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
+					if(!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2")){
+						if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+							((AlbumLoadScreen*)next)->setDeckId(deckId);
+							next->show();
+						}
+						else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
+								(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
+							drawConfirm();
+						}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 10) ||
+								(kinListBox->getSelectedIndex() > 1 && cards.size() < 10)){
+							if (next != NULL) {
+								delete next;
+								feed->remHttp();
+								next = NULL;
+							}
+							int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
+							if (cards.size() < 10) {
+								cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
+							}
+							if(!strcmp(type.c_str(), "1")){
+								next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
+								next->show();
+							}else if(!strcmp(type.c_str(), "2")){
+								next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_OPTIONS);
+								next->show();
+							}
+						}
+					} else if(!strcmp(type.c_str(), "3")&&(!strcmp(cards[ind]->getText().c_str(),""))){
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
 							next = NULL;
 						}
-						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
-						((AlbumLoadScreen*)next)->setDeckId(deckId);
+						int cardIndex = kinListBox->getSelectedIndex();
+						next = new AlbumViewScreen(this, feed, cards[cardIndex]->getCategoryId(), AlbumViewScreen::AT_DECK_ADDON, false, cards[cardIndex], deckId);
 						next->show();
-					}
-					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
-						drawConfirm();
-					}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 10) ||
-							(kinListBox->getSelectedIndex() > 1 && cards.size() < 10)){
+					} else if(!strcmp(type.c_str(), "3")&&strcmp(cards[ind]->getText().c_str(),"")){
 						if (next != NULL) {
 							delete next;
 							feed->remHttp();
 							next = NULL;
 						}
-						int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
-						if (cards.size() < 10) {
-							cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
-						}
-						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
+						int cardIndex = kinListBox->getSelectedIndex();
+						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_ADDON, false, card);
 						next->show();
 					}
 					break;
@@ -681,6 +728,10 @@ void EditDeckScreen::connReadFinished(Connection* conn, int result) {}
 
 void EditDeckScreen::xcConnError(int code) {
 	feed->remHttp();
+	if (removed){
+		removed=false;
+		refresh();
+	}
 }
 
 void EditDeckScreen::mtxEncoding(const char* ) {
@@ -722,8 +773,16 @@ void EditDeckScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 void EditDeckScreen::mtxTagData(const char* data, int len) {
 	if(!strcmp(parentTag.c_str(), "cardid")) {
 		id = data;
+	} else if(!strcmp(parentTag.c_str(), "usercardid")) {
+		usercardid = data;
 	} else if(!strcmp(parentTag.c_str(), "description")) {
 		description = data;
+	} else if(!strcmp(parentTag.c_str(), "slotdescription")) {
+		slotdescription = data;
+	} else if(!strcmp(parentTag.c_str(), "cardcategory_id")) {
+		cardcategory_id = data;
+	} else if(!strcmp(parentTag.c_str(), "categoryaddon_id")) {
+		categoryaddon_id = data;
 	} else if(!strcmp(parentTag.c_str(), "quantity")) {
 		quantity = data;
 	} else if(!strcmp(parentTag.c_str(), "thumburl")) {
@@ -764,9 +823,18 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
 		newCard->setStats(stats);
 		newCard->setUpdated(updated == "1");
+		newCard->setUserCardId(usercardid.c_str());
+		newCard->setSlotDescription(slotdescription.c_str());
+		newCard->setCategoryId(cardcategory_id.c_str());
+		newCard->setCategoryAddonId(categoryaddon_id.c_str());
+		newCard->setDeckId(deckId.c_str());
 		cards.add(newCard);
 		id = "";
+		usercardid = "";
 		description = "";
+		slotdescription="";
+		cardcategory_id="";
+		categoryaddon_id="";
 		quantity = "";
 		thumburl = "";
 		fronturl = "";
@@ -810,6 +878,7 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		note="";
 		id="";
 		description="";
+		slotdescription="";
 		quantity="";
 		thumburl="";
 		fronturl="";
@@ -838,6 +907,7 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		note="";
 		id="";
 		description="";
+		slotdescription="";
 		quantity="";
 		thumburl="";
 		fronturl="";
@@ -864,6 +934,10 @@ void EditDeckScreen::clearCards() {
 		stats[j] = NULL;
 	}
 	stats.clear();
+}
+
+void EditDeckScreen::setNewDeck(bool nd) {
+	newdeck = nd;
 }
 
 void EditDeckScreen::mtxParseError(int) {

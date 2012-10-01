@@ -9,6 +9,7 @@
 #include "CompareScreen.h"
 #include "OptionsScreen.h"
 #include "ShopDetailsScreen.h"
+#include "../UI/Button.h"
 
 EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) : mHttp(this), deckId(deckId) {
 	busy = true;
@@ -17,6 +18,8 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	this->feed = feed;
 	deleting = false;
 
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	next = NULL;
 
 	lprintfln("EditDeckScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
@@ -40,6 +43,10 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	statDesc = "";
 	statIVal = "";
 	deckCategory = "";
+	int port = 1;
+	if(portrait == false){
+		port = 2;
+	}
 
 	mainLayout = Util::createMainLayout("", "Back" , "", true);
 
@@ -49,11 +56,11 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 	notice->setCaption("Getting card list...");
 
 	mImageCache = new ImageCache();
-	int urlLength = 71 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -84,12 +91,15 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId) 
 void EditDeckScreen::refresh() {
 	clearListBox();
 	clearCards();
-
-	int urlLength = 71 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
+	int port = 1;
+	if(portrait == false){
+		port = 2;
+	}
+	int urlLength = 82 + URLSIZE + strlen("deck_id") + deckId.length() + Util::intlen(scrHeight) + Util::intlen(scrWidth);
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&width=%d&jpg=1", URL,
-			deckId.c_str(), Util::getMaxImageHeight(), Util::getMaxImageWidth());
+	sprintf(url, "%s?getcardsindeck=1&deck_id=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
+			deckId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
 	lprintfln("%s", url);
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -330,6 +340,12 @@ void EditDeckScreen::drawList() {
 		label->setMultiLine();
 	}
 
+	if (currentSelectedKey!=NULL) {
+		currentSelectedKey->setSelected(false);
+		currentSelectedKey = NULL;
+		currentKeyPosition = -1;
+	}
+
 	if (index < cards.size()) {
 		kinListBox->setSelectedIndex(index);
 	}
@@ -354,6 +370,8 @@ void EditDeckScreen::drawConfirm() {
 	label->setPaddingTop(5);
 	label->setPaddingRight(5);
 
+	currentSelectedKey = NULL;
+	currentKeyPosition = -1;
 	Util::updateSoftKeyLayout("Confirm", "Back", "", mainLayout);
 }
 
@@ -405,13 +423,13 @@ void EditDeckScreen::selectionChanged(Widget *widget, bool selected) {
 				((Label *)widget->getChildren()[1])->setFont(Util::getDefaultFont());
 			}
 
-			if ((kinListBox->getSelectedIndex() == 1 && cards.size() < 10) ||
-					(kinListBox->getSelectedIndex() == 0)) {
-				Util::updateSoftKeyLayout("", "Back", "", mainLayout);
-			}
-			else {
-				Util::updateSoftKeyLayout("Remove", "Back", "", mainLayout);
-			}
+			//if ((kinListBox->getSelectedIndex() == 1 && cards.size() < 10) ||
+			//		(kinListBox->getSelectedIndex() == 0)) {
+			//	Util::updateSoftKeyLayout("", "Back", "", mainLayout);
+			//}
+			//else {
+			//	Util::updateSoftKeyLayout("Remove", "Back", "", mainLayout);
+			//}
 			break;
 	}
 }
@@ -426,20 +444,58 @@ void EditDeckScreen::hide() {
 
 void EditDeckScreen::keyPressEvent(int keyCode) {
 	String all = "";
+	int ind = kinListBox->getSelectedIndex();
+	int max = kinListBox->getChildren().size();
+	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch (screenType) {
 		case ST_LIST:
 			switch(keyCode) {
 				case MAK_UP:
-					kinListBox->selectPreviousItem();
+					if(currentSelectedKey!=NULL){
+						currentSelectedKey->setSelected(false);
+						currentSelectedKey = NULL;
+						currentKeyPosition = -1;
+						if (!busy) {
+							kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+						}
+					}
+					else if (!busy) {
+						if (ind == 0) {
+							kinListBox->setSelectedIndex(max-1);
+						} else {
+							kinListBox->selectPreviousItem();
+						}
+					}
 					break;
 				case MAK_DOWN:
-					kinListBox->selectNextItem();
+					if (ind+1 < max && !busy) {
+						kinListBox->setSelectedIndex(ind+1);
+					} else if(currentSelectedKey==NULL) {
+						if (!busy) {
+							kinListBox->getChildren()[ind]->setSelected(false);
+						}
+						for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
+							if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+								currentKeyPosition=i;
+								currentSelectedKey= currentSoftKeys->getChildren()[i];
+								currentSelectedKey->setSelected(true);
+								break;
+							}
+						}
+					}
 					break;
 				case MAK_BACK:
 				case MAK_SOFTRIGHT:
 					previous->show();
 					break;
 				case MAK_FIRE:
+					if(currentSoftKeys->getChildren()[0]->isSelected()){
+						keyPressEvent(MAK_SOFTLEFT);
+						break;
+					}else if(currentSoftKeys->getChildren()[2]->isSelected()){
+						keyPressEvent(MAK_SOFTRIGHT);
+						break;
+					}
 					if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
 						if (next != NULL) {
 							delete next;
@@ -453,6 +509,19 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 					else if ((kinListBox->getSelectedIndex() == 0 && cards.size() == 10) ||
 							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
 						drawConfirm();
+					}else if((kinListBox->getSelectedIndex() > 0 && cards.size() == 10) ||
+							(kinListBox->getSelectedIndex() > 1 && cards.size() < 10)){
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						int cardIndex = kinListBox->getSelectedIndex() - 1; //-1 for the "delete deck" option
+						if (cards.size() < 10) {
+							cardIndex -= 1; //if there are less than 10 cards, there is also the "add card" option
+						}
+						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_REMOVE);
+						next->show();
 					}
 					break;
 				case MAK_SOFTLEFT:
@@ -470,14 +539,81 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 							(kinListBox->getSelectedIndex() == 1 && cards.size() < 10)) {
 						drawConfirm();
 					}
-					else {
-						removeCard();
+					//else {
+					//	removeCard();
+					//}
+					break;
+				case MAK_LEFT:
+					if(currentSelectedKey!=NULL){
+						if(currentKeyPosition > 0){
+							currentKeyPosition = currentKeyPosition - 1;
+							for(int i = currentKeyPosition; i >= 0;i--){
+								if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+									currentSelectedKey->setSelected(false);
+									currentKeyPosition=i;
+									currentSelectedKey= currentSoftKeys->getChildren()[i];
+									currentSelectedKey->setSelected(true);
+									break;
+								}
+							}
+						}
+					}
+					break;
+				case MAK_RIGHT:
+					if(currentSelectedKey!=NULL){
+						if(currentKeyPosition+1 < currentSelectedKey->getParent()->getChildren().size()){
+							currentKeyPosition = currentKeyPosition + 1;
+							for(int i = currentKeyPosition; i < currentSoftKeys->getChildren().size();i++){
+								if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+									currentSelectedKey->setSelected(false);
+									currentKeyPosition=i;
+									currentSelectedKey= currentSoftKeys->getChildren()[i];
+									currentSelectedKey->setSelected(true);
+									break;
+								}
+							}
+						}
 					}
 					break;
 			}
 			break;
 		case ST_CONFIRM_DELETE:
 			switch(keyCode) {
+				case MAK_FIRE:
+					if(currentSoftKeys->getChildren()[0]->isSelected()){
+						keyPressEvent(MAK_SOFTLEFT);
+					}else if(currentSoftKeys->getChildren()[2]->isSelected()){
+						keyPressEvent(MAK_SOFTRIGHT);
+					}
+					break;
+				case MAK_UP:
+					if(currentSelectedKey!=NULL){
+						currentSelectedKey->setSelected(false);
+						currentSelectedKey = NULL;
+						currentKeyPosition = -1;
+						kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
+					}
+					else if (ind == 0) {
+						kinListBox->setSelectedIndex(max-1);
+					} else {
+						kinListBox->selectPreviousItem();
+					}
+					break;
+				case MAK_DOWN:
+					if (ind+1 < max ) {
+						kinListBox->setSelectedIndex(ind+1);
+					} else if(currentSelectedKey==NULL) {
+						kinListBox->getChildren()[ind]->setSelected(false);
+						for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
+							if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+								currentKeyPosition=i;
+								currentSelectedKey= currentSoftKeys->getChildren()[i];
+								currentSelectedKey->setSelected(true);
+								break;
+							}
+						}
+					}
+				break;
 				case MAK_BACK:
 				case MAK_SOFTRIGHT:
 					if (!busy) {
@@ -489,6 +625,38 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 					if (!busy) {
 						busy = true;
 						deleteDeck();
+					}
+					break;
+				case MAK_LEFT:
+					if(currentSelectedKey!=NULL){
+						if(currentKeyPosition > 0){
+							currentKeyPosition = currentKeyPosition - 1;
+							for(int i = currentKeyPosition; i >= 0;i--){
+								if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+									currentSelectedKey->setSelected(false);
+									currentKeyPosition=i;
+									currentSelectedKey= currentSoftKeys->getChildren()[i];
+									currentSelectedKey->setSelected(true);
+									break;
+								}
+							}
+						}
+					}
+					break;
+				case MAK_RIGHT:
+					if(currentSelectedKey!=NULL){
+						if(currentKeyPosition+1 < currentSelectedKey->getParent()->getChildren().size()){
+							currentKeyPosition = currentKeyPosition + 1;
+							for(int i = currentKeyPosition; i < currentSoftKeys->getChildren().size();i++){
+								if(((Button *)currentSoftKeys->getChildren()[i])->isSelectable()){
+									currentSelectedKey->setSelected(false);
+									currentKeyPosition=i;
+									currentSelectedKey= currentSoftKeys->getChildren()[i];
+									currentSelectedKey->setSelected(true);
+									break;
+								}
+							}
+						}
 					}
 					break;
 			}

@@ -18,7 +18,7 @@ using namespace MAUtil;
 
 class EditDeckScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener {
 public:
-	EditDeckScreen(MainScreen *previous, Feed *feed, String deckId);
+	EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type="1");
 	~EditDeckScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
@@ -36,17 +36,18 @@ public:
 	enum albumTypes {ST_LIST, ST_CONFIRM_DELETE};
 
 	void refresh();
+	void setNewDeck(bool n);
 private:
 
 	HttpConnection mHttp;
 	ImageCache *mImageCache;
 	Widget* currentSelectedKey;
 
-	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory;
-	String id,description,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, updated;
+	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, type;
+	String id,usercardid,description,slotdescription,cardcategory_id,categoryaddon_id,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, updated;
 	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue;
 	int size, i, moved, listSizes, screenType, currentKeyPosition;
-	bool list, left, right, emp, hasConnection, busy, deleting;
+	bool list, left, right, emp, hasConnection, busy, deleting, newdeck, removed;
 
 	Card *card;
 	Vector<Card *> cards;
