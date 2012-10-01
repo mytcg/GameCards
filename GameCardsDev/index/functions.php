@@ -1314,19 +1314,52 @@ function getCardStats($gamePlayerCardId) {
 		WHERE gpc.gameplayercard_id = '.$gamePlayerCardId.' 
 		AND cs.selectable = 0');
 	
+	//select the card's usercard_id
+	$userCard = myqu('select usercard_id  
+		from mytcg_gameplayercard
+		where gameplayercard_id = '.$gamePlayerCardId);
+	
+	$statMods = array();
+	if ($userCardRes=$userCard[0]) {
+		$userCardId = $userCardRes['usercard_id'];
+		//select card stat mods
+		$cardStatMods = myqu('select cs.categorystat_id, SUM(cs.statvalue) statvalue 
+			from mytcg_usercardaddon uca 
+			inner join mytcg_usercard uc on uca.addonusercard_id = uc.usercard_id 
+			inner join mytcg_card c on c.card_id = uc.card_id 
+			inner join mytcg_cardstat cs on cs.card_id = c.card_id 
+			where uca.usercard_id = '.$userCardId.' 
+			group by cs.categorystat_id');
+		
+		$count = count($cardStatMods);
+		for ($i = 0; $i < $count; $i++) {
+			$statMod = $cardStatMods[$i];
+			$statMods[$statMod['categorystat_id']] = $statMod['statvalue'];
+		}
+	}
+	
 	//build xml of the user's card stats
 	$sOP='<cardstats>'.$sCRLF;
 	$iCount=0;
 	while ($oneStat=$cardStatDetails[$iCount]){
+		$ival = $oneStat['statvalue'];
+		$statDesc = $oneStat['stat_description'];
+		if ($mod = $statMods[$oneStat['categorystat_id']]) {
+			$ival += $mod;
+			if (is_numeric($statDesc)) {
+				$statDesc += $mod;
+			}
+		}
+		
 		$sOP.=$sTab.'<cardstat left="'.$oneStat['left'].'" top="'.$oneStat['top'].'" mustdraw="'.$oneStat['mustdraw'].'" 
 			width="'.$oneStat['width'].'" height="'.$oneStat['height'].'" frontorback="'.$oneStat['frontorback'].'"
-			red="'.$oneStat['colour_r'].'" green="'.$oneStat['colour_g'].'" blue="'.$oneStat['colour_b'].'" ival="'.$oneStat['statvalue'].'">';
+			red="'.$oneStat['colour_r'].'" green="'.$oneStat['colour_g'].'" blue="'.$oneStat['colour_b'].'" ival="'.$ival.'">';
 		if ($iCount == 0) {
 			$sOP.=$sTab.'<card_name>'.$oneStat['card_name'].'</card_name>'.$sCRLF;
 		}
 		
 		$sOP.=$sTab.'<stat_type>'.$oneStat['stat_type'].'</stat_type>'.$sCRLF;
-		$sOP.=$sTab.'<stat_description>'.$oneStat['stat_description'].'</stat_description>'.$sCRLF;		
+		$sOP.=$sTab.'<stat_description>'.$statDesc.'</stat_description>'.$sCRLF;		
 		$sOP.=$sTab.'<cardstat_id>'.$oneStat['cardstat_id'].'</cardstat_id>'.$sCRLF;
 		$sOP.=$sTab.'<categorystat_id>'.$oneStat['categorystat_id'].'</categorystat_id>'.$sCRLF;
 		$sOP.=$sTab.'</cardstat>';
@@ -2475,10 +2508,10 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 		}*/
 	}
 	if ($topcar == -1) {
-		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, -1) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
+		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, -1) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected, a.categorytype_id 
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
-										cx.category_parent_id,
+										cx.category_parent_id, ca.categorytype_id,
 										(CASE WHEN (MAX(c.date_updated) > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
 											THEN 1 ELSE 0 END) updated, count(distinct c.card_id) as total
 										FROM mytcg_card c
@@ -2490,7 +2523,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										ORDER BY ca.description
 							) a LEFT OUTER JOIN 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
-										cx.category_parent_id,
+										cx.category_parent_id, ca.categorytype_id,
 										(CASE WHEN (MAX(c.date_updated) > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
 											THEN 1 ELSE 0 END) updated, count(distinct uc.card_id) as collected
 										FROM mytcg_card c
@@ -2510,10 +2543,10 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 							ON a.category_id = b.category_id';
 		$aCategories=myqu($query);
 	} else {
-		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, a.category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected
+		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, a.category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected, a.categorytype_id 
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
-										cx.category_parent_id,
+										cx.category_parent_id, ca.categorytype_id,
 										(CASE WHEN (MAX(c.date_updated) > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
 											THEN 1 ELSE 0 END) updated, count(distinct c.card_id) as total
 										FROM mytcg_card c
@@ -2526,7 +2559,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										ORDER BY ca.description
 							) a LEFT OUTER JOIN 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
-										cx.category_parent_id,
+										cx.category_parent_id, ca.categorytype_id,
 										(CASE WHEN (MAX(c.date_updated) > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
 											THEN 1 ELSE 0 END) updated, count(distinct uc.card_id) as collected
 										FROM mytcg_card c
@@ -2585,7 +2618,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 	}
 	
 	while (sizeof($subCats) == 0) {
-		$aCategories = myqu('SELECT DISTINCT ca.category_id, ca.description, 
+		$aCategories = myqu('SELECT DISTINCT ca.category_id, ca.description, ca.categorytype_id, 
 			CASE WHEN count(card_id) > 0 THEN "true" ELSE "false" END hasCards,
 			cx.category_parent_id
 			FROM mytcg_category ca
@@ -2671,7 +2704,13 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 			$sOP.=$sTab.$sTab.'<updated>0</updated>'.$sCRLF;
 		}
 		
-		$desc = trim($aCategory['description']).(strlen(trim($aCategory['collected']))>0?(' ('.trim($aCategory['collected']).'/'.trim($aCategory['total']).')'):'');
+		$desc = '';
+		if ($aCategory['categorytype_id'] == '3') {
+			$desc = trim($aCategory['description']);
+		}
+		else {
+			$desc = trim($aCategory['description']).(strlen(trim($aCategory['collected']))>0?(' ('.trim($aCategory['collected']).'/'.trim($aCategory['total']).')'):'');
+		}
 		
 		$sOP.=$sTab.$sTab.'<albumname>'.$desc.'</albumname>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<totalcards>'.trim($aCategory['total']).'</totalcards>'.$sCRLF;
