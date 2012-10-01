@@ -60,6 +60,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 	storeHeight = 0;
 	ticks = 0;
 	lfmTicks = 1;
+	mustDraw = 0;
 	int port = 1;
 	if(portrait == false){
 		port = 2;
@@ -356,10 +357,30 @@ void GamePlayScreen::drawCardSelectStatScreen() {
 	}
 
 	if(portrait){
-		userImage = new MobImage(0, 0, subLayout->getWidth(), subLayout->getHeight()/2, subLayout, false, false, Util::loadImageFromResource(RES_LOADING_FLIP1));
+		userImage = new MobImage(0, 0, subLayout->getWidth(), subLayout->getHeight()/2, subLayout, false, false, Util::loadImageFromResource(RES_LOADING_FLIP1), false);
 	}else{
-		userImage = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(RES_LOADING1));
+		userImage = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(RES_LOADING1), false);
 	}
+
+	userImage->clearStats();
+	stat tempStat;
+	for (int i = 0; i < card->getStats().size(); i++) {
+		if (card->getStats()[i]->getMustDraw()) {
+			tempStat.key = card->getStats()[i]->getDesc();
+			tempStat.display = card->getStats()[i]->getDisplay();
+			tempStat.x = card->getStats()[i]->getLeft();
+			tempStat.y = card->getStats()[i]->getTop();
+			tempStat.height = card->getStats()[i]->getHeight();
+			tempStat.width = card->getStats()[i]->getWidth();
+			tempStat.red = card->getStats()[i]->getColorRed();
+			tempStat.green = card->getStats()[i]->getColorGreen();
+			tempStat.blue = card->getStats()[i]->getColorBlue();
+			tempStat.front = card->getStats()[i]->getFrontOrBack()==0;
+
+			userImage->addStat(tempStat);
+		}
+	}
+
 	Util::retrieveBackFlip(userImage, card, height-PADDING*2, imageCacheUser);
 
 	//if the opponent is active, we can draw the front of their card. If the user is active, we draw a generic card
@@ -368,6 +389,25 @@ void GamePlayScreen::drawCardSelectStatScreen() {
 	}else{
 		oppImage = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(RES_LOADING1));
 	}
+
+	oppImage->clearStats();
+	for (int i = 0; i < oppCard->getStats().size(); i++) {
+		if (oppCard->getStats()[i]->getMustDraw()) {
+			tempStat.key = oppCard->getStats()[i]->getDesc();
+			tempStat.display = oppCard->getStats()[i]->getDisplay();
+			tempStat.x = oppCard->getStats()[i]->getLeft();
+			tempStat.y = oppCard->getStats()[i]->getTop();
+			tempStat.height = oppCard->getStats()[i]->getHeight();
+			tempStat.width = oppCard->getStats()[i]->getWidth();
+			tempStat.red = oppCard->getStats()[i]->getColorRed();
+			tempStat.green = oppCard->getStats()[i]->getColorGreen();
+			tempStat.blue = oppCard->getStats()[i]->getColorBlue();
+			tempStat.front = oppCard->getStats()[i]->getFrontOrBack()==0;
+
+			oppImage->addStat(tempStat);
+		}
+	}
+
 	lblString = oppName + ": ";
 	lblString += oppCards;
 	lblString += " cards, ";
@@ -521,6 +561,8 @@ GamePlayScreen::~GamePlayScreen() {
 	frontflipurl = "";
 	backflipurl = "";
 	deckId = "";
+
+	mustDraw = 0;
 }
 
 void GamePlayScreen::selectionChanged(Widget *widget, bool selected) {
@@ -820,6 +862,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 						userImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 						userImage->update();
 						userImage->requestRepaint();
+						userImage->flip();
 						maUpdateScreen();
 						if (flip) {
 							Util::retrieveBackFlip(userImage, card, height-PADDING*2, imageCacheUser);
@@ -1274,6 +1317,8 @@ void GamePlayScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 			statGreen = atoi(attrValue);
 		}else if(!strcmp(attrName, "blue")) {
 			statBlue = atoi(attrValue);
+		}else if(!strcmp(attrName, "mustdraw")) {
+			mustDraw = atoi(attrValue);
 		}
 	}
 }
@@ -1427,6 +1472,7 @@ void GamePlayScreen::mtxTagEnd(const char* name, int len) {
 		newStat->setColorGreen(statGreen);
 		newStat->setColorBlue(statBlue);
 		newStat->setCategoryStatId(categoryStatId.c_str());
+		newStat->setMustDraw(mustDraw==1);
 		cardStats.add(newStat);
 		cardStatId = "";
 		statDescription = "";
