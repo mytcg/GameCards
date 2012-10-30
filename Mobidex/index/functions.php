@@ -1429,10 +1429,10 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=0
 		$sOP.=$sTab.$sTab.'<backflipurl>'.$sFound.$iHeight.$dir.$aOneCard['card_id'].'_back_flip'.$ext.'</backflipurl>'.$sCRLF; 
 
 		$aStats=myqu("SELECT A.description as des, IF (B.description like 'Custom Link%' OR B.description like 'Social Media Link%', 'Web Address', B.description) as val, statvalue, 
-		(CASE WHEN cardorientation_id = 2 THEN 250-(top+(height)) ELSE A.left END)-2 as 'left', 
-		(CASE WHEN cardorientation_id = 2 THEN A.left ELSE top END)-2 as 'top', 
-		(CASE WHEN cardorientation_id = 2 THEN height ELSE width END)+8 as 'width', 
-		(CASE WHEN cardorientation_id = 2 THEN width ELSE height END)+8 as 'height', 
+		(CASE WHEN cardorientation_id = 2 THEN 250-(top+(height)) ELSE A.left END) as 'left', 
+		(CASE WHEN cardorientation_id = 2 THEN A.left ELSE top END) as 'top', 
+		(CASE WHEN cardorientation_id = 2 THEN height ELSE width END) as 'width', 
+		(CASE WHEN cardorientation_id = 2 THEN width ELSE height END) as 'height', 
 		frontorback, colour_r, colour_g, colour_b, C.cardorientation_id
 		FROM mytcg_cardstat A, mytcg_categorystat B , mytcg_card C
 		WHERE A.categorystat_id = B.categorystat_id 

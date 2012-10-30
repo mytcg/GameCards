@@ -133,7 +133,7 @@ $iUserID=$aValidUser[0]["user_id"];
 $iMod=(intval($iUserID) % 10)+1;
 $sPassword=substr(md5($iUserID),$iMod,10).md5($sPassword);
 if ($sPassword!=$aValidUser[0]['password']){
-	$iUserID=182;
+	$iUserID=0;
 }
 
 /*$iUserID = 113;*/
