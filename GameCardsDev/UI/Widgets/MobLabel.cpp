@@ -1,4 +1,5 @@
 #include <conprint.h>
+#include <MAUtil/Graphics.h>
 
 #include "MobLabel.h"
 

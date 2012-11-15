@@ -415,6 +415,7 @@ void GamePlayScreen::drawCardSelectStatScreen() {
 	userLabel = new Label(0, 0, scrWidth - PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, kinListBox, lblString,0,Util::getDefaultFont());
 	userLabel->setDrawBackground(false);
 	if (!active) {
+		oppImage->setFront(false);
 		Util::retrieveBackFlip(oppImage, oppCard, height-PADDING*2, imageCacheOpp);
 	}
 	else {
@@ -733,7 +734,8 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 								if(currentSelectedStat < 0){
 									currentSelectedStat = card->getStats().size()-1;
 								}
-								userImage->refreshWidget();
+								//userImage->refreshWidget(false);
+								userImage->requestRepaint();
 								userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -771,7 +773,8 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 								else {
 									currentSelectedStat = 0;
 								}
-								userImage->refreshWidget();
+								//userImage->refreshWidget(false);
+								userImage->requestRepaint();
 								userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -878,7 +881,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 								if(currentSelectedStat>-1){
 									if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()){
 										busy = true;
-										userImage->refreshWidget();
+										userImage->requestRepaint();
 										userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 												card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 												card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -1155,6 +1158,7 @@ void GamePlayScreen::animateSelectStat() {
 	if (oppImage->getResource() != NULL) {
 		maDestroyObject(oppImage->getResource());
 	}
+	oppImage->flip();
 	oppImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 	oppImage->update();
 	oppImage->requestRepaint();
@@ -1446,6 +1450,8 @@ void GamePlayScreen::mtxTagEnd(const char* name, int len) {
 		oppCard->setId(id.c_str());
 		oppCard->setGamePlayerCardId(gamePlayerCardId.c_str());
 		oppCard->setStats(cardStats);
+
+		oppImage->setFront(true);
 
 		clearCardStats();
 

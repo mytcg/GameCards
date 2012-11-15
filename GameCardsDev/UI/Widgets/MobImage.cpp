@@ -10,6 +10,8 @@ MobImage::MobImage(int x, int y, int width, int height,
 	: Image(x, y, width, height, parent, autosizeX, autosizeY, res), front(front) {
 	statAdded = false;
 	hasNote = false;
+	refreshing = false;
+	drawRect = false;
 }
 
 MobImage::~MobImage() {
@@ -22,6 +24,7 @@ MobImage::~MobImage() {
 }
 
 void MobImage::setResource(MAHandle res) {
+	lprintfln("FUNCTION setResource %d", paddedBounds.y);
 	if (getResource() != NULL) {
 		maDestroyObject(getResource());
 	}
@@ -29,10 +32,12 @@ void MobImage::setResource(MAHandle res) {
 }
 
 void MobImage::setHasNote(bool n) {
+	lprintfln("FUNCTION setHasNote %d", paddedBounds.y);
 	hasNote = n;
 }
 
 void MobImage::drawRectangle(int x, int y, int width, int height){
+	lprintfln("FUNCTION drawRectangle %d", paddedBounds.y);
 	Gfx_line(x, y, x+width, y);
 	Gfx_line(x, y, x, y+height);
 	Gfx_line(x+width, y, x+width, y+height);
@@ -40,6 +45,7 @@ void MobImage::drawRectangle(int x, int y, int width, int height){
 }
 
 bool MobImage::statContains(int x, int y, int width, int height, int pointX, int pointY, int orientation){
+	lprintfln("FUNCTION statContains %d", paddedBounds.y);
 	Rect *r = NULL;
 	switch(orientation) {
 		case LANDSCAPE:
@@ -57,6 +63,10 @@ bool MobImage::statContains(int x, int y, int width, int height, int pointX, int
 }
 
 void MobImage::selectStat(int x, int y, int width, int height, int red, int green, int blue, int orientation){
+	lprintfln("FUNCTION selectStat %d", paddedBounds.y);
+
+	drawRect = true;
+
 	_x = x;
 	_y = y;
 	_width = width;
@@ -67,11 +77,15 @@ void MobImage::selectStat(int x, int y, int width, int height, int red, int gree
 	_orientation = orientation;
 	statAdded = true;
 
-	Gfx_setColor(red,green,blue);
+	//this->setDirty(true);
+
+	//this->requestRepaint();
+
+	//Gfx_setColor(red,green,blue);
 	//Gfx_clearMatrix();
 	//drawRectangle((x*this->getWidth()/250),(y*this->getHeight()/350),width*this->getWidth()/250,height*this->getHeight()/350);
 	//code for portrait
-	if(portrait==1){
+	/*if(portrait==1){
 		switch(_orientation) {
 			case LANDSCAPE:
 				drawRectangle((((paddedBounds.width >> 1) + (imageWidth >> 1))-((y*imageWidth/350)+height*imageWidth/350))+3
@@ -99,22 +113,23 @@ void MobImage::selectStat(int x, int y, int width, int height, int red, int gree
 				break;
 		}
 	}
-	Gfx_updateScreen();
+	//refreshing = true;
+	Gfx_updateScreen();*/
+
 }
 
-void MobImage::refreshWidget() {
-	/*if (resource) {
-		Gfx_drawImage(resource, PADDING + (paddedBounds.width >> 1) - (imageWidth >> 1),
-			((paddedBounds.height >> 1) - (imageHeight >> 1))+paddedBounds.y);
-		if (hasNote) {
-			Gfx_drawImage(RES_CHANGE_STAR, PADDING + (paddedBounds.width >> 1) - (imageWidth >> 1),
-				((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y);
-		}
-	}*/
-	this->drawWidget();
+void MobImage::refreshWidget(bool drawStats) {
+	lprintfln("FUNCTION refreshWidget %d", paddedBounds.y);
+	this->drawWidget(drawStats);
 }
 
 void MobImage::drawWidget() {
+	lprintfln("FUNCTION old drawWidget %d", paddedBounds.y);
+	this->drawWidget(true);
+}
+
+void MobImage::drawWidget(bool drawStats) {
+	lprintfln("FUNCTION drawWidget %d", paddedBounds.y);
 	if (resource) {
 		Gfx_drawImage(resource, (paddedBounds.width >> 1) - (imageWidth >> 1),
 			(paddedBounds.height >> 1) - (imageHeight >> 1));
@@ -127,11 +142,48 @@ void MobImage::drawWidget() {
 		}
 	}
 
-	lprintfln("drawWidget");
+	if (!refreshing) {
+		if (drawStats)
+			this->drawStats();
+	}
 
+	if (drawRect) {
+		Gfx_setColor(_red, _green, _blue);
+		if(portrait==1){
+			switch(_orientation) {
+				case LANDSCAPE:
+					drawRectangle((((paddedBounds.width >> 1) + (imageWidth >> 1))-((_y*imageWidth/350)+_height*imageWidth/350))-2
+						,(((paddedBounds.height >> 1) - (imageHeight >> 1)))+(_x*imageHeight/250),
+						_height*imageWidth/350,
+						_width*imageHeight/250);
+					break;
+				case PORTRAIT:
+					drawRectangle((5 + (paddedBounds.width >> 1) - (imageWidth >> 1))+(_x*imageWidth/250),
+						((paddedBounds.height >> 1) - (imageHeight >> 1))+(_y*imageHeight/350),
+						_width*imageWidth/250,_height*imageHeight/350);
+					break;
+			}
+		}else{
+			switch(_orientation) {
+				case LANDSCAPE:
+					drawRectangle(((paddedBounds.width >> 1) - (imageWidth >> 1))+(_x*imageWidth/250)+paddedBounds.x,
+						((paddedBounds.height >> 1) - (imageHeight >> 1))+(_y*imageHeight/350)+paddedBounds.y,
+						_width*imageWidth/250,_height*imageHeight/350);
+					break;
+				case PORTRAIT:
+					drawRectangle((((paddedBounds.width >> 1) + (imageWidth >> 1))-((_y*imageWidth/350)+_height*imageWidth/350))+3
+						,(((paddedBounds.height >> 1) - (imageHeight >> 1))+getPosition().y)+(_x*imageHeight/250),
+						_height*imageWidth/350,_width*imageHeight/250);
+					break;
+			}
+		}
+	}
+	refreshing = false;
+}
+
+void MobImage::drawStats() {
+	lprintfln("FUNCTION drawStats %d", paddedBounds.y);
 	if (stats.size() > 0) {
-		lprintfln("stats.size() > 0");
-		lprintfln("stats.size(): %d", stats.size());
 		bool portrait = (imageHeight>imageWidth);
 		int diffX = (paddedBounds.width - imageWidth)/2, diffY = (paddedBounds.height - imageHeight)/2;
 		for (int i = 0; i < labels.size(); i++) {
@@ -139,7 +191,6 @@ void MobImage::drawWidget() {
 		}
 
 		for (int i = 0; i < stats.size(); i++) {
-			lprintfln("stats[i].front: %s", stats[i].front?"true":"false");
 			if (stats[i].front == front) {
 				if (portrait) {
 					labels[i]->setPosition(((int)(stats[i].x * ((double)imageWidth/250))) + diffX, ((int)(stats[i].y * ((double)imageHeight/350))) + diffY);
@@ -160,7 +211,7 @@ void MobImage::drawWidget() {
 }
 
 void MobImage::addStat(stat stat) {
-	lprintfln("addStat");
+	lprintfln("FUNCTION addStat %d", paddedBounds.y);
 	stats.add(stat);
 
 	MobLabel *temp = new MobLabel(0, 0, 0, 0, NULL, (imageHeight>imageWidth)?TRANS_NONE:TRANS_ROT90);
@@ -173,6 +224,7 @@ void MobImage::addStat(stat stat) {
 }
 
 void MobImage::clearStats() {
+	lprintfln("FUNCTION clearStats %d", paddedBounds.y);
 	for (int i = 0; i < labels.size(); i++) {
 		if (labels[i]->getParent() != NULL) {
 			labels[i]->setParent(NULL);
@@ -185,5 +237,11 @@ void MobImage::clearStats() {
 }
 
 void MobImage::flip() {
+	lprintfln("FUNCTION flip %d", paddedBounds.y);
 	front = !front;
+}
+
+void MobImage::setFront(bool f) {
+	lprintfln("FUNCTION setFront %d", paddedBounds.y);
+	front = f;
 }
