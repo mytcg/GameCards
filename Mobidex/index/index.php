@@ -638,6 +638,11 @@ if ($_GET['userdetails']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '0';
 	}
+	
+	myqui('UPDATE mytcg_user 
+			SET last_useragent = "'.$_SERVER['HTTP_USER_AGENT'].'" 
+			WHERE user_id = '.$iUserID);
+	
 	echo userdetails($iUserID,$iHeight,$iWidth,$root,$jpg,$iBBHeight);
 	exit;
 }
