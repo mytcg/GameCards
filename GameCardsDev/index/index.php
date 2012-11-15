@@ -719,7 +719,7 @@ if ($iCategory=$_GET['cardsincategory']){
 	if ($iCategory >= 0) {
 		$aCategory=myqu('SELECT categorytype_id '
 			.'FROM mytcg_category '
-			.'WHERE category_id = '.$iCategory;
+			.'WHERE category_id = '.$iCategory
 		);
 		if ($cat=$aCategory[0]) {
 			if ($cat['categorytype_id'] == 3) {

@@ -860,8 +860,10 @@ function continueGame($gameId, $iUserID, $iHeight, $iWidth) {
 	
 	$gamePhase = $gamePhaseQuery[0]['description'];
 	
+	echo 'continuing game ';
+	
 	if ($gamePhase == 'stat') {
-		
+		echo 'stat ';
 		//if the player is playing against the ai, the ai needs to make a move, if the ai is the active user
 		//so we check if there is an ai user in the game
 		$adminPlayerIdQuery = myqu('SELECT u.user_id, gp.gameplayer_id, gp.is_active 
@@ -871,12 +873,14 @@ function continueGame($gameId, $iUserID, $iHeight, $iWidth) {
 			WHERE gp.game_id = '.$gameId.' 
 			AND u.ai = 1');
 		if (sizeof($adminPlayerIdQuery) > 0) {
+			echo 'admin player ';
 			//check that the ai is the active player
 			$aiIsActive = $adminPlayerIdQuery[0]['is_active'];
 			$aiPlayerId = $adminPlayerIdQuery[0]['gameplayer_id'];
 			$aiUserId = $adminPlayerIdQuery[0]['user_id'];
 			
 			if ($aiIsActive == '1') {
+				echo 'ai is active ';
 				// we need to get the best stat for the ai to pick, so we need their top card first
 				$adminTopCardQuery = myqu('SELECT min(gpc.pos), gpc.gameplayercard_id, uc.card_id
 					FROM mytcg_gameplayercard gpc
@@ -888,6 +892,8 @@ function continueGame($gameId, $iUserID, $iHeight, $iWidth) {
 				$adminTopCard = $adminTopCardQuery[0]['card_id'];
 				
 				$adminStat = chooseStat($adminTopCard);
+				
+				echo 'adminStat: '.$adminStat;
 				
 				//perform the stat selection
 				selectStat($iUserID, $aiUserId, $gameId, $adminStat);
@@ -901,108 +907,113 @@ function continueGame($gameId, $iUserID, $iHeight, $iWidth) {
   * CPU player choosing a stat
   */
 function chooseStat($cardId, $difficultyId=1, $showCheat=false) {
-     $pre = "mytcg";
-     $sCRLF = "\r\n";
-     $cheat = '';
-     $id = $cardId;
+	$pre = "mytcg";
+	$sCRLF = "\r\n";
+	$cheat = '';
+	$id = $cardId;
 
-     $cheat.= 'CARD '.$id.$sCRLF.'=========================='.$sCRLF;
+	$cheat.= 'CARD '.$id.$sCRLF.'=========================='.$sCRLF;
 
-     $probabilities = array();
+	$probabilities = array();
+	
+	$sql = "select categorystat_id 
+		from mytcg_cardstat
+		where card_id = $cardId";
+	$cats = myqu($sql);
 
-     for($cat=1; $cat<=7; $cat++)
-     {
-         $cheat.= 'Stat '.$cat;
+	for($i=0; $i<=sizeof($cats); $i++)
+	{
+		$cat = $cats[$i]['categorystat_id'];
+		$cheat.= 'Stat '.$cats[$i];
 
-         $wins = 0;
-         $losses = 0;
-         $draws = 0;
-         $total = 0;
+		$wins = 0;
+		$losses = 0;
+		$draws = 0;
+		$total = 0;
 
-         $sql = "SELECT *
-                 FROM ".$pre."_cardstat CS
-                 WHERE CS.categorystat_id = $cat
-                 AND CS.card_id NOT IN ($id);";
-         $cards = myqu($sql);
+		$sql = "SELECT *
+			FROM ".$pre."_cardstat CS
+			WHERE CS.categorystat_id = $cat
+			AND CS.card_id NOT IN ($id);";
+		$cards = myqu($sql);
 
-         if(count($cards) > 0)
-         {
-             $sql = "SELECT statvalue
-                     FROM ".$pre."_cardstat CS
-                     WHERE CS.categorystat_id = $cat
-                     AND CS.card_id = $id;";
-             $base = myqu($sql);
-             $baseval = $base[0]['statvalue'];
+		if(count($cards) > 0)
+		{
+			$sql = "SELECT statvalue
+				FROM ".$pre."_cardstat CS
+				WHERE CS.categorystat_id = $cat
+				AND CS.card_id = $id;";
+			$base = myqu($sql);
+			$baseval = $base[0]['statvalue'];
 
-             $cheat.= ' -> '.$baseval;
+			$cheat.= ' -> '.$baseval;
 
-             foreach($cards as $card)
-             {
-                 if($baseval > $card['statvalue']){
-                     $wins++;
-                 }
-                 elseif($baseval < $card['statvalue']){
-                     $losses++;
-                 }
-                 else{
-                     $draws++;
-                 }
-                 $total++;
-             }
-         }
-         $cheat.= $sCRLF.'-------------------'.$sCRLF;
-         $probabilities['win'][$cat] = round(($wins/$total)*100,2);
-         $probabilities['lose'][$cat] = round(($losses/$total)*100,2);
-         $probabilities['draw'][$cat] = round(($draws/$total)*100,2);
-         $combined[$cat] = $probabilities['lose'][$cat] + $probabilities['draw'][$cat];
+			foreach($cards as $card)
+			{
+				if($baseval > $card['statvalue']){
+					$wins++;
+				}
+				elseif($baseval < $card['statvalue']){
+					$losses++;
+				}
+				else{
+					$draws++;
+				}
+				$total++;
+			}
+		}
+		$cheat.= $sCRLF.'-------------------'.$sCRLF;
+		$probabilities['win'][$i] = round(($wins/$total)*100,2);
+		$probabilities['lose'][$i] = round(($losses/$total)*100,2);
+		$probabilities['draw'][$i] = round(($draws/$total)*100,2);
+		$combined[$i] = $probabilities['lose'][$i] + $probabilities['draw'][$i];
 
-     }
+	}
 
-     $cheat.= 'Probabilities
-'.print_r($probabilities,true).'=========================='.$sCRLF;
+	$cheat.= 'Probabilities'.print_r($probabilities,true).'=========================='.$sCRLF;
 
-     //sort stats according to lowest losing probability
-     $statsinbestorder = $combined;
-     asort($statsinbestorder);
-     $i = 1;
-     $beststat = array();
-     foreach($statsinbestorder as $key=>$stat){
-         $beststat[] = $key;
-         if(++$i > 3) break;
-     }
+	//sort stats according to lowest losing probability
+	$statsinbestorder = $combined;
+	asort($statsinbestorder);
+	$i = 1;
+	$beststat = array();
+	foreach($statsinbestorder as $key=>$stat){
+		$beststat[] = $key;
+		if(++$i > 3) break;
+	}
 
-     $chosenstat = 0;
-     switch($difficultyId){
-         case '1':
-             $difficultyLevel = 'Easy';
-             $chosenstat = rand(0,2);
-         break;
-         case '2':
-             $difficultyLevel = 'Normal';
-             $chosenstat = rand(0,1);
-         break;
-         case '3':
-             $difficultyLevel = 'Hard';
-             $chosenstat = 0;
-         break;
-     }
-     $chosenstat = $beststat[$chosenstat];
+	$chosenstat = 0;
+	switch($difficultyId){
+			case '1':
+				$difficultyLevel = 'Easy';
+				$chosenstat = rand(0,2);
+				break;
+			case '2':
+				$difficultyLevel = 'Normal';
+				$chosenstat = rand(0,1);
+				break;
+			case '3':
+				$difficultyLevel = 'Hard';
+				$chosenstat = 0;
+				break;
+	}
+	$chosenstat = $beststat[$chosenstat];
 
-     $cheat.= 'BEST CHOICE = Stat '.$beststat[0].$sCRLF;
-     $cheat.= '2nd CHOICE = Stat '.$beststat[1].$sCRLF;
-     $cheat.= '3rd CHOICE = Stat '.$beststat[2].$sCRLF;
-     $cheat.= '=========================='.$sCRLF;
-     $cheat.= 'CPU Difficulty = '.$difficultyLevel.$sCRLF;
-     $cheat.= 'CHOICE = Stat '.$chosenstat.$sCRLF;
+	$cheat.= 'BEST CHOICE = Stat '.$beststat[0].$sCRLF;
+	$cheat.= '2nd CHOICE = Stat '.$beststat[1].$sCRLF;
+	$cheat.= '3rd CHOICE = Stat '.$beststat[2].$sCRLF;
+	$cheat.= '=========================='.$sCRLF;
+	$cheat.= 'CPU Difficulty = '.$difficultyLevel.$sCRLF;
+	$cheat.= 'CHOICE = Stat '.$chosenstat.$sCRLF;
 
-     if($showCheat)
-     {
-         return $cheat;
-     }
-     else
-     {
-         return $chosenstat;
-     }
+	if($showCheat)
+	{
+		return $cheat;
+	}
+	else
+	{
+		return $cats[$chosenstat]['categorystat_id'];
+	}
 }
 
 //load a game and return relevant xml
@@ -1393,7 +1404,7 @@ function selectStat($userId, $oppUserId, $gameId, $statTypeId) {
 	$userPlayerUsername = $userPlayerIdQuery[0]['username'];
 	
 	//get stat value and typeId for user
-	$cardStatDetails = myqu('SELECT gpc.pos position, gpc.gameplayercard_id, c.description card_name, cs.statvalue, cs.description statdescription
+	$cardStatDetails = myqu('SELECT gpc.pos position, gpc.gameplayercard_id, c.description card_name, cs.statvalue, cs.description statdescription, uc.usercard_id
 		FROM mytcg_gameplayercard gpc
 		INNER JOIN mytcg_usercard uc
 		ON uc.usercard_id = gpc.usercard_id
@@ -1409,13 +1420,33 @@ function selectStat($userId, $oppUserId, $gameId, $statTypeId) {
 		AND gpc.gameplayer_id = '.$userPlayerId.' 
 		AND cs.categorystat_id = '.$statTypeId.' 
 		ORDER BY gpc.pos ASC');
-	$userCardId = $cardStatDetails[0]['gameplayercard_id'];
+	$userCardId = $cardStatDetails[0]['usercard_id'];
+	$userPlayerCardId = $cardStatDetails[0]['gameplayercard_id'];
 	$userStatValue = $cardStatDetails[0]['statvalue'];
 	$userStatDescription = $cardStatDetails[0]['statdescription'];
 	$userCardName = $cardStatDetails[0]['card_name'];
 	
+	//get stat modification for user card
+	$cardStatDetails = myqu('select cs.categorystat_id, SUM(cs.statvalue) statvalue 
+		from mytcg_usercardaddon uca 
+		inner join mytcg_usercard uc on uca.addonusercard_id = uc.usercard_id 
+		inner join mytcg_card c on c.card_id = uc.card_id 
+		inner join mytcg_cardstat cs on cs.card_id = c.card_id 
+		where uca.usercard_id = '.$userCardId.'  
+		and cs.categorystat_id = '.$statTypeId.' 
+		group by cs.categorystat_id');
+		
+	//if there are mods, add them
+	if ($statMod = $cardStatDetails[0]) {
+		$userStatValue += $statMod['statvalue'];
+		//if the description is numeric, add it too
+		if (is_numeric($userStatDescription)) {
+			$userStatDescription += $statMod['statvalue'];
+		}
+	}
+	
 	//get selected card and statvalue for the opponent
-	$oppCardDetails = myqu('SELECT gpc.pos position, gpc.gameplayercard_id, c.description card_name, cs.statvalue, cs.description statdescription, cats.description stattype
+	$oppCardDetails = myqu('SELECT gpc.pos position, gpc.gameplayercard_id, c.description card_name, cs.statvalue, cs.description statdescription, cats.description stattype, uc.usercard_id
 		FROM mytcg_gameplayercard gpc
 		INNER JOIN mytcg_usercard uc
 		ON uc.usercard_id = gpc.usercard_id
@@ -1431,11 +1462,31 @@ function selectStat($userId, $oppUserId, $gameId, $statTypeId) {
 		AND gpc.gameplayer_id = '.$oppPlayerId.' 
 		AND cs.categorystat_id = '.$statTypeId.' 
 		ORDER BY gpc.pos ASC');
+	$oppUserCardId = $oppCardDetails[0]['usercard_id'];
 	$oppCardId = $oppCardDetails[0]['gameplayercard_id'];
 	$oppCardName = $oppCardDetails[0]['card_name'];
 	$oppStatValue = $oppCardDetails[0]['statvalue'];
 	$oppStatDescription = $oppCardDetails[0]['statdescription'];
 	$statType = $oppCardDetails[0]['stattype'];
+	
+	//get stat modification for opponent's card
+	$cardStatDetails = myqu('select cs.categorystat_id, SUM(cs.statvalue) statvalue 
+		from mytcg_usercardaddon uca 
+		inner join mytcg_usercard uc on uca.addonusercard_id = uc.usercard_id 
+		inner join mytcg_card c on c.card_id = uc.card_id 
+		inner join mytcg_cardstat cs on cs.card_id = c.card_id 
+		where uca.usercard_id = '.$oppUserCardId.'  
+		and cs.categorystat_id = '.$statTypeId.' 
+		group by cs.categorystat_id');
+		
+	//if there are mods, add them
+	if ($statMod = $cardStatDetails[0]) {
+		$oppStatValue += $statMod['statvalue'];
+		//if the description is numeric, add it too
+		if (is_numeric($oppStatDescription)) {
+			$oppStatDescription += $statMod['statvalue'];
+		}
+	}
 	
 	//by default we set the gameplayerstatus_id to pending after a move, but if its an AI user, we must set it to waiting
 	$oppStatusId = '1';
@@ -1493,7 +1544,7 @@ function selectStat($userId, $oppUserId, $gameId, $statTypeId) {
 			
 		//in the case of a draw, the active player stays the same.
 		//we need to set the card ids to 'pending'
-		myqu('UPDATE mytcg_gameplayercard SET gameplayercardstatus_id = 2 WHERE gameplayercard_id IN ('.$oppCardId.','.$userCardId.')');
+		myqu('UPDATE mytcg_gameplayercard SET gameplayercardstatus_id = 2 WHERE gameplayercard_id IN ('.$oppCardId.','.$userPlayerCardId.')');
 	}
 	
 	//add the log message, so players can see what happened.
