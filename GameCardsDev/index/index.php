@@ -196,19 +196,19 @@ if ($iUserID == 0){
 			
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
 			VALUES ('.$iUserID.', "Recieved 25 credits for logging in.", now(), 1, 2)');
+			
+		myqui('INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, 
+			date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, 
+			mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id, platform_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, 
+			msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, 
+			mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id, 1
+			FROM mytcg_user WHERE user_id='.$iUserID);
 	}
 	
 	checkAchis($iUserID, 3);
 		
 	myqui('UPDATE mytcg_user SET mobile_date_last_visit=now() WHERE user_id = '.$iUserID);
-	
-	myqui('INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, 
-		date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, 
-		mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id, platform_id)
-		SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, 
-		msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, 
-		mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id, platform_id
-		FROM mytcg_user WHERE user_id='.$iUserID);
 }
 /** stalk user actions*/
 if(count($_GET)>0){
