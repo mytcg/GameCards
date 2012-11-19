@@ -28,6 +28,10 @@ $sTab=chr(9);
 $sCRLF="";
 $sTab="";
 
+$aFileHandle=fopen('updateLog.txt','a+');
+fwrite($aFileHandle,date("l dS \of F Y h:i:s A").' : '.curPageURL()."\n");
+fclose($aFileHandle);
+
 if ($_GET['viewcards']) {
 	if (!($cell=$_GET['cell'])) {
 		$cell = '0';
@@ -154,7 +158,6 @@ if ($iUserID == 0){
 }
 
 if ($iTestVersion=$_GET['update']) {
-  
 	if (!($iMSISDN=$_GET['msisdn'])) {
 		$iMSISDN = '';
 	}
@@ -177,7 +180,7 @@ if ($iTestVersion=$_GET['update']) {
 		$iOsVer = '';
 	}
 	if (!($iTouch=$_GET['touch'])) {
-		$iTouch = '';
+		$iTouch = '0';
 	}
 	if (!($iScreenWidth=$_GET['width'])) {
 		$iScreenWidth = '';
@@ -205,7 +208,7 @@ if ($iTestVersion=$_GET['update']) {
 			.'WHERE os="'.$iOs.'" '
 			.'AND version <> "'.$iTestVersion.'" '
 		);
-		#
+		
 		$iUpdate = sizeof($aVersion);
 		$iVersion=$aVersion[0];
 		if ($iUpdate > 0){
@@ -635,6 +638,11 @@ if ($_GET['userdetails']){
 	if (!($jpg=$_GET['jpg'])) {
 		$jpg = '0';
 	}
+	
+	myqui('UPDATE mytcg_user 
+			SET last_useragent = "'.$_SERVER['HTTP_USER_AGENT'].'" 
+			WHERE user_id = '.$iUserID);
+	
 	echo userdetails($iUserID,$iHeight,$iWidth,$root,$jpg,$iBBHeight);
 	exit;
 }

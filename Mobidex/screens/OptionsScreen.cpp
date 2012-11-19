@@ -389,6 +389,7 @@ void OptionsScreen::deleteCard() {
 	char *url = new char[urlLength];
 	memset(url,'\0',urlLength);
 	sprintf(url, "%s?deletecard=%s", URL_PHONE.c_str(), card->getId().c_str());
+	lprintfln(url);
 	if(mHttp.isOpen()){
 		mHttp.close();
 	}

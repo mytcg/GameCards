@@ -144,6 +144,7 @@ void NoteScreen::keyPressEvent(int keyCode) {
 						char *url = new char[urlLength];
 						memset(url,'\0',urlLength);
 						sprintf(url, "%s?savenote=%s&cardid=%s", URL_PHONE.c_str(), encodedNote.c_str(), card->getId().c_str());
+						lprintfln(url);
 						if(mHttp.isOpen()){
 							mHttp.close();
 						}

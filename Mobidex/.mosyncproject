@@ -3,6 +3,7 @@
 <build.cfg id="Debug" types="Debug"/>
 <build.cfg id="Release" types="Release"/>
 <properties>
+<property key="android:version.number" value="3"/>
 <property key="build.prefs:additional.include.paths/Debug" value=""/>
 <property key="build.prefs:additional.include.paths/Release" value=""/>
 <property key="build.prefs:additional.libraries/Debug" value="mastd.lib, MAUI.lib, MAUtil.lib, MTXml.lib"/>
@@ -10,6 +11,7 @@
 <property key="build.prefs:additional.library.paths/Debug" value=""/>
 <property key="build.prefs:additional.library.paths/Release" value=""/>
 <property key="build.prefs:app.permissions" value="File\ Storage Internet\ Access Vibration"/>
+<property key="build.prefs:app.version/Release" value="1.1"/>
 <property key="build.prefs:extra.link.sw/Debug" value=""/>
 <property key="build.prefs:extra.link.sw/Release" value=""/>
 <property key="build.prefs:extra.res.sw/Debug" value=""/>

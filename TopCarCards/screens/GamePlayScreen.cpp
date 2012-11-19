@@ -113,6 +113,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 				memset(url,'\0',urlLength);
 				sprintf(url, "%s?hostgame=1&categoryid=%s&newgametype=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 					categoryId.c_str(), newGameType.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+				lprintfln(url);
 			}else if (lobby == 2){
 				int urlLength = 116 + URLSIZE + categoryId.length() + gameId.length() +
 					newGameType.length() + Util::intlen(Util::getMaxImageHeight()) + Util::intlen(Util::getMaxImageWidth());
@@ -120,6 +121,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 				memset(url,'\0',urlLength);
 				sprintf(url, "%s?joingame=1&categoryid=%s&newgametype=%s&height=%d&portrait=%d&width=%d&deckid=%s&gameid=%s&jpg=1", URL,
 					categoryId.c_str(), newGameType.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str(), gameid.c_str());
+				lprintfln(url);
 			}else {
 				//work out how long the url will be, the 4 is for the & and = symbals
 				int urlLength = 107 + URLSIZE + categoryId.length() +
@@ -128,6 +130,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 				memset(url,'\0',urlLength);
 				sprintf(url, "%s?newgame=1&categoryid=%s&newgametype=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 					categoryId.c_str(), newGameType.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+				lprintfln(url);
 			}
 		}
 	}
@@ -141,6 +144,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?loadgame=1&gameid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 				gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 	}
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -298,6 +302,7 @@ void GamePlayScreen::drawFriendNameScreen() {
 	Label *lbl = new Label(0, 0, scrWidth-(PADDING*2), 0, NULL);
 	lbl->setAutoSizeY(true);
 	lbl->setMultiLine(true);
+	lbl->setDrawBackground(false);
 
 	lbl->setCaption("Enter the username of the person you want to play against");
 
@@ -768,6 +773,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 					memset(url,'\0',urlLength);
 					sprintf(url, "%s?declinegame=1&gameid=%s&categoryid=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 						gameId.c_str(), categoryId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+					lprintfln(url);
 					if(mHttp.isOpen()){
 						mHttp.close();
 					}
@@ -866,6 +872,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 						memset(url,'\0',urlLength);
 						sprintf(url, "%s?confirmgame=1&gameid=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 							gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+						lprintfln(url);
 						if(mHttp.isOpen()){
 							mHttp.close();
 						}
@@ -907,6 +914,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 							memset(url,'\0',urlLength);
 							sprintf(url, "%s?newgame=1&categoryid=%s&newgametype=%s&friend=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 								categoryId.c_str(), newGameType.c_str(), base64Friend.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+							lprintfln(url);
 							if(mHttp.isOpen()){
 								mHttp.close();
 							}
@@ -952,6 +960,7 @@ void GamePlayScreen::runTimerEvent() {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?continuegame=1&gameid=%s&lastmove=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 				gameId.c_str(), lastMove.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}
@@ -1062,6 +1071,7 @@ void GamePlayScreen::runTimerEvent() {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?loadgame=1&gameid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 			gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}
@@ -1132,7 +1142,7 @@ void GamePlayScreen::selectStat() {
 	memset(url,'\0',urlLength);
 	sprintf(url, "%s?selectstat=1&gameid=%s&statid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL, gameId.c_str(),
 			card->getStats()[currentSelectedStat]->getCardStatId().c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
-
+	lprintfln(url);
 	//clearCardStats();
 
 	if(mHttp.isOpen()){
@@ -1202,6 +1212,7 @@ void GamePlayScreen::xcConnError(int code) {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?loadgame=1&gameid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 				gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}

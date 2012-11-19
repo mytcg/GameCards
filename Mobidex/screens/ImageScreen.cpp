@@ -488,6 +488,7 @@ void ImageScreen::acceptCard() {
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
 	sprintf(url, "%s?savecard=%s", URL_PHONE.c_str(), card->getId().c_str());
+	lprintfln(url);
 	if(mHttp.isOpen()){
 		mHttp.close();
 	}
@@ -510,6 +511,7 @@ void ImageScreen::rejectCard() {
 	char *url = new char[urlLength+1];
 	memset(url,'\0',urlLength+1);
 	sprintf(url, "%s?rejectcard=%s", URL_PHONE.c_str(), card->getId().c_str());
+	lprintfln(url);
 	if(mHttp.isOpen()){
 		mHttp.close();
 	}

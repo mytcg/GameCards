@@ -2,6 +2,7 @@
 #include <conprint.h>
 
 #include "MobFont.h"
+#include "../../utils/Util.h"
 
 MobFont::MobFont(MAHandle font, int rotation)
 	: Font(font), rotation(rotation) {
@@ -129,7 +130,7 @@ void MobFont::drawBoundedString(const char* strS, int x, int y, const Rect& boun
 				destPoint.y = cursor.y + chars[str[i]].yOffset;
 				break;
 			case TRANS_ROT90:
-				destPoint.x = bound.width - (cursor.y + chars[str[i]].yOffset + chars[str[i]].height);
+				destPoint.x = bound.width - (cursor.y + chars[str[i]].yOffset + chars[str[i]].height) + 4;
 				destPoint.y = cursor.x + chars[str[i]].xOffset;
 				break;
 		}

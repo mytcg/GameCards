@@ -196,6 +196,14 @@ if ($iUserID == 0){
 			
 		myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
 			VALUES ('.$iUserID.', "Recieved 25 credits for logging in.", now(), 1, 2)');
+			
+		myqui('INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, 
+			date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, 
+			mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id, platform_id)
+			SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, 
+			msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, 
+			mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id, 1
+			FROM mytcg_user WHERE user_id='.$iUserID);
 	}
 	
 	checkAchis($iUserID, 3);
@@ -706,6 +714,18 @@ if ($iCategory=$_GET['cardsincategory']){
 	$lastCheckSeconds = "";
 	if (!($lastCheckSeconds = $_GET['seconds'])) {
 		$lastCheckSeconds = "0";
+	}
+	
+	if ($iCategory >= 0) {
+		$aCategory=myqu('SELECT categorytype_id '
+			.'FROM mytcg_category '
+			.'WHERE category_id = '.$iCategory
+		);
+		if ($cat=$aCategory[0]) {
+			if ($cat['categorytype_id'] == 3) {
+				$iShowAll = '0';
+			}
+		}
 	}
 	
 	$sOP = cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds,$userId, -1,$root, $iBBHeight, $jpg, $iFriendID, $iPortrait);
@@ -2073,7 +2093,7 @@ if ($_GET['usercategories']){
 	$query = 'SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
 		CASE WHEN cx.category_parent_id IS NULL THEN "top" ELSE cx.category_parent_id END category_parent_id,
 		(CASE WHEN (MAX(c.date_updated) > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
-			THEN 1 ELSE 0 END) updated 
+			THEN 1 ELSE 0 END) updated, ca.categorytype_id 
 		FROM mytcg_card c
 		INNER JOIN mytcg_usercard uc
 		ON uc.card_id = c.card_id
@@ -2108,7 +2128,7 @@ if ($_GET['usercategories']){
 	}
 	
 	while ($ids != '') {
-		$aCategories = myqu("SELECT DISTINCT ca.category_id, ca.description, 
+		$aCategories = myqu("SELECT DISTINCT ca.category_id, ca.description, ca.categorytype_id, 
 			CASE WHEN count(card_id) > 0 THEN 'true' ELSE 'false' END hasCards,
 			CASE WHEN cx.category_parent_id IS NULL THEN 'top' ELSE cx.category_parent_id END category_parent_id
 			FROM mytcg_category ca

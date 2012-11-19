@@ -36,23 +36,28 @@ public:
 	void selectStat(int x, int y, int width, int height, int red, int green, int blue, int orientation=0);
 	bool statContains(int x, int y, int width, int height, int pointX, int pointY, int orientation=0);
 	void drawRectangle(int x, int y, int width, int height);
-	void refreshWidget();
+	void refreshWidget(bool drawStats=true);
 	bool statAdded;
 
 	enum orientations {PORTRAIT = 0, LANDSCAPE };
 
 	void addStat(stat stat);
+	void clearStats();
 	void flip();
+	void setFront(bool f);
 protected:
 	virtual void drawWidget();
+	virtual void drawWidget(bool drawStats=true);
 	int _x, _y, _width, _height, _red, _green, _blue, _orientation;
-	bool hasNote;
+	bool hasNote, drawRect;
 
 private:
 	Vector<stat> stats;
 	Vector<MobLabel*> labels;
 
-	bool front;
+	bool front, refreshing;
+
+	void drawStats();
 };
 
 #endif /* MOBIMAGE_H_ */

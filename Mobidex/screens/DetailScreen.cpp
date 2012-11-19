@@ -74,6 +74,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
 		sprintf(url, "%s?notifications=1", URL_PHONE.c_str());
+		lprintfln(url);
 		int res = mHttp.create(url, HTTP_GET);
 
 		if(res < 0) {

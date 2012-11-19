@@ -60,6 +60,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 	storeHeight = 0;
 	ticks = 0;
 	lfmTicks = 1;
+	mustDraw = 0;
 	int port = 1;
 	if(portrait == false){
 		port = 2;
@@ -113,6 +114,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 				memset(url,'\0',urlLength);
 				sprintf(url, "%s?hostgame=1&categoryid=%s&newgametype=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 					categoryId.c_str(), newGameType.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+				lprintfln(url);
 			}else if (lobby == 2){
 				int urlLength = 116 + URLSIZE + categoryId.length() + gameId.length() +
 					newGameType.length() + Util::intlen(Util::getMaxImageHeight()) + Util::intlen(Util::getMaxImageWidth());
@@ -120,6 +122,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 				memset(url,'\0',urlLength);
 				sprintf(url, "%s?joingame=1&categoryid=%s&newgametype=%s&height=%d&portrait=%d&width=%d&deckid=%s&gameid=%s&jpg=1", URL,
 					categoryId.c_str(), newGameType.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str(), gameid.c_str());
+				lprintfln(url);
 			}else {
 				//work out how long the url will be, the 4 is for the & and = symbals
 				int urlLength = 107 + URLSIZE + categoryId.length() +
@@ -128,6 +131,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 				memset(url,'\0',urlLength);
 				sprintf(url, "%s?newgame=1&categoryid=%s&newgametype=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 					categoryId.c_str(), newGameType.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+				lprintfln(url);
 			}
 		}
 	}
@@ -141,6 +145,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?loadgame=1&gameid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 				gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 	}
 	if(mHttp.isOpen()){
 		mHttp.close();
@@ -298,6 +303,7 @@ void GamePlayScreen::drawFriendNameScreen() {
 	Label *lbl = new Label(0, 0, scrWidth-(PADDING*2), 0, NULL);
 	lbl->setAutoSizeY(true);
 	lbl->setMultiLine(true);
+	lbl->setDrawBackground(false);
 
 	lbl->setCaption("Enter the username of the person you want to play against");
 
@@ -351,10 +357,30 @@ void GamePlayScreen::drawCardSelectStatScreen() {
 	}
 
 	if(portrait){
-		userImage = new MobImage(0, 0, subLayout->getWidth(), subLayout->getHeight()/2, subLayout, false, false, Util::loadImageFromResource(RES_LOADING_FLIP1));
+		userImage = new MobImage(0, 0, subLayout->getWidth(), subLayout->getHeight()/2, subLayout, false, false, Util::loadImageFromResource(RES_LOADING_FLIP1), false);
 	}else{
-		userImage = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(RES_LOADING1));
+		userImage = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(RES_LOADING1), false);
 	}
+
+	userImage->clearStats();
+	stat tempStat;
+	for (int i = 0; i < card->getStats().size(); i++) {
+		if (card->getStats()[i]->getMustDraw()) {
+			tempStat.key = card->getStats()[i]->getDesc();
+			tempStat.display = card->getStats()[i]->getDisplay();
+			tempStat.x = card->getStats()[i]->getLeft();
+			tempStat.y = card->getStats()[i]->getTop();
+			tempStat.height = card->getStats()[i]->getHeight();
+			tempStat.width = card->getStats()[i]->getWidth();
+			tempStat.red = card->getStats()[i]->getColorRed();
+			tempStat.green = card->getStats()[i]->getColorGreen();
+			tempStat.blue = card->getStats()[i]->getColorBlue();
+			tempStat.front = card->getStats()[i]->getFrontOrBack()==0;
+
+			userImage->addStat(tempStat);
+		}
+	}
+
 	Util::retrieveBackFlip(userImage, card, height-PADDING*2, imageCacheUser);
 
 	//if the opponent is active, we can draw the front of their card. If the user is active, we draw a generic card
@@ -363,6 +389,25 @@ void GamePlayScreen::drawCardSelectStatScreen() {
 	}else{
 		oppImage = new MobImage(0, 0, subLayout->getWidth()/2, subLayout->getHeight(), subLayout, false, false, Util::loadImageFromResource(RES_LOADING1));
 	}
+
+	oppImage->clearStats();
+	for (int i = 0; i < oppCard->getStats().size(); i++) {
+		if (oppCard->getStats()[i]->getMustDraw()) {
+			tempStat.key = oppCard->getStats()[i]->getDesc();
+			tempStat.display = oppCard->getStats()[i]->getDisplay();
+			tempStat.x = oppCard->getStats()[i]->getLeft();
+			tempStat.y = oppCard->getStats()[i]->getTop();
+			tempStat.height = oppCard->getStats()[i]->getHeight();
+			tempStat.width = oppCard->getStats()[i]->getWidth();
+			tempStat.red = oppCard->getStats()[i]->getColorRed();
+			tempStat.green = oppCard->getStats()[i]->getColorGreen();
+			tempStat.blue = oppCard->getStats()[i]->getColorBlue();
+			tempStat.front = oppCard->getStats()[i]->getFrontOrBack()==0;
+
+			oppImage->addStat(tempStat);
+		}
+	}
+
 	lblString = oppName + ": ";
 	lblString += oppCards;
 	lblString += " cards, ";
@@ -370,6 +415,7 @@ void GamePlayScreen::drawCardSelectStatScreen() {
 	userLabel = new Label(0, 0, scrWidth - PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, kinListBox, lblString,0,Util::getDefaultFont());
 	userLabel->setDrawBackground(false);
 	if (!active) {
+		oppImage->setFront(false);
 		Util::retrieveBackFlip(oppImage, oppCard, height-PADDING*2, imageCacheOpp);
 	}
 	else {
@@ -516,6 +562,8 @@ GamePlayScreen::~GamePlayScreen() {
 	frontflipurl = "";
 	backflipurl = "";
 	deckId = "";
+
+	mustDraw = 0;
 }
 
 void GamePlayScreen::selectionChanged(Widget *widget, bool selected) {
@@ -686,7 +734,8 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 								if(currentSelectedStat < 0){
 									currentSelectedStat = card->getStats().size()-1;
 								}
-								userImage->refreshWidget();
+								//userImage->refreshWidget(false);
+								userImage->requestRepaint();
 								userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -724,7 +773,8 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 								else {
 									currentSelectedStat = 0;
 								}
-								userImage->refreshWidget();
+								//userImage->refreshWidget(false);
+								userImage->requestRepaint();
 								userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -768,6 +818,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 					memset(url,'\0',urlLength);
 					sprintf(url, "%s?declinegame=1&gameid=%s&categoryid=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 						gameId.c_str(), categoryId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+					lprintfln(url);
 					if(mHttp.isOpen()){
 						mHttp.close();
 					}
@@ -814,6 +865,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 						userImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 						userImage->update();
 						userImage->requestRepaint();
+						userImage->flip();
 						maUpdateScreen();
 						if (flip) {
 							Util::retrieveBackFlip(userImage, card, height-PADDING*2, imageCacheUser);
@@ -829,7 +881,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 								if(currentSelectedStat>-1){
 									if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()){
 										busy = true;
-										userImage->refreshWidget();
+										userImage->requestRepaint();
 										userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 												card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 												card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -866,6 +918,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 						memset(url,'\0',urlLength);
 						sprintf(url, "%s?confirmgame=1&gameid=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 							gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+						lprintfln(url);
 						if(mHttp.isOpen()){
 							mHttp.close();
 						}
@@ -907,6 +960,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 							memset(url,'\0',urlLength);
 							sprintf(url, "%s?newgame=1&categoryid=%s&newgametype=%s&friend=%s&height=%d&portrait=%d&width=%d&deckid=%s&jpg=1", URL,
 								categoryId.c_str(), newGameType.c_str(), base64Friend.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth(), deckId.c_str());
+							lprintfln(url);
 							if(mHttp.isOpen()){
 								mHttp.close();
 							}
@@ -952,6 +1006,7 @@ void GamePlayScreen::runTimerEvent() {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?continuegame=1&gameid=%s&lastmove=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 				gameId.c_str(), lastMove.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}
@@ -1062,6 +1117,7 @@ void GamePlayScreen::runTimerEvent() {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?loadgame=1&gameid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 			gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}
@@ -1102,6 +1158,7 @@ void GamePlayScreen::animateSelectStat() {
 	if (oppImage->getResource() != NULL) {
 		maDestroyObject(oppImage->getResource());
 	}
+	oppImage->flip();
 	oppImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 	oppImage->update();
 	oppImage->requestRepaint();
@@ -1132,7 +1189,7 @@ void GamePlayScreen::selectStat() {
 	memset(url,'\0',urlLength);
 	sprintf(url, "%s?selectstat=1&gameid=%s&statid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL, gameId.c_str(),
 			card->getStats()[currentSelectedStat]->getCardStatId().c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
-
+	lprintfln(url);
 	//clearCardStats();
 
 	if(mHttp.isOpen()){
@@ -1202,6 +1259,7 @@ void GamePlayScreen::xcConnError(int code) {
 		memset(url,'\0',urlLength);
 		sprintf(url, "%s?loadgame=1&gameid=%s&height=%d&portrait=%d&width=%d&jpg=1", URL,
 				gameId.c_str(), Util::getMaxImageHeight(), port, Util::getMaxImageWidth());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}
@@ -1263,6 +1321,8 @@ void GamePlayScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 			statGreen = atoi(attrValue);
 		}else if(!strcmp(attrName, "blue")) {
 			statBlue = atoi(attrValue);
+		}else if(!strcmp(attrName, "mustdraw")) {
+			mustDraw = atoi(attrValue);
 		}
 	}
 }
@@ -1391,6 +1451,8 @@ void GamePlayScreen::mtxTagEnd(const char* name, int len) {
 		oppCard->setGamePlayerCardId(gamePlayerCardId.c_str());
 		oppCard->setStats(cardStats);
 
+		oppImage->setFront(true);
+
 		clearCardStats();
 
 		id = "";
@@ -1416,6 +1478,7 @@ void GamePlayScreen::mtxTagEnd(const char* name, int len) {
 		newStat->setColorGreen(statGreen);
 		newStat->setColorBlue(statBlue);
 		newStat->setCategoryStatId(categoryStatId.c_str());
+		newStat->setMustDraw(mustDraw==1);
 		cardStats.add(newStat);
 		cardStatId = "";
 		statDescription = "";
