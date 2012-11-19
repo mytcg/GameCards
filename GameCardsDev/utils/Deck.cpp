@@ -5,16 +5,18 @@ Deck::Deck() {
 	id = "";
 	description = "";
 	type="";
+	active="";
 }
 
-Deck::Deck(String id, String desc, String type):id(id), description(desc),
-		type(type) {
+Deck::Deck(String id, String desc, String type, String active):id(id), description(desc),
+		type(type), active(active) {
 }
 
 Deck::~Deck() {
 	id = "";
 	description = "";
 	type="";
+	active="";
 }
 
 String Deck::getId() {
@@ -31,6 +33,14 @@ String Deck::getType() {
 
 void Deck::setType(const char *t) {
 	type = t;
+}
+
+String Deck::getActive() {
+	return active;
+}
+
+void Deck::setActive(const char *a) {
+	active = a;
 }
 
 String Deck::getDescription() {

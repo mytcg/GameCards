@@ -12,7 +12,7 @@
 #include "ShopDetailsScreen.h"
 #include "../UI/Button.h"
 
-EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type) : mHttp(this), deckId(deckId), type(type) {
+EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type, String active) : mHttp(this), deckId(deckId), type(type), active(active) {
 	busy = true;
 	emp = true;
 	this->previous = previous;
@@ -42,6 +42,9 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 	ranking = "";
 	rarity = "";
 	value = "";
+	positionid = "";
+	position = "";
+	points = "";
 	error_msg = "";
 	updated = "";
 	statDisplay = "";
@@ -321,6 +324,14 @@ void EditDeckScreen::drawList() {
 		String cardText = "";
 		if(!strcmp(type.c_str(), "3")){
 			cardText += cards[i]->getSlotDescription()+": "+(strcmp(cards[i]->getText().c_str(),"")?cards[i]->getText():"Empty");
+		}else if(!strcmp(type.c_str(), "4")){
+			if(strcmp(cards[i]->getText().c_str(),"")){
+				cardText += cards[i]->getText()+"\n";
+			}
+			cardText += "Position: ";
+			cardText += cards[i]->getPosition();
+			cardText += "\nPoints: ";
+			cardText += cards[i]->getPoints();
 		}else{
 			cardText += cards[i]->getText();
 			cardText += " (";
@@ -429,8 +440,13 @@ EditDeckScreen::~EditDeckScreen() {
 	rarity="";
 	ranking="";
 	value="";
+	positionid = "";
+	position = "";
+	points = "";
 	updated="";
 	deckCategory="";
+	active = "";
+	type = "";
 }
 
 void EditDeckScreen::selectionChanged(Widget *widget, bool selected) {
@@ -518,6 +534,7 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						keyPressEvent(MAK_SOFTRIGHT);
 						break;
 					}
+					lprintfln("type %s active %s",type.c_str(),active.c_str());
 					if(!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2")){
 						if (kinListBox->getSelectedIndex() == 0 && cards.size() < 10) {
 							if (next != NULL) {
@@ -568,6 +585,16 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						}
 						int cardIndex = kinListBox->getSelectedIndex();
 						next = new ImageScreen(this, Util::loadImageFromResource(portrait?RES_LOADING1:RES_LOADING_FLIP1), feed, false, cards[cardIndex],ImageScreen::ST_DECK_ADDON, false, card);
+						next->show();
+					} else if(!strcmp(type.c_str(), "4")&&!strcmp(active.c_str(), "1")){
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+						((AlbumLoadScreen*)next)->setDeckId(deckId);
+						((AlbumLoadScreen*)next)->setPositionId(cards[ind]->getPositionId());
 						next->show();
 					}
 					break;
@@ -803,6 +830,12 @@ void EditDeckScreen::mtxTagData(const char* data, int len) {
 		rarity += data;
 	} else if(!strcmp(parentTag.c_str(), "value")) {
 		value = data;
+	} else if(!strcmp(parentTag.c_str(), "positionid")) {
+		positionid = data;
+	} else if(!strcmp(parentTag.c_str(), "position")) {
+		position = data;
+	} else if(!strcmp(parentTag.c_str(), "points")) {
+		points = data;
 	} else if(!strcmp(parentTag.c_str(), "result")) {
 		error_msg = data;
 	} else if(!strcmp(parentTag.c_str(), "updated")) {
@@ -820,6 +853,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 	if(!strcmp(name, "card")) {
 		//notice->setCaption("");
 		Card *newCard = new Card();
+		newCard->setPositionId(positionid.c_str());
+		newCard->setPosition(position.c_str());
+		newCard->setPoints(points.c_str());
 		newCard->setAll((quantity+","+description+","+thumburl+","+fronturl+","+backurl+","+id+","+rate+","+value+","+note+","+ranking+","+rarity+","+frontflipurl+","+backflipurl+",").c_str());
 		newCard->setStats(stats);
 		newCard->setUpdated(updated == "1");
@@ -841,6 +877,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		backurl = "";
 		rate = "";
 		value = "";
+		positionid = "";
+		position = "";
+		points = "";
 		rarity = "";
 		ranking = "";
 		frontflipurl = "";
@@ -919,6 +958,9 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 		rarity="";
 		ranking="";
 		value="";
+		positionid = "";
+		position = "";
+		points = "";
 		updated="";
 	}
 }

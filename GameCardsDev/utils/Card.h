@@ -48,6 +48,15 @@ public:
 	String getId();
 	void setId(const char *id);
 
+	String getPosition();
+	void setPosition(const char *position);
+
+	String getPositionId();
+	void setPositionId(const char *positionId);
+
+	String getPoints();
+	void setPoints(const char *points);
+
 	String getUserCardId();
 	void setUserCardId(const char *usercardid);
 
@@ -88,7 +97,7 @@ public:
 	Stat* getStatAt(int index);
 private:
 	//the note is generally saved in base64
-	String quantity, text, slotdescription, thumb, front, back, id, usercardid, categoryid, categoryaddonid, rate, value, fullDesc, gamePlayerCardId, note, frontflip, backflip, ranking, rarity, deckid;
+	String quantity, text, slotdescription, thumb, front, back, id, usercardid, categoryid, categoryaddonid, rate, value, fullDesc, gamePlayerCardId, note, frontflip, backflip, ranking, rarity, deckid, position, positionid, points;
 	bool loaded, updated;
 	Vector<Stat*> stats;
 };

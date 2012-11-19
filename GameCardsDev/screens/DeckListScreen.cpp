@@ -24,6 +24,7 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 
 	deckId = "";
 	description = "";
+	active="";
 	type="";
 	moved = 0;
 
@@ -86,6 +87,7 @@ DeckListScreen::~DeckListScreen() {
 	currentSelectedKey = NULL;
 	parentTag= "";
 	description = "";
+	active="";
 	deckId = "";
 	categoryId = "";
 	type="";
@@ -284,7 +286,7 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 								feed->remHttp();
 								 next = NULL;
 							}
-							next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()-1]->getId(),decks[kinListBox->getSelectedIndex()-1]->getType());
+							next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()-1]->getId(),decks[kinListBox->getSelectedIndex()-1]->getType(),decks[kinListBox->getSelectedIndex()-1]->getActive());
 							next->show();
 						}
 						break;
@@ -405,6 +407,8 @@ void DeckListScreen::mtxTagData(const char* data, int len) {
 		deckId += data;
 	} else if(!strcmp(parentTag.c_str(), "desc")) {
 		description += data;
+	} else if(!strcmp(parentTag.c_str(), "active")) {
+		active += data;
 	} else if(!strcmp(parentTag.c_str(), "type")) {
 		type += data;
 	}
@@ -414,10 +418,11 @@ void DeckListScreen::mtxTagEnd(const char* name, int len) {
 	if (!strcmp(name, "deck")) {
 		album = new Album(deckId, description);
 		albums.add(album);
-		deck = new Deck(deckId,description,type);
+		deck = new Deck(deckId,description,type,active);
 		decks.add(deck);
 		deckId = "";
 		description = "";
+		active="";
 		type="";
 	}
 	else if (!strcmp(name, "decks")) {

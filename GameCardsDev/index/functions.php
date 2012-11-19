@@ -3657,6 +3657,38 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					ON uc.usercard_id = uca.addonusercard_id
 					LEFT OUTER JOIN mytcg_card car
 					ON car.card_id = uc.card_id');
+	}  else if($iDeckID > -1 && $DeckType == "4"){
+		$aCards=myqu('SELECT p.position_id, p.description as position, IFNULL(dc.points,"0") as points, dc.deckcard_id, dc.usercard_id, cards.*
+					FROM mytcg_position p
+					LEFT OUTER JOIN (
+					select points, deckcard_id, usercard_id, position_id, card_id
+					from mytcg_deckcard
+					where deck_id = '.$iDeckID.'
+					) dc 
+					ON p.position_id = dc.position_id
+					LEFT OUTER JOIN (SELECT A.card_id, count(*) quantity, B.image, A.usercard_id,  B.value, 
+					B.description, B.thumbnail_phone_imageserver_id, B.front_phone_imageserver_id, B.back_phone_imageserver_id, B.ranking, D.description quality,
+					(CASE WHEN (B.date_updated > (DATE_ADD("1970-01-01 00:00:00", INTERVAL '.$lastCheckSeconds.' SECOND))) 
+						THEN 1 ELSE 0 END) updated, D.note, D.date_updated  
+					FROM mytcg_card B 
+					INNER JOIN mytcg_usercard A 
+					ON A.card_id=B.card_id 
+					INNER JOIN mytcg_cardquality D
+					ON B.cardquality_id=D.cardquality_id
+					INNER JOIN mytcg_usercardstatus C 
+					ON C.usercardstatus_id=A.usercardstatus_id 
+					LEFT OUTER JOIN 
+					(SELECT note, date_updated, user_id, card_id
+						FROM mytcg_usercardnote
+						WHERE user_id = '.$iUserID.'
+						AND usercardnotestatus_id = 1
+					) D 
+					ON A.user_id = D.user_id 
+					AND A.card_id = D.card_id 
+					WHERE A.user_id='.$iUserID.'  
+					AND C.usercardstatus_id=1 	
+					GROUP BY B.card_id) cards
+					on dc.card_id = cards.card_id');
 	} else {
 		if($iFriendID=='0'){
 			$query = 'select count(*) loaded from mytcg_usercard a, mytcg_card b where a.card_id = b.card_id and a.usercardstatus_id = 1 and loaded = 1 and a.user_id = '.$iUserID.' and category_id = '.$iCategory;
@@ -3789,6 +3821,11 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.$sTab.'<ranking>'.$aOneCard['ranking'].'</ranking>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<quality>'.$aOneCard['quality'].'</quality>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<value>'.$aOneCard['value'].'</value>'.$sCRLF;
+		if($aOneCard['position_id']!=""){
+			$sOP.=$sTab.$sTab.'<positionid>'.$aOneCard['position_id'].'</positionid>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<position>'.$aOneCard['position'].'</position>'.$sCRLF;
+			$sOP.=$sTab.$sTab.'<points>'.$aOneCard['points'].'</points>'.$sCRLF;
+		}
 		if($aOneCard['card_id']!=""){
 			$sFound='';
 			$iCountServer=0;

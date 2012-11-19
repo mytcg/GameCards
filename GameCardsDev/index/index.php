@@ -2621,16 +2621,32 @@ if ($_GET['getdecks']){
 
 /** give all the user decks */
 if ($_GET['getalldecks']){
-	$aDeckDetails=myqu('SELECT deck_id, description, type 
-		FROM mytcg_deck 
-		WHERE user_id='.$iUserID);
+	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
+	
+	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image, category_id 
+	FROM mytcg_competitiondeck 
+	WHERE active = "1" 
+	AND competitiondeck_id NOT IN (SELECT competitiondeck_id FROM mytcg_deck WHERE user_id='.$iUserID.' AND type = 4)');
+	$iCount=0;
+	while ($aCompDeckDetail=$aCompDeckDetails[$iCount]){
+		myqui('INSERT INTO mytcg_deck (user_id, category_id, imageserver_id, description, image, type, competitiondeck_id) 
+		VALUES('.$iUserID.','.trim($aCompDeckDetail['category_id']).','.(trim($aCompDeckDetail['imageserver_id'])==''?'NULL':trim($aCompDeckDetail['imageserver_id'])).',"'.trim($aCompDeckDetail['description']).'",'.(trim($aCompDeckDetail['image'])==''?'NULL':trim($aCompDeckDetail['image'])).',4,'.trim($aCompDeckDetail['competitiondeck_id']).')');
+		$iCount++;
+	}
+	
+	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
+		FROM mytcg_deck md
+		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
+		WHERE md.user_id='.$iUserID.'
+		AND ((cd.active="1" AND md.type="4")OR (md.type != "4") OR (cd.active="2" AND md.type="4"))');
 	$sOP='<decks>'.$sCRLF;
 	$iCount=0;
 	while ($aDeckDetail=$aDeckDetails[$iCount]){
 		$sOP.='<deck>'.$sCRLF;
 		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
-		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;	
-		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;
+		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		$sOP.=$sTab.'<active>'.trim($aDeckDetail['active']).'</active>'.$sCRLF;
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;		
 		$sOP.='</deck>'.$sCRLF;
 		$iCount++;
 	}
@@ -2679,6 +2695,9 @@ if ($_GET['addtodeck']){
 	if (!($iCategoryAddonID=$_GET['categoryaddon_id'])) {
 		$iCategoryAddonID = '';
 	}
+	if (!($iPositionID=$_GET['position_id'])) {
+		$iPositionID = '';
+	}
 	
 	$cardQuery = myqu('SELECT usercard_id 
 		FROM mytcg_usercard 
@@ -2693,6 +2712,13 @@ if ($_GET['addtodeck']){
 		myqu("DELETE FROM mytcg_usercardaddon WHERE usercard_id = ".$iDeckID." AND categoryaddon_id = ".$iCategoryAddonID."");
 		myqu("INSERT INTO mytcg_usercardaddon (usercard_id,categoryaddon_id,addonusercard_id) VALUES (".$iDeckID.",".$iCategoryAddonID.",(SELECT usercard_id FROM mytcg_usercard WHERE card_id = ".$iCardID." AND user_id = ".$iUserID."))");
 		$sOP = "<result>Card equipped!</result>";
+	}else if($iPositionID!=''){
+		myqui('DELETE FROM mytcg_deckcard 
+				WHERE deck_id = '.$iDeckID.'  
+				AND position_id = '.$iPositionID);
+		myqui('INSERT INTO mytcg_deckcard (usercard_id,card_id,deck_id,position_id)
+				VALUES  ('.$iUserCardID.','.$iCardID.','.$iDeckID.','.$iPositionID.')');
+		$sOP = "<result>Card added to Deck!</result>";
 	}else{
 		myqui('UPDATE mytcg_usercard 
 			SET deck_id = '.$iDeckID.'  

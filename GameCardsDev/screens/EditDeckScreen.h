@@ -18,7 +18,7 @@ using namespace MAUtil;
 
 class EditDeckScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener {
 public:
-	EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type="1");
+	EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, String type="1", String active="1");
 	~EditDeckScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
@@ -43,8 +43,8 @@ private:
 	ImageCache *mImageCache;
 	Widget* currentSelectedKey;
 
-	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, type;
-	String id,usercardid,description,slotdescription,cardcategory_id,categoryaddon_id,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, updated;
+	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, type, active;
+	String id,usercardid,description,slotdescription,cardcategory_id,categoryaddon_id,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, positionid, position, points, updated;
 	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue;
 	int size, i, moved, listSizes, screenType, currentKeyPosition;
 	bool list, left, right, emp, hasConnection, busy, deleting, newdeck, removed;

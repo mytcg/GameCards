@@ -90,6 +90,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	shown = false;
 	temp1 = "";
 	deckId = "";
+	positionId = "";
 	friendId="0";
 	updated = "0";
 
@@ -248,6 +249,8 @@ AlbumLoadScreen::~AlbumLoadScreen() {
 	temp="";
 	temp1="";
 	id="";
+	deckId = "";
+	positionId = "";
 	desc="";
 	error_msg="";
 	hasCards="";
@@ -737,7 +740,7 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 						break;
 					case ST_DECK:
 						if (val->getHasCards()) {
-							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId);
+							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
 							next->show();
 						}
 						else {
@@ -1047,6 +1050,19 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 							loadCategory();
 						}
 						break;
+					case ST_DECK:
+						if (val->getHasCards()) {
+							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
+							next->show();
+						}
+						else {
+							//if a category has no cards, it means it has sub categories.
+							//it is added to the path so we can back track
+							path.add(val->getId());
+							//then it must be loaded
+							loadCategory();
+						}
+						break;
 					case ST_PLAY:
 						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, val->getId());
 						next->show();
@@ -1168,3 +1184,6 @@ void AlbumLoadScreen::setDeckId(String d) {
 	deckId = d;
 }
 
+void AlbumLoadScreen::setPositionId(String p) {
+	positionId = p;
+}

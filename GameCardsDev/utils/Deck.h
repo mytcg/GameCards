@@ -8,7 +8,7 @@ using namespace MAUtil;
 class Deck  {
 public:
 	Deck();
-	Deck(String id, String desc, String type);
+	Deck(String id, String desc, String type, String active);
 	~Deck();
 
 	String getId();
@@ -17,13 +17,16 @@ public:
 	String getType();
 	void setType(const char *type);
 
+	String getActive();
+	void setActive(const char *active);
+
 	String getDescription();
 	void setDescription(const char *description);
 
 private:
 	String id;
 	String description;
-	String type;
+	String type, active;
 };
 
 #endif	//_DECK_H_

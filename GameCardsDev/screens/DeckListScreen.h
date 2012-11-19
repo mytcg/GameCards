@@ -43,7 +43,7 @@ private:
 	HttpConnection mHttp;
 
 	String parentTag, categoryId;
-	String deckId, description, type;
+	String deckId, description, type,active;
 	int moved, screenType, currentKeyPosition;
 
 	void clearListBox();
