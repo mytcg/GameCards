@@ -3778,7 +3778,10 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					WHERE A.user_id='.$iUserID.'  
 					AND C.usercardstatus_id=1 	
 					GROUP BY B.card_id) cards
-					on dc.card_id = cards.card_id');
+					on dc.card_id = cards.card_id
+					INNER JOIN (SELECT cd.type FROM mytcg_deck d, mytcg_competitiondeck cd 
+					WHERE d.deck_id = '.$iDeckID.' AND d.competitiondeck_id = cd.competitiondeck_id) deck
+					ON deck.type = p.type');
 	} else {
 		if($iFriendID=='0'){
 			$query = 'select count(*) loaded from mytcg_usercard a, mytcg_card b where a.card_id = b.card_id and a.usercardstatus_id = 1 and loaded = 1 and a.user_id = '.$iUserID.' and category_id = '.$iCategory;
