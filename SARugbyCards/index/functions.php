@@ -2024,9 +2024,9 @@ function auctionBid($bid, $username, $iUserID) {
 			myqu("INSERT INTO mytcg_transactionlog (user_id, description, date, val)
 						VALUES(".$prevUserId.", 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', NOW(), ".$aBid['credits'].")");
 						
-			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type)
+			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type, tcg_freemium, tcg_premium)
 					VALUES(".$prevUserId.", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$aBid['market_id']."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$aBid['market_id']."), 
-					now(), 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', ".$aBid['credits'].", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$prevUserId."), 8)");
+					now(), 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', ".$aBid['credits'].", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$prevUserId."), 8, ".$prevBidFree.", ".$prevBidPremium.")");
 		}
 		
 		if ($auctionType == 1) {
@@ -2102,10 +2102,14 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 	$auctionType = $result[0]['auctiontype_id'];
 
 	if ((($auctionType == 1 && $credits >= $buyNowPrice) || ($auctionType == 2 && $premium >= $buyNowPrice))&&($buyNowPrice != 0)) {
-		$rest = "select IFNULL(price,0)+IFNULL(premium,0) credits, IFNULL(price,0) free, IFNULL(premium,0) premium, user_id 
+		$rest = "select IFNULL(mc.price,0)+IFNULL(mc.premium,0) credits, IFNULL(mc.price,0) free, IFNULL(mc.premium,0) premium, 
+			mc.user_id, c.description, m.market_id
 			from mytcg_marketcard mc
 			inner join (select max(marketcard_id) marketcard_id from mytcg_marketcard where market_id = ".$auctionCardId.") max
-			on max.marketcard_id = mc.marketcard_id";
+			on max.marketcard_id = mc.marketcard_id
+			inner join mytcg_market m on m.market_id = mc.market_id
+			inner join mytcg_usercard uc on uc.usercard_id = m.usercard_id
+			inner join mytcg_card c on c.card_id = uc.card_id";
 		$testresult = myqu($rest);
 		
 		if ($aBid=$testresult[0]) {
@@ -2117,8 +2121,14 @@ function buyAuctionNow($auctionCardId, $iUserID) {
 			$query = "update mytcg_user set credits = credits + ".$prevBidFree.", premium = IFNULL(premium,0) + ".$prevBidPremium." where user_id = ".$prevUserId;
 			myqu($query);
 			myqu("INSERT INTO tcg_user_log (user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id)
-					SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
-					FROM mytcg_user WHERE user_id=".$prevUserId);
+				SELECT user_id, name, surname, email_address, email_verified, date_register, date_last_visit, msisdn, imsi, imei, version, os, make, model, osver, touch, width, height, facebook_user_id, mobile_date_last_visit, web_date_last_visit, facebook_date_last_visit, last_useragent, ip, apps_id, age, gender, referer_id
+				FROM mytcg_user WHERE user_id=".$prevUserId);
+			myqu("INSERT INTO mytcg_transactionlog (user_id, description, date, val)
+						VALUES(".$prevUserId.", 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', NOW(), ".$aBid['credits'].")");
+						
+			myqu("INSERT INTO tcg_transaction_log (fk_user, fk_boosterpack, fk_usercard, fk_card, transaction_date, description, tcg_credits, fk_payment_channel, application_channel, mytcg_reference_id, fk_transaction_type, tcg_freemium, tcg_premium)
+					VALUES(".$prevUserId.", NULL, (SELECT usercard_id FROM mytcg_market WHERE market_id = ".$aBid['market_id']."), (SELECT card_id FROM mytcg_usercard a, mytcg_market b WHERE a.usercard_id = b.usercard_id AND market_id = ".$aBid['market_id']."), 
+					now(), 'Refunded with ".$aBid['credits']." credits for losing highest bid on ".$aBid['description']."', ".$aBid['credits'].", NULL, 'Mobile',  (SELECT max(transaction_id) FROM mytcg_transactionlog WHERE user_id = ".$prevUserId."), 8, ".$prevBidFree.", ".$prevBidPremium.")");
 		}
 
 		//set the auction to expired
