@@ -3908,7 +3908,7 @@ function buildCardListXML($cardList,$iHeight,$iWidth,$root, $iBBHeight=0, $jpg=1
 		$sOP.=$sTab.$sTab.'<slotdescription>'.$aOneCard['slotdescription'].'</slotdescription>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<cardcategory_id>'.$aOneCard['category_id'].'</cardcategory_id>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<categoryaddon_id>'.$aOneCard['categoryaddon_id'].'</categoryaddon_id>'.$sCRLF;
-		$sOP.=$sTab.$sTab.'<quantity>'.($aOneCard['card_id']==""?"0":$aOneCard['quantity']).'</quantity>'.$sCRLF;
+		$sOP.=$sTab.$sTab.'<quantity>'.($aOneCard['quantity']==""?"0":$aOneCard['quantity']).'</quantity>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<updated>'.$aOneCard['updated'].'</updated>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<note>'.$aOneCard['note'].'</note>'.$sCRLF;
 		$sOP.=$sTab.$sTab.'<ranking>'.$aOneCard['ranking'].'</ranking>'.$sCRLF;
