@@ -113,7 +113,11 @@ filename(category+"-lst.sav"), category(category),cardExists(cards.end()), album
 				memset(secString,'\0',secondsLength);
 				sprintf(secString, "%d", seconds);
 				feed->setSeconds(secString);
+				lprintfln("Updating seconds %s", secString);
 				delete secString;
+
+				//save the updated feed
+				Util::saveData("fd.sav", feed->getAll().c_str());
 			}
 			break;
 	}
