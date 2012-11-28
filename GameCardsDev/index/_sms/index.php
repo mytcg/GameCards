@@ -26,7 +26,7 @@ function curPageURL() {
 
 function addCreditsSMS($iUserID,$amount=350){
 	if(intval($iUserID) > 0){
-		$sql = "UPDATE mytcg_user SET premium = IFNULL(premium,0) + ".$amount." WHERE user_id = ".$iUserID;
+		$sql = "UPDATE mytcg_user SET credits = IFNULL(credits,0) + ".$amount." WHERE user_id = ".$iUserID;
 		myqu($sql);
 		$sql = "INSERT INTO mytcg_transactionlog (user_id, description, date,
 			val, transactionlogtype_id) VALUES (".$iUserID.", 'Purchased ".$amount." credits via SMS', NOW(),".$amount.", 2)";
@@ -37,8 +37,15 @@ function addCreditsSMS($iUserID,$amount=350){
 	}
 }
 
+//SEND MAIL FUNCTION
+function sendEmail($sEmailAddress,$sFromEmailAddress,$sSubject,$sMessage){
+	$sHeaders='From: '.$sFromEmailAddress;
+	mail($sEmailAddress,$sSubject,$sMessage,$sHeaders);
+	return;
+}
+
 $smsText = $_GET['text'];
-$aSmsParts = explode(' ', $smsText);
+$aSmsParts = explode(' ', trim($smsText));
 
 $username = $aSmsParts[sizeof($aSmsParts) - 1];
 
@@ -65,6 +72,11 @@ else {
 		fwrite($aFileHandle,"Unable to find user.\n");
 		fclose($aFileHandle);
 		
+		sendEmail('james@mytcg.net','Automated _sms live','Add credits failed',
+'SMS received, failed to add credits. Username not found.
+
+'.print_r($_GET, true));
+		
 		exit;
 	}
 }
@@ -76,6 +88,11 @@ if ($user != NULL) {
 	fwrite($aFileHandle,date("l dS \of F Y h:i:s A").' : '.curPageURL()."\n");
 	fwrite($aFileHandle,"Credits added for user_id:".$user['user_id']."\n");
 	fclose($aFileHandle);
+	
+	sendEmail('james@mytcg.net','Automated _sms live','Add credits success',
+'SMS received, credits added.
+
+'.print_r($_GET, true));
 	
 	exit;
 }
