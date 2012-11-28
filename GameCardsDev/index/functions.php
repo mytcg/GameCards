@@ -2363,10 +2363,14 @@ function buyProduct($timestamp, $iHeight, $iWidth, $iFreebie, $iUserID, $product
 					if ($iCreditsAfterPurchase > 0) {
 						$ipremiumCreditsAfterPurchase = $iPremium - $iCreditsAfterPurchase;
 					}
+					$query = "UPDATE mytcg_user SET credits=0 WHERE user_id='{$iUserID}'";
+					$aCreditsLeft=myqui($query);
+					$aCreditsLeft=myqui("UPDATE mytcg_user SET premium={$ipremiumCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
 				}
-				$query = "UPDATE mytcg_user SET credits=0 WHERE user_id='{$iUserID}'";
-				$aCreditsLeft=myqui($query);
-				$aCreditsLeft=myqui("UPDATE mytcg_user SET premium={$ipremiumCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
+				else {
+					$iCreditsAfterPurchase =  $iCredits - $itemCost;
+					$aCreditsLeft=myqui("UPDATE mytcg_user SET credits={$iCreditsAfterPurchase} WHERE user_id='{$iUserID}'");
+				}
 				myqui('INSERT INTO mytcg_transactionlog (user_id, description, date, val, transactionlogtype_id)
 						VALUES ('.$iUserID.', "Spent '.$itemCost.' credits on '.$aDetails[0]['description'].'.", now(), -'.$itemCost.', 3)');
 			}
