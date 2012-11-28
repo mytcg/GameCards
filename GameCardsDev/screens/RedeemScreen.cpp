@@ -149,6 +149,7 @@ void RedeemScreen::redeemCode() {
 		char *url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
 		sprintf(url, "%s?redeemcode=%s", URL, editBoxRedeem->getCaption().c_str());
+		lprintfln(url);
 		if(mHttp.isOpen()){
 			mHttp.close();
 		}
