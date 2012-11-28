@@ -2466,6 +2466,7 @@ if ($_GET['auctioncategories2']) {
 			if ($aMine['cnt'] > 0) {
 				$sOP.="<album>";
 				$sOP.=$sTab.'<albumid>-2</albumid>'.$sCRLF;
+				$sOP.=$sTab.'<children>0</children>'.$sCRLF;
 				$sOP.=$sTab.'<albumname>My Auctions</albumname>'.$sCRLF;
 				$sOP.="</album>";
 			}
@@ -2486,6 +2487,7 @@ if ($_GET['auctioncategories2']) {
 			if ($aMine['cnt'] > 0) {
 				$sOP.="<album>";
 				$sOP.=$sTab.'<albumid>-3</albumid>'.$sCRLF;
+				$sOP.=$sTab.'<children>0</children>'.$sCRLF;
 				$sOP.=$sTab.'<albumname>Not Owned</albumname>'.$sCRLF;
 				$sOP.="</album>";
 			}
@@ -2505,6 +2507,7 @@ if ($_GET['auctioncategories2']) {
 			if ($aMine['cnt'] > 0) {
 				$sOP.="<album>";
 				$sOP.=$sTab.'<albumid>-4</albumid>'.$sCRLF;
+				$sOP.=$sTab.'<children>0</children>'.$sCRLF;
 				$sOP.=$sTab.'<albumname>Good Deals</albumname>'.$sCRLF;
 				$sOP.="</album>";
 			}
