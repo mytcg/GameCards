@@ -3878,7 +3878,6 @@ function cardsincategorynotdeck($iCategory,$iHeight,$iWidth,$lastCheckSeconds,$i
 				ON A.user_id = D.user_id 
 				AND A.card_id = D.card_id 
 				WHERE A.user_id='.$iUserID.' 
-				AND B.playable = 1 
 				AND (B.category_id='.$iCategory.' OR B.category_id IN (SELECT category_child_id FROM mytcg_category_x WHERE category_parent_id = '.$iCategory.')) 
 				AND C.usercardstatus_id=1 
 				AND B.card_id NOT IN (SELECT card_id FROM mytcg_usercard WHERE deck_id = '.$iDeckID.') 
