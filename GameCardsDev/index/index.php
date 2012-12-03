@@ -585,6 +585,7 @@ if ($_GET['getupdates']) {
 
 //redeem card, adds the relevant card to the user's album
 if ($code=$_GET['redeemcode']) {
+	myqu("UPDATE mytcg_redeemcode SET active=1 WHERE active=2 AND date_start <= NOW() AND date_start is NOT NULL AND date_end > NOW() AND date_end is NOT NULL");
 	myqu("UPDATE mytcg_redeemcode SET active=2 WHERE active=1 AND date_end <= NOW() AND date_end is NOT NULL");
 	$exists = myqu('SELECT *
 		FROM mytcg_redeemcode
