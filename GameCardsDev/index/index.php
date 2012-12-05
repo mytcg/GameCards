@@ -609,9 +609,15 @@ if ($code=$_GET['redeemcode']) {
 						myqui('UPDATE mytcg_usercard set loaded = 1 where card_id = (SELECT target FROM mytcg_redeeomcode WHERE code = '.$code.') and user_id = '.$iUserID);
 						myqui('INSERT INTO mytcg_usercard
 							(user_id, card_id, usercardstatus_id, is_new)
-							SELECT '.$iUserID.', target, 4, 1
+							SELECT '.$iUserID.', target, 1, 1
 							FROM mytcg_redeemcode
-							WHERE code =  "'.$code.'"');
+							WHERE code =  "'.$code.'"'); //changed to add usercard status = 1 instead of 4
+						myqui('insert into mytcg_notifications (user_id, notification, notedate, sysnote, notificationtype_id)
+							select '.$iUserID.', concat("You received ",c.description," via the redeem code! The card has been added to your album!"), now(), 0, 1
+							from mytcg_redeemcode rc
+							inner join mytcg_card c
+							on c.card_id = rc.target
+							where rc.code = "'.$code.'"');
 						checkAchis($iUserID, 1);
 						$sOP = "<result>Card successfully redeemed.</result>";
 					}else if($exists[0]["redeemtype_id"]=="2"){//product
@@ -2173,13 +2179,41 @@ if ($_GET['usercategories']){
 			$sOP.=$sTab.'</album>'.$sCRLF;
 		}
 	}
+	
+	$inClause = "";
+	if ($topcar != "-1") {
+		$inClause = " AND c.category_id IN (".$topcar;
+		
+		$currentChildren = $topcar;
+		do {
+			$qu = 'SELECT category_child_id 
+				FROM mytcg_category_x 
+				WHERE category_parent_id IN ('.$currentChildren.')';
+			$childrenQuery=myqu($qu);
+			
+			$currentChildren = '';
+			$iCount=0;
+			
+			while ($child = $childrenQuery[$iCount]) {
+				$iCount++;
+				
+				$inClause.= ','.$child['category_child_id'];
+				
+				$currentChildren.=(strlen($currentChildren)>0?(','.$child['category_child_id']):$child['category_child_id']);
+			}
+		} while ($currentChildren != '');
+		
+		$inClause.=')';
+	}
+	
 	if($iFriendID == '0'){
 		//check for new cards
 		//select count(*) from mytcg_usercard where usercardstatus_id = 4 and user_id = id;
 		$aNewCards=myqu('SELECT COUNT(*) as cnt
-				FROM mytcg_usercard
-				WHERE user_id = '.$userId.' 
-				AND usercardstatus_id = 4');
+				FROM mytcg_usercard uc, mytcg_card c
+				WHERE uc.user_id = '.$userId.' 
+				AND uc.usercardstatus_id = 4
+				AND c.card_id = uc.card_id '.$inClause);
 				
 		if ($aCard=$aNewCards[0]) {
 			if ($aCard['cnt'] > 0) {

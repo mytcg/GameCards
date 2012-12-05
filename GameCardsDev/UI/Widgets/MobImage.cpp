@@ -24,7 +24,6 @@ MobImage::~MobImage() {
 }
 
 void MobImage::setResource(MAHandle res) {
-	lprintfln("FUNCTION setResource %d", paddedBounds.y);
 	if (getResource() != NULL) {
 		maDestroyObject(getResource());
 	}
@@ -32,12 +31,10 @@ void MobImage::setResource(MAHandle res) {
 }
 
 void MobImage::setHasNote(bool n) {
-	lprintfln("FUNCTION setHasNote %d", paddedBounds.y);
 	hasNote = n;
 }
 
 void MobImage::drawRectangle(int x, int y, int width, int height){
-	lprintfln("FUNCTION drawRectangle %d", paddedBounds.y);
 	Gfx_line(x, y, x+width, y);
 	Gfx_line(x, y, x, y+height);
 	Gfx_line(x+width, y, x+width, y+height);
@@ -45,7 +42,6 @@ void MobImage::drawRectangle(int x, int y, int width, int height){
 }
 
 bool MobImage::statContains(int x, int y, int width, int height, int pointX, int pointY, int orientation){
-	lprintfln("FUNCTION statContains %d", paddedBounds.y);
 	Rect *r = NULL;
 	switch(orientation) {
 		case LANDSCAPE:
@@ -63,7 +59,6 @@ bool MobImage::statContains(int x, int y, int width, int height, int pointX, int
 }
 
 void MobImage::selectStat(int x, int y, int width, int height, int red, int green, int blue, int orientation){
-	lprintfln("FUNCTION selectStat %d", paddedBounds.y);
 
 	drawRect = true;
 
@@ -119,17 +114,14 @@ void MobImage::selectStat(int x, int y, int width, int height, int red, int gree
 }
 
 void MobImage::refreshWidget(bool drawStats) {
-	lprintfln("FUNCTION refreshWidget %d", paddedBounds.y);
 	this->drawWidget(drawStats);
 }
 
 void MobImage::drawWidget() {
-	lprintfln("FUNCTION old drawWidget %d", paddedBounds.y);
 	this->drawWidget(true);
 }
 
 void MobImage::drawWidget(bool drawStats) {
-	lprintfln("FUNCTION drawWidget %d", paddedBounds.y);
 	if (resource) {
 		Gfx_drawImage(resource, (paddedBounds.width >> 1) - (imageWidth >> 1),
 			(paddedBounds.height >> 1) - (imageHeight >> 1));
@@ -182,7 +174,6 @@ void MobImage::drawWidget(bool drawStats) {
 }
 
 void MobImage::drawStats() {
-	lprintfln("FUNCTION drawStats %d", paddedBounds.y);
 	if (stats.size() > 0) {
 		bool portrait = (imageHeight>imageWidth);
 		int diffX = (paddedBounds.width - imageWidth)/2, diffY = (paddedBounds.height - imageHeight)/2;
@@ -211,7 +202,6 @@ void MobImage::drawStats() {
 }
 
 void MobImage::addStat(stat stat) {
-	lprintfln("FUNCTION addStat %d", paddedBounds.y);
 	stats.add(stat);
 
 	MobLabel *temp = new MobLabel(0, 0, 0, 0, NULL, (imageHeight>imageWidth)?TRANS_NONE:TRANS_ROT90);
@@ -224,7 +214,6 @@ void MobImage::addStat(stat stat) {
 }
 
 void MobImage::clearStats() {
-	lprintfln("FUNCTION clearStats %d", paddedBounds.y);
 	for (int i = 0; i < labels.size(); i++) {
 		if (labels[i]->getParent() != NULL) {
 			labels[i]->setParent(NULL);
@@ -237,11 +226,9 @@ void MobImage::clearStats() {
 }
 
 void MobImage::flip() {
-	lprintfln("FUNCTION flip %d", paddedBounds.y);
 	front = !front;
 }
 
 void MobImage::setFront(bool f) {
-	lprintfln("FUNCTION setFront %d", paddedBounds.y);
 	front = f;
 }

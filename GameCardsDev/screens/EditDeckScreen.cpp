@@ -52,6 +52,7 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 	statDesc = "";
 	statIVal = "";
 	deckCategory = "";
+	hasCards = "";
 	int port = 1;
 	if(portrait == false){
 		port = 2;
@@ -100,7 +101,7 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 void EditDeckScreen::refresh() {
 	clearListBox();
 	clearCards();
-	
+	hasCards = "";
 	notice->setCaption("Refreshing card list...");
 	
 	int port = 1;
@@ -452,7 +453,7 @@ void EditDeckScreen::drawList() {
 			}
 		}
 		String cardText = "";
-		if(!strcmp(type.c_str(), "1") || !strcmp(type.c_str(), "2") || !strcmp(type.c_str(), "3")){
+		if (!strcmp(type.c_str(), "1") || !strcmp(type.c_str(), "2") || !strcmp(type.c_str(), "3")) {
 			cardText += cards[i]->getText();
 			cardText += " (";
 			cardText += cards[i]->getQuantity();
@@ -460,7 +461,7 @@ void EditDeckScreen::drawList() {
 			cardText += cards[i]->getRarity();
 			cardText += "\nRating: ";
 			cardText += cards[i]->getRanking();
-		}else if(!strcmp(type.c_str(), "4")){
+		} else if(!strcmp(type.c_str(), "4")) {
 			if(strcmp(cards[i]->getText().c_str(),"")){
 				cardText += cards[i]->getText()+"\n";
 			}
@@ -590,6 +591,7 @@ EditDeckScreen::~EditDeckScreen() {
 	deckCategory="";
 	active = "";
 	type = "";
+	hasCards = "";
 }
 
 void EditDeckScreen::selectionChanged(Widget *widget, bool selected) {
@@ -683,7 +685,7 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 						keyPressEvent(MAK_SOFTRIGHT);
 						break;
 					}
-					lprintfln("type %s active %s",type.c_str(),active.c_str());
+					//lprintfln("type %s active %s",type.c_str(),active.c_str());
 					if(!strcmp(type.c_str(), "1")||!strcmp(type.c_str(), "2")){
 						if (cardLists[selectedList]->getSelectedIndex() == 0 && selectedList == 0 && cards.size() < 10) {
 							if (next != NULL) {
@@ -691,8 +693,14 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 								feed->remHttp();
 								next = NULL;
 							}
-							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
-							((AlbumLoadScreen*)next)->setDeckId(deckId);
+							//if the category has cards, we need to go straight to AlbumView, instead of album load
+							if (hasCards=="true") {
+								next = new AlbumViewScreen(this, feed, deckCategory, AlbumViewScreen::AT_DECK, false, NULL, deckId,"",cards[ind]->getPositionId());
+							}
+							else {
+								next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+								((AlbumLoadScreen*)next)->setDeckId(deckId);
+							}
 							next->show();
 						}
 						else if ((selectedList == 0 && cardLists[selectedList]->getSelectedIndex() == 0 && cards.size() == 10) ||
@@ -735,9 +743,15 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 							feed->remHttp();
 							next = NULL;
 						}
-						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
-						((AlbumLoadScreen*)next)->setDeckId(deckId);
-						((AlbumLoadScreen*)next)->setPositionId(cards[ind]->getPositionId());
+						//if the category has cards, we need to go straight to AlbumView, instead of album load
+						if (hasCards=="true") {
+							next = new AlbumViewScreen(this, feed, deckCategory, AlbumViewScreen::AT_DECK, false, NULL, deckId,"",cards[ind]->getPositionId());
+						}
+						else {
+							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+							((AlbumLoadScreen*)next)->setDeckId(deckId);
+							((AlbumLoadScreen*)next)->setPositionId(cards[ind]->getPositionId());
+						}
 						next->show();
 					}
 					break;
@@ -748,8 +762,14 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 							feed->remHttp();
 							next = NULL;
 						}
-						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
-						((AlbumLoadScreen*)next)->setDeckId(deckId);
+						//if the category has cards, we need to go straight to AlbumView, instead of album load
+						if (hasCards=="true") {
+							next = new AlbumViewScreen(this, feed, deckCategory, AlbumViewScreen::AT_DECK, false, NULL, deckId,"",cards[ind]->getPositionId());
+						}
+						else {
+							next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_DECK, NULL, false, NULL, deckCategory);
+							((AlbumLoadScreen*)next)->setDeckId(deckId);
+						}
 						next->show();
 					}
 					else if (selectedList == 0 && ((cardLists[selectedList]->getSelectedIndex() == 0 && cards.size() == 10) ||
@@ -990,6 +1010,8 @@ void EditDeckScreen::mtxTagData(const char* data, int len) {
 		note = data;
 	} else if(!strcmp(parentTag.c_str(), "category_id")) {
 		deckCategory = data;
+	} else if(!strcmp(parentTag.c_str(), "hascards")) {
+		hasCards += data;
 	}
 }
 

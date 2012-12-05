@@ -44,7 +44,7 @@ private:
 	ImageCache *mImageCache;
 	Widget* currentSelectedKey;
 
-	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, type, active;
+	String parentTag, statDesc, statIVal, statDisplay, note, deckId, deckCategory, type, active, hasCards;
 	String id,usercardid,description,slotdescription,cardcategory_id,categoryaddon_id,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, positionid, position, points, updated;
 	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue;
 	int size, i, moved, listSizes, screenType, currentKeyPosition, cardsPerList, xStart;

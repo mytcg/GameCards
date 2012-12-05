@@ -184,7 +184,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 			urlLength = 81 + URLSIZE + path[path.size()-1].length() + feed->getSeconds().length();
 			url = new char[urlLength+1];
 			memset(url,'\0',urlLength+1);
-			sprintf(url, "%s?usersubcategories=1&category=%s&seconds=%s&playable=1", URL, categoryId.c_str(), feed->getSeconds().c_str());
+			sprintf(url, "%s?usersubcategories=1&category=%s&seconds=%s", URL, categoryId.c_str(), feed->getSeconds().c_str());
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
