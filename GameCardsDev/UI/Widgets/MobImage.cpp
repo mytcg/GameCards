@@ -150,7 +150,7 @@ void MobImage::drawWidget(bool drawStats) {
 						_width*imageHeight/250);
 					break;
 				case PORTRAIT:
-					drawRectangle((5 + (paddedBounds.width >> 1) - (imageWidth >> 1))+(_x*imageWidth/250),
+					drawRectangle(((paddedBounds.width >> 1) - (imageWidth >> 1))+(_x*imageWidth/250),
 						((paddedBounds.height >> 1) - (imageHeight >> 1))+(_y*imageHeight/350),
 						_width*imageWidth/250,_height*imageHeight/350);
 					break;
@@ -169,6 +169,7 @@ void MobImage::drawWidget(bool drawStats) {
 					break;
 			}
 		}
+		drawRect = false;
 	}
 	refreshing = false;
 }

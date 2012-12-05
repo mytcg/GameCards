@@ -327,11 +327,11 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				else {
 					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
 				}
-				imge->refreshWidget();
-				imge->statAdded = false;
+				imge->flip();
+				//imge->refreshWidget();
+				//imge->statAdded = false;
 				currentSelectedStat = -1;
 				flip=!flip;
-				imge->flip();
 				if (imge->getResource() != NULL) {
 					maDestroyObject(imge->getResource());
 				}
@@ -340,9 +340,9 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				}else{
 					imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
 				}
-				imge->update();
+				//imge->update();
 				imge->requestRepaint();
-				maUpdateScreen();
+				//maUpdateScreen();
 				if (flip) {
 					Util::retrieveBack(imge, card, height-PADDING*2, imageCacheBack);
 					Util::retrieveFront(NULL, card, height-PADDING*2, imageCacheFront);
@@ -407,8 +407,8 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				else {
 					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
 				}
-				imge->refreshWidget();
-				imge->statAdded = false;
+				//imge->refreshWidget();
+				//imge->statAdded = false;
 				currentSelectedStat = -1;
 
 				flip=!flip;
@@ -421,9 +421,9 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				}else{
 					imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
 				}
-				imge->update();
+				//imge->update();
 				imge->requestRepaint();
-				maUpdateScreen();
+				//maUpdateScreen();
 				if (flip) {
 					Util::retrieveBack(imge, card, height-PADDING*2, imageCacheBack);
 					Util::retrieveFront(NULL, card, height-PADDING*2, imageCacheFront);
@@ -449,11 +449,16 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					} else {
 						if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()&&(card->getStats()[currentSelectedStat]->getSelectable())){
 							if (imge->getResource() != RES_TEMP) {
-								imge->refreshWidget();
+								/*imge->refreshWidget();
 								imge->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 											card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 											card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
-											card->getStats()[currentSelectedStat]->getColorBlue(), MobImage::PORTRAIT);
+											card->getStats()[currentSelectedStat]->getColorBlue(), MobImage::PORTRAIT);*/
+								imge->requestRepaint();
+								imge->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
+										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
+										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
+										card->getStats()[currentSelectedStat]->getColorBlue(), MobImage::PORTRAIT);
 							}
 						}
 					}
@@ -470,8 +475,14 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					} else {
 						if(flip==card->getStats()[currentSelectedStat]->getFrontOrBack()&&(card->getStats()[currentSelectedStat]->getSelectable())){
 							if (imge->getResource() != RES_TEMP) {
-								imge->refreshWidget();
+								/*imge->refreshWidget();
 								lprintfln("currentSelectedStat %d",currentSelectedStat);
+								imge->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
+										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
+										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
+										card->getStats()[currentSelectedStat]->getColorBlue(), MobImage::PORTRAIT);*/
+
+								imge->requestRepaint();
 								imge->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 										card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 										card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -575,9 +586,9 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					}else{
 						imge->setResource(Util::loadImageFromResource(RES_LOADING_FLIP1));
 					}
-					imge->update();
+					//imge->update();
 					imge->requestRepaint();
-					maUpdateScreen();
+					//maUpdateScreen();
 					if (flip) {
 						if ((imageCacheBack != NULL)&&(imge != NULL)) {
 							Util::retrieveBack(imge, card, height-PADDING*2, imageCacheBack);

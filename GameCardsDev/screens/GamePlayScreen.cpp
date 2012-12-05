@@ -604,7 +604,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 									else {
 										currentSelectedStat = 0;
 									}
-									userImage->refreshWidget();
+									userImage->requestRepaint();
 									userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 											card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 											card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -676,7 +676,7 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 									if(currentSelectedStat < 0){
 										currentSelectedStat = card->getStats().size()-1;
 									}
-									userImage->refreshWidget();
+									userImage->requestRepaint();
 									userImage->selectStat(card->getStats()[currentSelectedStat]->getLeft(),card->getStats()[currentSelectedStat]->getTop(),
 											card->getStats()[currentSelectedStat]->getWidth(),card->getStats()[currentSelectedStat]->getHeight(),
 											card->getStats()[currentSelectedStat]->getColorRed(), card->getStats()[currentSelectedStat]->getColorGreen(),
@@ -862,10 +862,10 @@ void GamePlayScreen::keyPressEvent(int keyCode) {
 						if (userImage->getResource() != NULL) {
 							maDestroyObject(userImage->getResource());
 						}
+						userImage->flip();
 						userImage->setResource(Util::loadImageFromResource(portrait?RES_LOADING_FLIP1:RES_LOADING1));
 						userImage->update();
 						userImage->requestRepaint();
-						userImage->flip();
 						maUpdateScreen();
 						if (flip) {
 							Util::retrieveBackFlip(userImage, card, height-PADDING*2, imageCacheUser);
