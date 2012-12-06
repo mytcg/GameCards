@@ -2663,13 +2663,16 @@ if ($_GET['getcardsindeck']){
 		$lastCheckSeconds = "0";
 	}
 	
-	$aDeckCategory=myqu('SELECT category_id 
-		FROM mytcg_deck 
-		WHERE deck_id='.$iDeckID);
+	$aDeckCategory=myqu('SELECT d.category_id, CASE WHEN COUNT(c.card_id) > 0 THEN "true" ELSE "false" END hascards 
+		FROM mytcg_deck d
+		INNER JOIN mytcg_card c 
+		ON c.category_id = d.category_id
+		WHERE d.deck_id='.$iDeckID);
 	
 	$sOP = "<deck>";
 	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait,$DeckType);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
+	$sOP .= "<hascards>".trim($aDeckCategory[0]['hascards'])."</hascards>";
 	$sOP .= "</deck>";
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
