@@ -46,14 +46,14 @@ function resizeCard($iHeight, $iWidth, $iImage, $root, $iBBHeight=0, $jpg=1, $iP
 	}
 	
 	//we want a maximum image size, so larger devices dont have to download huge images
-	if ($iHeight > 520) {
-		//for now, max = 520
-		$iHeight = 520;
+	if ($iHeight > 700) {
+		//for now, max = 700
+		$iHeight = 700;
 	}
 	
-	if ($iWidth > 520) {
-		//for now, max = 520
-		$iWidth = 520;
+	if ($iWidth > 700) {
+		//for now, max = 700
+		$iWidth = 700;
 	}
 	$fliprotate='90';
 	$landscape="";
@@ -2562,7 +2562,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 			exit;
 		}*/
 	}
-	if ($topcar == -1) {
+	//if ($topcar == -1) {
 		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, IFNULL(a.category_parent_id, -1) category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected, a.categorytype_id 
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
@@ -2576,7 +2576,6 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										ON cx.category_child_id = ca.category_id 
 										'.($iPlayable=='1'?'WHERE ca.categorytype_id = 1':'').'
 										GROUP BY ca.category_id
-										ORDER BY ca.description
 							) a LEFT OUTER JOIN 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
 										cx.category_parent_id, ca.categorytype_id,
@@ -2595,11 +2594,11 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 										AND uc.user_id = '.$iUserID.' 
 										'.($iPlayable=='1'?'AND ca.categorytype_id = 1':'').'
 										GROUP BY ca.category_id
-										ORDER BY ca.description
 							) b
-							ON a.category_id = b.category_id';
+							ON a.category_id = b.category_id
+							ORDER BY a.description';
 		$aCategories=myqu($query);
-	} else {
+	/*} else {
 		$query = 'SELECT DISTINCT a.category_id, a.description, a.hasCards, a.category_parent_id, a.updated, a.total, IFNULL(b.collected, 0) collected, a.categorytype_id 
 							FROM 
 							(SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
@@ -2638,7 +2637,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 							) b
 							ON a.category_id = b.category_id';
 		$aCategories=myqu($query);
-	}
+	}*/
 	
 	$subCats = array();
 	$updated = array();
@@ -2686,7 +2685,8 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 			LEFT OUTER JOIN mytcg_card c
 			ON c.category_id = ca.category_id
 			WHERE ca.category_id IN ('.$ids.')
-			GROUP BY ca.category_id');
+			GROUP BY ca.category_id
+			ORDER BY ca.description');
 		
 		$ids = '';
 		foreach ($aCategories as $category) {
@@ -2725,7 +2725,7 @@ function subcategories($lastCheckSeconds, $cat, $iUserID, $aMine, $aCard, $topca
 	}
 	//we now have a list of all categories, and all sub categories of the chosen category
 	//if the category only has one child, we want to go deeper, until there are options, or cards
-	while (sizeof($subCats) == 1 && !($subCats[0]['hasCards'] == 'true')) {
+	if (sizeof($subCats) == 1 && !($subCats[0]['hasCards'] == 'true')) {
 		$subCats = $allCats[($subCats[0]['category_id'])]['children'];
 	}
 	

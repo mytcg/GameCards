@@ -49,6 +49,115 @@ if ($iUserID = $_GET['test']) {
 			
 }
 
+if ($_GET['competition'] && $scoresFile = $_GET['scores']) {
+	if ($fh = fopen('scores/'.$scoresFile.'.csv', 'r')) {
+		$competition = $_GET['competition'];
+		
+		$groupResults = array();
+		while ($scoresData = fgets($fh)) {
+			$scorePieces=explode(',',$scoresData);
+			
+			$results;
+			if ($groupResults[$scorePieces[0]] == null) {
+				$results = array();
+			}
+			else {
+				$results = $groupResults[$scorePieces[0]];
+			}
+			
+			$result;
+			if ($results[$scorePieces[1]] == null) {
+				$result = array();
+			}
+			else {
+				$result = $results[$scorePieces[1]];
+			}
+			$result['group'] = trim($scorePieces[0]);
+			$result['position'] = trim($scorePieces[1]);
+			$result['points'] = trim($scorePieces[2]);
+			$result['bonus'] = trim($scorePieces[3]);
+			$result['card'] = trim($scorePieces[4]);
+			
+			$results[$scorePieces[1]] = $result;
+			$groupResults[$scorePieces[0]] = $results;
+		}
+		
+		$compQu = ('select deck_id
+			from mytcg_deck d
+			where d.competitiondeck_id = '.$competition);
+		
+		$compDecks = myqu($compQu);
+		
+		foreach ($compDecks as $deck) {
+			$deckCardsQu = ('select deckcard_id, card_id, position_id 
+				from mytcg_deckcard dc
+				where dc.deck_id = '.$deck['deck_id']);
+				
+			$deckCards = myqu($deckCardsQu);
+			
+			$userResults = array();
+			foreach ($deckCards as $deckCard) {
+				$userResult = array();
+				
+				$userResult['deckcard_id'] = $deckCard['deckcard_id'];
+				$userResult['card_id'] = $deckCard['card_id'];
+				$userResult['position_id'] = $deckCard['position_id'];
+				$userResult['points'] = 0;
+				
+				$userResults[$deckCard['position_id']] = $userResult;
+			}
+			
+			foreach($groupResults as $groupResult) {
+				$wholeGroup = true;
+				foreach($groupResult as $result) {
+					if ($userResults[$result['position']] != null && 
+						$userResults[$result['position']]['card_id'] == $result['card']) {
+						$userResults[$result['position']]['points'] = $result['points'];
+					}
+					else {
+						$wholeGroup = false;
+					}
+					
+					/*if ($deck['deck_id'] == 1627) {
+						echo '$result["card"]: '.$result['card'];
+						echo '$userResults[$result["position"]]["card_id"]: '.$userResults[$result['position']]['card_id'];
+						echo (($userResults[$result['position']] != null)?'true':'false');
+						echo (($userResults[$result['position']]['card_id'] == $result['card'])?'true':'false');
+						echo '$userResults[$result["position"]]["points"]: '.$userResults[$result['position']]['points'];
+						echo ' lol ';
+					}*/
+				}
+				
+				//then, if the user got the whole group, add the bonus points
+				if ($wholeGroup) {
+					foreach($groupResult as $result) {
+						$userResults[$result['position']]['points'] = $result['points'] + $result['bonus'];
+					}
+				}
+			}
+			
+			$totalPoints = 0;
+			foreach($userResults as $userResult) {
+				$setPointsQu = 'update mytcg_deckcard set points = '.$userResult['points'].' where deckcard_id = '.$userResult['deckcard_id'];
+				
+				myqui($setPointsQu);
+				
+				$totalPoints += $userResult['points'];
+			}
+			
+			//then set the points total for the deck
+			$setDeckPointsQu = 'update mytcg_deck set points = '.$totalPoints.' where deck_id = '.$deck['deck_id'];
+			
+			myqui($setDeckPointsQu);
+		}
+		
+		//echo print_r($_GET, true);
+
+		fclose($fh);
+	}
+	exit;
+}
+
 function addCreditsSMS($iUserID,$amount=350){
   if(intval($iUserID) > 0){
     $sql = "UPDATE mytcg_user SET premium = IFNULL(premium,0) + ".$amount." WHERE user_id = ".$iUserID;
@@ -168,7 +277,11 @@ $sPassword=substr(md5($iUserID),$iMod,10).md5($sPassword);
 if ($sPassword!=$aValidUser[0]['password']){
 	$iUserID=0;
 }
-/*$iUserID = 89;*/
+
+/*if ($iUserID == 0) {
+	$iUserID = 91;
+}*/
+
 /** exit if user not validated, send bye bye xml to be nice */
 if ($iUserID == 0){
 	$sOP='<user>'.$sCRLF;
@@ -2144,7 +2257,8 @@ if ($_GET['usercategories']){
 			LEFT OUTER JOIN mytcg_card c
 			ON c.category_id = ca.category_id
 			WHERE ca.category_id IN ({$ids})
-			GROUP BY ca.category_id");
+			GROUP BY ca.category_id
+			ORDER BY ca.description");
 		
 		$ids = '';
 		foreach ($aCategories as $category) {
@@ -2692,11 +2806,39 @@ if ($_GET['getalldecks']){
 		$iCount++;
 	}
 	
+	//inClause, to only get relevant decks
+	$inClause = "";
+	if ($topcar != "-1") {
+		$inClause = " AND md.category_id IN (".$topcar;
+		
+		$currentChildren = $topcar;
+		do {
+			$qu = 'SELECT category_child_id 
+				FROM mytcg_category_x 
+				WHERE category_parent_id IN ('.$currentChildren.')';
+			$childrenQuery=myqu($qu);
+			
+			$currentChildren = '';
+			$iCount=0;
+			
+			while ($child = $childrenQuery[$iCount]) {
+				$iCount++;
+				
+				$inClause.= ','.$child['category_child_id'];
+				
+				$currentChildren.=(strlen($currentChildren)>0?(','.$child['category_child_id']):$child['category_child_id']);
+			}
+		} while ($currentChildren != '');
+		
+		$inClause.=')';
+	}
+	
 	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
 		FROM mytcg_deck md
 		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
-		WHERE md.user_id='.$iUserID.'
-		AND ((cd.active="1" AND md.type="4")OR (md.type != "4") OR (cd.active="2" AND md.type="4"))');
+		WHERE md.user_id='.$iUserID.' '.$inClause.' 
+		AND ((cd.active="1" AND md.type="4")OR (md.type != "4") OR (cd.active="2" AND md.type="4"))
+		ORDER BY active, cd.end_date, md.description');
 	$sOP='<decks>'.$sCRLF;
 	$iCount=0;
 	while ($aDeckDetail=$aDeckDetails[$iCount]){

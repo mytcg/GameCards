@@ -21,6 +21,8 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 	removed = false;
 	newdeck = false;
 	currentSelectedKey = NULL;
+	leftArrow = NULL;
+	rightArrow = NULL;
 	currentKeyPosition = -1;
 	next = NULL;
 
@@ -257,11 +259,12 @@ void EditDeckScreen::locateItem(MAPoint2d point) {
 	listRight = false;
 	Point p;
 	p.set(point.x, point.y);
-	if (leftArrow->contains(p)) {
+
+	if (leftArrow != NULL && leftArrow->contains(p)) {
 		listLeft = true;
 		return;
 	}
-	else if (rightArrow->contains(p)) {
+	else if (rightArrow != NULL && rightArrow->contains(p)) {
 		listRight = true;
 		return;
 	}
