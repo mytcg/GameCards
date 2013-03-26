@@ -34,7 +34,7 @@ public:
 	void pop();
 	void selectStat(int upOrDown);
 
-	enum screenTypes {ST_NORMAL, ST_NEW_CARD, ST_DECK, ST_DECK_REMOVE};
+	enum screenTypes {ST_NORMAL, ST_NEW_CARD, ST_DECK, ST_DECK_REMOVE,ST_DECK_OPTIONS, ST_DECK_ADDON, ST_DECK_ADDON_EQUIP};
 
 	bool isAuction, refresh;
 private:
@@ -48,7 +48,7 @@ private:
 	Widget* currentSelectedKey;
 	int height, screenType, flipOrSelect, currentSelectedStat, currentKeyPosition;
 	bool flip, busy, tapped;
-	bool left, right, list, hasConnection, canAuction, selecatablestats;
+	bool left, right, list, hasConnection, canAuction;
 	String parentTag;
 
 	HttpConnection mHttp;

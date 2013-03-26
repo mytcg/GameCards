@@ -8,6 +8,10 @@ Card::Card() {
 	front = "";
 	back = "";
 	id = "";
+	usercardid = "";
+	categoryid = "";
+	categoryaddonid = "";
+	deckid = "";
 	rate = "";
 	value = "";
 	fullDesc = "";
@@ -16,6 +20,9 @@ Card::Card() {
 	backflip = "";
 	ranking = "";
 	rarity = "";
+	position = "";
+	positionid = "";
+	points = "";
 	loaded = false;
 	updated = false;
 }
@@ -27,6 +34,10 @@ Card::~Card() {
 	front = "";
 	back = "";
 	id = "";
+	usercardid = "";
+	categoryid = "";
+	categoryaddonid = "";
+	deckid = "";
 	rate = "";
 	value = "";
 	frontflip = "";
@@ -36,6 +47,9 @@ Card::~Card() {
 	gamePlayerCardId="";
 	fullDesc = "";
 	note = "";
+	position = "";
+	positionid = "";
+	points = "";
 
 	int size = stats.size();
 	for (int i = 0; i < size; i++) {
@@ -75,6 +89,34 @@ String Card::getText() {
 }
 void Card::setText(const char *tex) {
 	text = tex;
+}
+
+String Card::getSlotDescription() {
+	return slotdescription;
+}
+void Card::setSlotDescription(const char *desc) {
+	slotdescription = desc;
+}
+
+void Card::setCategoryId(const char *catid) {
+	categoryid = catid;
+}
+String Card::getCategoryId() {
+	return categoryid;
+}
+
+void Card::setCategoryAddonId(const char *cataddid) {
+	categoryaddonid = cataddid;
+}
+String Card::getCategoryAddonId() {
+	return categoryaddonid;
+}
+
+void Card::setDeckId(const char *catid) {
+	deckid = catid;
+}
+String Card::getDeckId() {
+	return deckid;
 }
 
 String Card::getThumb() {
@@ -123,6 +165,38 @@ String Card::getId() {
 
 void Card::setId(const char *i) {
 	id = i;
+}
+
+String Card::getPosition() {
+	return position;
+}
+
+void Card::setPosition(const char *p) {
+	position = p;
+}
+
+String Card::getPositionId() {
+	return positionid;
+}
+
+void Card::setPositionId(const char *pi) {
+	positionid = pi;
+}
+
+String Card::getPoints() {
+	return points;
+}
+
+void Card::setPoints(const char *poi) {
+	points = poi;
+}
+
+String Card::getUserCardId() {
+	return usercardid;
+}
+
+void Card::setUserCardId(const char *uci) {
+	usercardid = uci;
 }
 
 String Card::getRate() {
@@ -283,7 +357,7 @@ void Card::setAll(const char* allch) {
 			}
 
 			setLoaded(true);
-			if ((getText().length() <= 0)||(getQuantity().length() <= 0)) {
+			if (getPosition().length() == 0 && ((getText().length() <= 0)||(getQuantity().length() <= 0))) {
 				setQuantity("");
 				setText("");
 				setLoaded(false);

@@ -27,6 +27,7 @@ static item menuItems[] =
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
 	{ RES_CREDITS_THUMB, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE, OP_PROFILE },
+	{ RES_TUTORIALS_THUMB, RES_TUTORIALS, OP_TUT },
 	{ RES_RANKINGS_THUMB, RES_RANKINGS, OP_RANKINGS },
 	{ RES_FRIENDRANKS_THUMB, RES_FRIENDRANKS, OP_FRIENDRANKS },
 	{ RES_FRIENDS_THUMB, RES_FRIENDS, OP_FRIENDS },
@@ -233,6 +234,14 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				}
 				/* Notifications */
 				next = new DetailScreen(this, feed, DetailScreen::NOTIFICATIONS, NULL);
+				next->show();
+			} else if (index == OP_TUT){
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_TUT);
 				next->show();
 			} else if(index == OP_RANKINGS) {
 				if(next!=NULL){

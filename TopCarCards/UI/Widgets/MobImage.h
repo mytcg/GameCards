@@ -5,14 +5,30 @@
 #include <MAUI/Widget.h>
 #include <MAUI/Image.h>
 #include <MAUtil/util.h>
+#include <MAUtil/Vector.h>
+
+#include "MobLabel.h"
 
 using namespace MAUtil;
 using namespace MAUI;
 
+struct stat {
+	String key;
+	String display;
+	int x;
+	int y;
+	int height;
+	int width;
+	int red;
+	int green;
+	int blue;
+	bool front;
+};
+
 class MobImage: public Image {
 public:
 	MobImage(int x=0, int y=0, int width=0, int height=0, Widget* parent=NULL,
-			bool autosizeX=false, bool autosizeY=false, MAHandle res=NULL);
+			bool autosizeX=false, bool autosizeY=false, MAHandle res=NULL, bool front=true);
 	~MobImage();
 
 	void setHasNote(bool n);
@@ -20,14 +36,28 @@ public:
 	void selectStat(int x, int y, int width, int height, int red, int green, int blue, int orientation=0);
 	bool statContains(int x, int y, int width, int height, int pointX, int pointY, int orientation=0);
 	void drawRectangle(int x, int y, int width, int height);
-	void refreshWidget();
+	void refreshWidget(bool drawStats=true);
 	bool statAdded;
 
 	enum orientations {PORTRAIT = 0, LANDSCAPE };
+
+	void addStat(stat stat);
+	void clearStats();
+	void flip();
+	void setFront(bool f);
 protected:
 	virtual void drawWidget();
+	virtual void drawWidget(bool drawStats=true);
 	int _x, _y, _width, _height, _red, _green, _blue, _orientation;
-	bool hasNote;
+	bool hasNote, drawRect;
+
+private:
+	Vector<stat> stats;
+	Vector<MobLabel*> labels;
+
+	bool front, refreshing;
+
+	void drawStats();
 };
 
 #endif /* MOBIMAGE_H_ */

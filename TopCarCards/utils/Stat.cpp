@@ -10,6 +10,7 @@ Stat::Stat() {
 	colorRed = 0;
 	colorGreen = 0;
 	colorBlue = 0;
+	mustDraw = false;
 }
 
 Stat::~Stat() {
@@ -18,6 +19,7 @@ Stat::~Stat() {
 	iVal = "";
 	cardStatId="";
 	categoryStatId="";
+	mustDraw = false;
 }
 
 void Stat::setCardStatId(const char *d) {
@@ -157,4 +159,12 @@ void Stat::setSelectable(int i) {
 
 int Stat::getSelectable() {
 	return selectable;
+}
+
+bool Stat::getMustDraw() {
+	return mustDraw;
+}
+
+void Stat::setMustDraw(bool m) {
+	mustDraw = m;
 }

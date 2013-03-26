@@ -410,3 +410,11 @@
 .res RES_ACHIEVEMENTS_THUMB  /*103*/
 .ubin
 .image "Achievements_thumb.png"
+
+.res RES_TUTORIALS /*104*/
+.ubin
+.image "Tutorials.png"
+
+.res RES_TUTORIALS_THUMB  /*105*/
+.ubin
+.image "Tutorials_thumb.png"

@@ -18,7 +18,7 @@ using namespace MAUtil;
 
 class AlbumViewScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener, MenuListener {
 public:
-	AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType=AT_NORMAL, bool bAction=false, Card *card = NULL, String deckId = "", String friendId = "");
+	AlbumViewScreen(MainScreen *previous, Feed *feed, String category, int albumType=AT_NORMAL, bool bAction=false, Card *card = NULL, String deckId = "", String friendId = "", String positionId = "");
 	~AlbumViewScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
@@ -48,7 +48,7 @@ public:
 
 	int albumType;
 
-	enum albumTypes {AT_NORMAL, AT_NEW_CARDS, AT_COMPARE, AT_BUY, AT_FREE, AT_AUCTION, AT_DECK, AT_PRODUCT, AT_FRIENDS};
+	enum albumTypes {AT_NORMAL, AT_NEW_CARDS, AT_COMPARE, AT_BUY, AT_FREE, AT_AUCTION, AT_DECK, AT_PRODUCT, AT_FRIENDS, AT_REDEEM, AT_DECK_ADDON};
 private:
 	ListBox *midListBox;
 	Widget* currentSelectedKey;
@@ -56,11 +56,11 @@ private:
 	HttpConnection mHttp;
 	ImageCache *mImageCache;
 
-	String parentTag, statDesc, statIVal, statDisplay, note, category, deckId, playable;
+	String parentTag, statDesc, statIVal, statDisplay, note, category, deckId, playable, positionId;
 
 	String id,description,quantity, thumburl, fronturl, frontflipurl, backurl, backflipurl, filename,error_msg, rate, rarity, ranking, value, updated, premium, credits,friendId;
 
-	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue, selectable;
+	int statTop, statLeft, statWidth, statHeight, statFrontOrBack, statRed, statGreen, statBlue, selectable, mustDraw;
 	int size, i, moved, listSizes, xStart, currentKeyPosition;
 
 	bool list, left, right, listLeft, listRight, emp, hasConnection, busy, isAuction, adding;
