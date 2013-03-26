@@ -647,7 +647,7 @@ function updateAuctions() {
 						ON c.card_id = d.card_id
 						WHERE datediff(now(), date_expired) >= 1 
 						AND marketstatus_id = 1
-						AND (b.price = (select max(price) 
+						AND ((b.price + b.premium) = (select max(price + premium) 
 													from mytcg_marketcard c
 													where c.market_id = a.market_id 
 													group by market_id)
