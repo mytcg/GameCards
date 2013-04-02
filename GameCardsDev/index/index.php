@@ -2857,6 +2857,136 @@ if ($_GET['getalldecks']){
 	exit;
 }
 
+if ($_GET['getalldecks1']){
+	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
+	
+	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image, category_id 
+	FROM mytcg_competitiondeck 
+	WHERE active = "1" 
+	AND competitiondeck_id NOT IN (SELECT competitiondeck_id FROM mytcg_deck WHERE user_id='.$iUserID.' AND type = 4)');
+	$iCount=0;
+	while ($aCompDeckDetail=$aCompDeckDetails[$iCount]){
+		myqui('INSERT INTO mytcg_deck (user_id, category_id, imageserver_id, description, image, type, competitiondeck_id) 
+		VALUES('.$iUserID.','.trim($aCompDeckDetail['category_id']).','.(trim($aCompDeckDetail['imageserver_id'])==''?'NULL':trim($aCompDeckDetail['imageserver_id'])).',"'.trim($aCompDeckDetail['description']).'",'.(trim($aCompDeckDetail['image'])==''?'NULL':trim($aCompDeckDetail['image'])).',4,'.trim($aCompDeckDetail['competitiondeck_id']).')');
+		$iCount++;
+	}
+	
+	//inClause, to only get relevant decks
+	$inClause = "";
+	if ($topcar != "-1") {
+		$inClause = " AND md.category_id IN (".$topcar;
+		
+		$currentChildren = $topcar;
+		do {
+			$qu = 'SELECT category_child_id 
+				FROM mytcg_category_x 
+				WHERE category_parent_id IN ('.$currentChildren.')';
+			$childrenQuery=myqu($qu);
+			
+			$currentChildren = '';
+			$iCount=0;
+			
+			while ($child = $childrenQuery[$iCount]) {
+				$iCount++;
+				
+				$inClause.= ','.$child['category_child_id'];
+				
+				$currentChildren.=(strlen($currentChildren)>0?(','.$child['category_child_id']):$child['category_child_id']);
+			}
+		} while ($currentChildren != '');
+		
+		$inClause.=')';
+	}
+	
+	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
+		FROM mytcg_deck md
+		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
+		WHERE md.user_id='.$iUserID.' '.$inClause.' 
+		AND md.type != "4"
+		ORDER BY active, cd.end_date, md.description');
+	$sOP='<decks>'.$sCRLF;
+	$iCount=0;
+	while ($aDeckDetail=$aDeckDetails[$iCount]){
+		$sOP.='<deck>'.$sCRLF;
+		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
+		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		$sOP.=$sTab.'<active>'.trim($aDeckDetail['active']).'</active>'.$sCRLF;
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;		
+		$sOP.='</deck>'.$sCRLF;
+		$iCount++;
+	}
+	
+	$sOP.='</decks>';
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
+if ($_GET['getalldecks2']){
+	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
+	
+	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image, category_id 
+	FROM mytcg_competitiondeck 
+	WHERE active = "1" 
+	AND competitiondeck_id NOT IN (SELECT competitiondeck_id FROM mytcg_deck WHERE user_id='.$iUserID.' AND type = 4)');
+	$iCount=0;
+	while ($aCompDeckDetail=$aCompDeckDetails[$iCount]){
+		myqui('INSERT INTO mytcg_deck (user_id, category_id, imageserver_id, description, image, type, competitiondeck_id) 
+		VALUES('.$iUserID.','.trim($aCompDeckDetail['category_id']).','.(trim($aCompDeckDetail['imageserver_id'])==''?'NULL':trim($aCompDeckDetail['imageserver_id'])).',"'.trim($aCompDeckDetail['description']).'",'.(trim($aCompDeckDetail['image'])==''?'NULL':trim($aCompDeckDetail['image'])).',4,'.trim($aCompDeckDetail['competitiondeck_id']).')');
+		$iCount++;
+	}
+	
+	//inClause, to only get relevant decks
+	$inClause = "";
+	if ($topcar != "-1") {
+		$inClause = " AND md.category_id IN (".$topcar;
+		
+		$currentChildren = $topcar;
+		do {
+			$qu = 'SELECT category_child_id 
+				FROM mytcg_category_x 
+				WHERE category_parent_id IN ('.$currentChildren.')';
+			$childrenQuery=myqu($qu);
+			
+			$currentChildren = '';
+			$iCount=0;
+			
+			while ($child = $childrenQuery[$iCount]) {
+				$iCount++;
+				
+				$inClause.= ','.$child['category_child_id'];
+				
+				$currentChildren.=(strlen($currentChildren)>0?(','.$child['category_child_id']):$child['category_child_id']);
+			}
+		} while ($currentChildren != '');
+		
+		$inClause.=')';
+	}
+	
+	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
+		FROM mytcg_deck md
+		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
+		WHERE md.user_id='.$iUserID.' '.$inClause.' 
+		AND ((cd.active="1" AND md.type="4") OR (cd.active="2" AND md.type="4"))
+		ORDER BY active, cd.end_date, md.description');
+	$sOP='<decks>'.$sCRLF;
+	$iCount=0;
+	while ($aDeckDetail=$aDeckDetails[$iCount]){
+		$sOP.='<deck>'.$sCRLF;
+		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
+		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		$sOP.=$sTab.'<active>'.trim($aDeckDetail['active']).'</active>'.$sCRLF;
+		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;		
+		$sOP.='</deck>'.$sCRLF;
+		$iCount++;
+	}
+	
+	$sOP.='</decks>';
+	header('xml_length: '.strlen($sOP));
+	echo $sOP;
+	exit;
+}
+
 /** give all the user decks in a category */
 if ($_GET['getcategorydecks']){
 	$iCategoryId=$_GET['category_id'];
