@@ -2888,7 +2888,7 @@ if ($_GET['getalldecks']){
 	exit;
 }
 
-if ($_GET['getalldecks1']){
+if ($_GET['getallnormaldecks']){
 	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
 	
 	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image, category_id 
@@ -2953,7 +2953,7 @@ if ($_GET['getalldecks1']){
 	exit;
 }
 
-if ($_GET['getalldecks2']){
+if ($_GET['getallcompdecks']){
 	myqui('UPDATE mytcg_competitiondeck SET active=2 WHERE active = 1 AND end_date <= NOW()');
 	
 	$aCompDeckDetails=myqu('SELECT competitiondeck_id, description, imageserver_id, image, category_id 
