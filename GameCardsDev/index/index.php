@@ -244,6 +244,15 @@ if ($_GET['registeruser']) {
 	exit;
 }
 
+//before checking if the user is logged in,check if they are registering a new user
+if ($username=$_GET['resetpassword']) {
+	
+	$ret = resetPassword($username);
+	
+	echo $ret;
+	exit;
+}
+
 $sUsername = $_SERVER['HTTP_AUTH_USER'];
 $sPassword = base64_decode($_SERVER['HTTP_AUTH_PW']);
 $iUserID=0;
@@ -414,6 +423,28 @@ if ($iTestVersion=$_GET['update']){
 		}
 	}
 	exit;
+}
+
+if ($newPass = $_GET['changepassword']) {
+	$oldPassword=$_GET['oldpass'];
+	
+	$userCheck=myqu("SELECT username, password "
+		."FROM mytcg_user "
+		."WHERE user_id=".$iUserID);
+	$iMod=(intval($iUserID) % 10)+1;
+	$oldPassword=substr(md5($iUserID),$iMod,10).md5($oldPassword);
+	
+	if ($oldPassword!=$userCheck[0]['password']){
+		echo '<result>Incorrect previous password.</result>';
+		exit;
+	}
+	else {
+		$newPass=substr(md5($iUserID),$iMod,10).md5($newPass);
+		myqu("UPDATE mytcg_user SET password = ".$newPass." WHERE user_id = ".$iUserID);
+		
+		echo '<result>Password changed!</result>';
+		exit;
+	}
 }
 
 if ($iUserCardID = $_GET['createauction']) {

@@ -4440,12 +4440,55 @@ function auctionCategories($iCategoryId,$iUserID,$usercategories){
 		return $sOP;
 	}
 }
+
+function resetPassword($username) {
+	$qu = 'SELECT user_id, username, email_address from mytcg_user where username = "'.$username.'"';
+	
+	$user = myqu($qu);
+	
+	if (sizeof($user) > 0) {
+		if (strlen($user[0]['email_address']) > 0) {
+			//RANDOM GENERATED PASSWORD
+			$password=substr(time()*rand(5,25), -6);
+			$iUserID=intval($user[0]["user_id"]);
+			$iMod=($iUserID % 10)+1;
+			$sSalt=substr(md5($iUserID),$iMod,10);
+			$sPassword = $sSalt.md5($password);
+			
+			$a = myqu("UPDATE mytcg_user SET password = '".$sPassword."' WHERE user_id = ".$iUserID);
+			
+			sendEmail($user[0]['email_address'], 'info@mytcg.net', 'Password Update - Mobile Game Card Applications',
+				    "So you forgot your password. Don't worry, it happens to everyone at some point.\n\n".
+				
+				"We have randomly generated a new password for you to use.\n\n".
+				    
+				"If you are not happy with this password, feel free to change it to whatever you want in the `Profile` section of the site or app.\n".
+				"Make sure you log in with this new password first to get to that screen.\n\n".
+				
+				"Username: ".$user[0]['username']."\nNew Password: ".$password);
+			
+			return '<result>Password reset! Check your email!</result>';
+		}
+		else {
+			return '<result>User has no email address set.</result>';
+		}
+	}
+	else {
+		return '<result>User name not found.</result>';
+	}
+}
 /** 
 	SOME JOOMLA
 	the JUserHelper class copied from libraries/joomla/user/helper.php
 	stripped al unused functions
 */
 
+//SEND MAIL FUNCTION
+function sendEmail($sEmailAddress,$sFromEmailAddress,$sSubject,$sMessage){
+	$sHeaders='From: '.$sFromEmailAddress;
+	mail($sEmailAddress,$sSubject,$sMessage,$sHeaders);
+	return;
+}
 
 class JUserHelper
 {
