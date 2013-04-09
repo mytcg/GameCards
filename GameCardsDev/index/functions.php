@@ -4441,8 +4441,8 @@ function auctionCategories($iCategoryId,$iUserID,$usercategories){
 	}
 }
 
-function resetPassword($username) {
-	$qu = 'SELECT user_id, username, email_address from mytcg_user where username = "'.$username.'"';
+function resetPassword($email) {
+	$qu = 'SELECT user_id, username, email_address from mytcg_user where email_address = "'.$email.'"';
 	
 	$user = myqu($qu);
 	
@@ -4474,7 +4474,7 @@ function resetPassword($username) {
 		}
 	}
 	else {
-		return '<result>User name not found.</result>';
+		return '<result>User not found.</result>';
 	}
 }
 /** 

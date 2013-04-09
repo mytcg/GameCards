@@ -245,9 +245,9 @@ if ($_GET['registeruser']) {
 }
 
 //before checking if the user is logged in,check if they are registering a new user
-if ($username=$_GET['resetpassword']) {
+if ($email=$_GET['resetpassword']) {
 	
-	$ret = resetPassword($username);
+	$ret = resetPassword($email);
 	
 	echo $ret;
 	exit;
@@ -435,14 +435,14 @@ if ($newPass = $_GET['changepassword']) {
 	$oldPassword=substr(md5($iUserID),$iMod,10).md5($oldPassword);
 	
 	if ($oldPassword!=$userCheck[0]['password']){
-		echo '<result>Incorrect previous password.</result>';
+		echo '<response><result>Incorrect previous password.</result><setEncrypt>false</setEncrypt></response>';
 		exit;
 	}
 	else {
 		$newPass=substr(md5($iUserID),$iMod,10).md5($newPass);
-		myqu("UPDATE mytcg_user SET password = ".$newPass." WHERE user_id = ".$iUserID);
+		myqu("UPDATE mytcg_user SET password = '".$newPass."' WHERE user_id = ".$iUserID);
 		
-		echo '<result>Password changed!</result>';
+		echo '<response><result>Password changed!</result><setEncrypt>true</setEncrypt></response>';
 		exit;
 	}
 }
