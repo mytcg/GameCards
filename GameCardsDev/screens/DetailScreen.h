@@ -38,11 +38,13 @@ private:
 	NativeEditBox *editBox, *editBoxUsername, *editBoxEmail, *editBoxHandle, *editBoxID;
 	Label *balanceLabel,*premiumLabel;
 	Widget* currentSelectedKey;
-	bool list, left, right, busy;
+	bool list, left, right, mid, busy;
 
 	Vector<Contact *> contacts;
 
 	HttpConnection mHttp;
+
+	MainScreen *changePasswordScreen;
 
 	String encrypt,error_msg,parentTag,desc,answer,answerid,creditvalue,id,date,value,cred,prem,usr,val,friendid;
 	Answer *ans;

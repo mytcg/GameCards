@@ -21,6 +21,7 @@ static item menuItems[] =
 	{ RES_ALBUM_THUMB, RES_ALBUM, OP_ALBUMS },
 	{ RES_PLAY_THUMB, RES_PLAY, OP_PLAY },
 	{ RES_DECKS_THUMB, RES_DECKS, OP_DECKS },
+	{ RES_COMPETITIONS_THUMB, RES_COMPETITIONS, OP_COMPETITIONS },
 	{ RES_SHOP_THUMB, RES_SHOP, OP_SHOP },
 	{ RES_AUCTIONS_THUMB, RES_AUCTIONS, OP_AUCTIONS },
 	{ RES_ACHIEVEMENTS_THUMB, RES_ACHIEVEMENTS, OP_ACHIEVEMENTS },
@@ -184,7 +185,15 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 					feed->remHttp();
 					next = NULL;
 				}
-				next = new DeckListScreen(this, feed);
+				next = new DeckListScreen(this, feed, DeckListScreen::ST_EDIT, DeckListScreen::SST_NORMAL);
+				next->show();
+			} else if(index == OP_COMPETITIONS) {//decks
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new DeckListScreen(this, feed, DeckListScreen::ST_EDIT, DeckListScreen::SST_COMPETITION);
 				next->show();
 			} else if(index == OP_SHOP) {
 				if(next!=NULL){

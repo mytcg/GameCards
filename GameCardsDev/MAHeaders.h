@@ -89,6 +89,8 @@
 #define RES_ACHIEVEMENTS_THUMB 105
 #define RES_TUTORIALS 106
 #define RES_TUTORIALS_THUMB 107
+#define RES_COMPETITIONS 108
+#define RES_COMPETITIONS_THUMB 109
 
 #define RES_DESELECTED_LIST_DOT 88
 #define RES_SELECTED_LIST_DOT 89
@@ -205,19 +207,20 @@
 #define OP_ALBUMS 0
 #define OP_PLAY 1
 #define OP_DECKS 2
-#define OP_SHOP 3
-#define OP_AUCTIONS 4
-#define OP_ACHIEVEMENTS 5
-#define OP_NOTIFICATIONS 6
-#define OP_CREDITS 7
-#define OP_PROFILE 8
-#define OP_TUT 9
-#define OP_RANKINGS 10
-#define OP_FRIENDRANKS 11
-#define OP_FRIENDS 12
-#define OP_INVITEFRIENDS 13
-#define OP_REDEEM 14
-#define OP_LOGOUT 15
+#define OP_COMPETITIONS 3
+#define OP_SHOP 4
+#define OP_AUCTIONS 5
+#define OP_ACHIEVEMENTS 6
+#define OP_NOTIFICATIONS 7
+#define OP_CREDITS 8
+#define OP_PROFILE 9
+#define OP_TUT 10
+#define OP_RANKINGS 11
+#define OP_FRIENDRANKS 12
+#define OP_FRIENDS 13
+#define OP_INVITEFRIENDS 14
+#define OP_REDEEM 15
+#define OP_LOGOUT 16
 
 #include <MAUtil/String.h>
 
