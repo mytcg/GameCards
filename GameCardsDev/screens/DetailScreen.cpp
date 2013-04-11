@@ -23,6 +23,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 	currentKeyPosition = -1;
 	count = 0;
 	isBusy=true;
+	mid = false;
 	desc = "";
 	date = "";
 	id = "";
