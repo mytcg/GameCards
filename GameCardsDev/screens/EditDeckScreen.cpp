@@ -354,6 +354,7 @@ void EditDeckScreen::clearListBox() {
 }
 
 void EditDeckScreen::drawList() {
+
 	screenType = ST_LIST;
 
 	Layout *feedlayout;
@@ -368,8 +369,8 @@ void EditDeckScreen::drawList() {
 		items++;
 	}
 
+
 	//clearListBox();
-	
 	//we need a layout to have arrow images on the sides of the list
 	cardsPerList = listBox->getHeight() / ALBUM_ITEM_HEIGHT; //74 is the default card display item height
 	if(cardsPerList == 0){
@@ -404,12 +405,12 @@ void EditDeckScreen::drawList() {
 		rightArrow = new Image(0, 0, ARROW_WIDTH, listLayout->getHeight(), NULL, false, false, RES_RIGHT_ARROW);
 		rightArrow->setDrawBackground(false);
 	}
-
 	int currentList = -1;
 	ListBox *tempList = NULL;
 	int j = 0;
 
-	for(int i = 0; i < cards.size(); i++) {
+	int i = 0;
+	do {
 		//gotta make the tempList for the cards
 		if (j % cardsPerList == 0) {
 			tempList = new ListBox(0, 0, midListBox->getWidth(), midListBox->getHeight(), NULL);
@@ -455,54 +456,60 @@ void EditDeckScreen::drawList() {
 				j++;
 			}
 		}
-		String cardText = "";
-		if (!strcmp(type.c_str(), "1") || !strcmp(type.c_str(), "2") || !strcmp(type.c_str(), "3")) {
-			cardText += cards[i]->getText();
-			cardText += " (";
-			cardText += cards[i]->getQuantity();
-			cardText += ")\n";
-			cardText += cards[i]->getRarity();
-			cardText += "\nRating: ";
-			cardText += cards[i]->getRanking();
-		} else if(!strcmp(type.c_str(), "4")) {
-			if(strcmp(cards[i]->getText().c_str(),"")){
-				cardText += cards[i]->getText()+"\n";
+		if (i < cards.size()) {
+			String cardText = "";
+			if (!strcmp(type.c_str(), "1") || !strcmp(type.c_str(), "2") || !strcmp(type.c_str(), "3")) {
+				cardText += cards[i]->getText();
+				cardText += " (";
+				cardText += cards[i]->getQuantity();
+				cardText += ")\n";
+				cardText += cards[i]->getRarity();
+				cardText += "\nRating: ";
+				cardText += cards[i]->getRanking();
+			} else if(!strcmp(type.c_str(), "4")) {
+				if(strcmp(cards[i]->getText().c_str(),"")){
+					cardText += cards[i]->getText()+"\n";
+				}
+				cardText += "Position: ";
+				cardText += cards[i]->getPosition();
+				cardText += "\nPoints: ";
+				cardText += cards[i]->getPoints();
 			}
-			cardText += "Position: ";
-			cardText += cards[i]->getPosition();
-			cardText += "\nPoints: ";
-			cardText += cards[i]->getPoints();
+
+			feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 3, 1);
+			feedlayout->setSkin(Util::getSkinAlbum());
+			feedlayout->setDrawBackground(true);
+			feedlayout->addWidgetListener(this);
+			feedlayout->setVerticalAlignment(Layout::VA_CENTER);
+
+			if (strcmp(cards[i]->getQuantity().c_str(), "0") != 0) {
+				//if the card is in the deck, the image must be downloaded
+				tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_LOADINGTHUMB));
+				tempImage->setHasNote(cards[i]->getNote().length()>0);
+				Util::retrieveThumb(tempImage, cards[i], mImageCache);
+			}
+			else {
+				//we use the blank image for empty positions
+				tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_MISSINGTHUMB));
+			}
+
+			label = new Label(0,0, scrWidth-86, ALBUM_ITEM_HEIGHT, feedlayout, cardText, 0, Util::getDefaultFont());
+			cardText = "";
+
+			tempImage->setDrawBackground(false);
+			label->setDrawBackground(false);
+			label->setVerticalAlignment(Label::VA_CENTER);
+			label->setAutoSizeY();
+			label->setAutoSizeX();
+			label->setMultiLine();
+
+			j++;
 		}
-
-		feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 3, 1);
-		feedlayout->setSkin(Util::getSkinAlbum());
-		feedlayout->setDrawBackground(true);
-		feedlayout->addWidgetListener(this);
-		feedlayout->setVerticalAlignment(Layout::VA_CENTER);
-
-		if (strcmp(cards[i]->getQuantity().c_str(), "0") != 0) {
-			//if the card is in the deck, the image must be downloaded
-			tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_LOADINGTHUMB));
-			tempImage->setHasNote(cards[i]->getNote().length()>0);
-			Util::retrieveThumb(tempImage, cards[i], mImageCache);
-		}
-		else {
-			//we use the blank image for empty positions
-			tempImage = new MobImage(0, 0, 56, 64, feedlayout, false, false, Util::loadImageFromResource(RES_MISSINGTHUMB));
-		}
-
-		label = new Label(0,0, scrWidth-86, ALBUM_ITEM_HEIGHT, feedlayout, cardText, 0, Util::getDefaultFont());
-		cardText = "";
-
-		tempImage->setDrawBackground(false);
-		label->setDrawBackground(false);
-		label->setVerticalAlignment(Label::VA_CENTER);
-		label->setAutoSizeY();
-		label->setAutoSizeX();
-		label->setMultiLine();
-
-		j++;
+		i++;
 	}
+	while(i < cards.size());
+
+	//for(int i = 0; i < cards.size(); i++) {}
 
 	if (items >= 1) {
 		emp = false;
@@ -522,7 +529,6 @@ void EditDeckScreen::drawList() {
 	memset(cap,'\0',capLength+1);
 	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
-	
 	if (currentSelectedKey!=NULL) {
 		currentSelectedKey->setSelected(false);
 		currentSelectedKey = NULL;
@@ -858,7 +864,9 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 				case MAK_BACK:
 				case MAK_SOFTRIGHT:
 					if (!busy) {
-						busy = true;
+						//busy = true;
+						clearListBox();
+						Util::updateSoftKeyLayout("", "Back", "", mainLayout);
 						drawList();
 					}
 					break;
