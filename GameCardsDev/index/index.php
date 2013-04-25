@@ -239,6 +239,32 @@ if ($_GET['registeruser']) {
 	$ip = getip();
 	$sOP = registerUser($username, $password, $email, $referer, $iHeight, $iWidth, $root,$ip,$url,$iBBHeight);
 	
+	if ($appkey == "Kickoff") {
+		//if the user is registering from the kickoff app, we want to give them the top players booster
+		$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
+		if (sizeof($aUserDetails) > 0) {
+			$userId = $aUserDetails[0]['user_id'];
+			$aValidUser=myqu(
+									"SELECT user_id, username, password, date_last_visit, credits "
+									."FROM mytcg_user "
+									."WHERE username='".$username."' "
+									."AND is_active='1'"
+			);
+			$iUserID=$aValidUser[0]["user_id"];
+			$iMod=(intval($iUserID) % 10)+1;
+			$sPassword=substr(md5($iUserID),$iMod,10).md5($password);
+			if ($sPassword==$aValidUser[0]['password']){
+				openStarter($iUserID,32); //add the footballer of the season booster for the new user.
+				
+				myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
+					VALUES ('.$iUserID.', "The Footballer of the Season Starter has been added to your collection!", now(), 1)');
+				
+				checkAchis($iUserID, 1);
+			}
+		}
+		
+	}
+	
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;

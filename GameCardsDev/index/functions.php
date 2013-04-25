@@ -3294,8 +3294,8 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 			VALUES ('.$iUserID.', "Find the Facebook app by searching for Mobile Game Cards!", now(), 1)');
 		
 		//return userdetails
-		echo userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
-		exit;
+		return userdetails($iUserID,$iHeight,$iWidth,$root,$iBBHeight);
+		//exit;
 	}
 }
 
@@ -3785,7 +3785,8 @@ function cardsincategory($iCategory,$iHeight,$iWidth,$iShowAll,$lastCheckSeconds
 					on dc.card_id = cards.card_id
 					INNER JOIN (SELECT cd.type FROM mytcg_deck d, mytcg_competitiondeck cd 
 					WHERE d.deck_id = '.$iDeckID.' AND d.competitiondeck_id = cd.competitiondeck_id) deck
-					ON deck.type = p.type');
+					ON deck.type = p.type
+					ORDER BY p.number ASC');
 	} else {
 		if($iFriendID=='0'){
 			$query = 'select count(*) loaded from mytcg_usercard a, mytcg_card b where a.card_id = b.card_id and a.usercardstatus_id = 1 and loaded = 1 and a.user_id = '.$iUserID.' and category_id = '.$iCategory;

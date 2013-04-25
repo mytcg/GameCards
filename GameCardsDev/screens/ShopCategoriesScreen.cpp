@@ -257,8 +257,13 @@ void ShopCategoriesScreen::drawList() {
 		//kinListBox->setSelectedIndex(0);
 	}
 
-	if (screenType == ST_FREEBIE)
+	if (screenType == ST_FREEBIE) {
 		notice->setCaption("Received: 150 credits and a free starter pack.");
+
+		if (categories.size() == 0) {
+			origMenu->show();
+		}
+	}
 }
 
 void ShopCategoriesScreen::selectionChanged(Widget *widget, bool selected) {
