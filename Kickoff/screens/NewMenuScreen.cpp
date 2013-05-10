@@ -20,13 +20,9 @@ static item menuItems[] =
 	{ RES_ALBUM_THUMB, RES_ALBUM_THUMB_SEL, RES_ALBUM, OP_ALBUMS },
 	{ RES_COMPETITIONS_THUMB, RES_COMPETITIONS_THUMB_SEL, RES_COMPETITIONS, OP_COMPETITIONS },
 	{ RES_SHOP_THUMB, RES_SHOP_THUMB_SEL, RES_SHOP, OP_SHOP },
-	{ RES_AUCTIONS_THUMB, RES_AUCTIONS_THUMB_SEL, RES_AUCTIONS, OP_AUCTIONS },
+	{ RES_RANKING_THUMB, RES_RANKING_THUMB_SEL, RES_RANKING, OP_RANKING },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS_THUMB_SEL, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
-	{ RES_CREDITS_THUMB, RES_CREDITS_THUMB_SEL, RES_CREDITS, OP_CREDITS },
 	{ RES_PROFILE_THUMB, RES_PROFILE_THUMB_SEL, RES_PROFILE, OP_PROFILE },
-	{ RES_FRIENDS_THUMB, RES_FRIENDS_THUMB_SEL, RES_FRIENDS, OP_FRIENDS },
-	{ RES_INVITE_THUMB, RES_INVITE_THUMB_SEL, RES_INVITE, OP_INVITEFRIENDS },
-	{ RES_REDEEM_THUMB, RES_REDEEM_THUMB_SEL, RES_REDEEM, OP_REDEEM },
 	{ RES_LOGOUT_THUMB, RES_LOGOUT_THUMB_SEL, RES_LOGOUT, OP_LOGOUT }
 };
 
@@ -180,13 +176,13 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_SHOP);
 				next->show();
-			} else if(index == OP_AUCTIONS) {
+			} else if(index == OP_RANKING) {
 				if(next!=NULL){
 					delete next;
 					feed->remHttp();
 					next = NULL;
 				}
-				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_AUCTIONS);
+				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_RANKING);
 				next->show();
 			} else if(index == OP_CREDITS) {
 				if(next!=NULL){
@@ -212,32 +208,6 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				}
 				/* Notifications */
 				next = new DetailScreen(this, feed, DetailScreen::NOTIFICATIONS, NULL);
-				next->show();
-			} else if(index == OP_FRIENDS) {
-				if(next!=NULL){
-					delete next;
-					feed->remHttp();
-					next = NULL;
-				}
-				/* Notifications */
-				next = new DetailScreen(this, feed, DetailScreen::FRIENDS, NULL);
-				next->show();
-			} else if(index == OP_INVITEFRIENDS) {
-				if(next!=NULL){
-					delete next;
-					feed->remHttp();
-					next = NULL;
-				}
-				/*Invite Friend */
-				next = new TradeFriendDetailScreen(this, feed, NULL);
-				next->show();
-			} else if(index == OP_REDEEM) {
-				if(next!=NULL){
-					delete next;
-					feed->remHttp();
-					next = NULL;
-				}
-				next = new RedeemScreen(feed, this);
 				next->show();
 			} else if (index == OP_LOGOUT) {
 #if not defined(MA_PROF_STRING_PLATFORM_IPHONEOS)

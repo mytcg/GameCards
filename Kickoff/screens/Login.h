@@ -36,7 +36,7 @@ private:
 
 	Widget *currentSelectedKey;
 
-	NativeEditBox *editBoxLogin, *editBoxPass, *editBoxEmail, *editBoxRefer;
+	NativeEditBox *editBoxLogin, *editBoxPass, *editBoxEmail;
 
 	HttpConnection mHttp;
 

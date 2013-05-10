@@ -79,6 +79,8 @@
 #define RES_SHOP_THUMB 79
 #define RES_COMPETITIONS 94
 #define RES_COMPETITIONS_THUMB 95
+#define RES_RANKING 108
+#define RES_RANKING_THUMB 109
 
 #define RES_ALBUM_THUMB_SEL 96
 #define RES_AUCTIONS_THUMB_SEL 97
@@ -91,6 +93,7 @@
 #define RES_PROFILE_THUMB_SEL 104
 #define RES_REDEEM_THUMB_SEL 105
 #define RES_SHOP_THUMB_SEL 106
+#define RES_RANKING_THUMB_SEL 110
 
 #define RES_DESELECTED_LIST_DOT 80
 #define RES_SELECTED_LIST_DOT 81
@@ -207,14 +210,11 @@
 #define OP_ALBUMS 0
 #define OP_COMPETITIONS 1
 #define OP_SHOP 2
-#define OP_AUCTIONS 3
+#define OP_RANKING 3
 #define OP_NOTIFICATIONS 4
 #define OP_CREDITS 5
 #define OP_PROFILE 6
-#define OP_FRIENDS 7
-#define OP_INVITEFRIENDS 8
-#define OP_REDEEM 9
-#define OP_LOGOUT 10
+#define OP_LOGOUT 7
 
 #include <MAUtil/String.h>
 
@@ -223,6 +223,6 @@ using namespace MAUtil;
 #ifndef _MAHeaders_H_
 #define _MAHeaders_H_
 
-static String FILE_PREFIX = "gamecards_";
+static String FILE_PREFIX = "kickoff_";
 
 #endif

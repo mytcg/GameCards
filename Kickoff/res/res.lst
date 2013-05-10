@@ -426,3 +426,15 @@
 .res RES_FONT_RED /*107*/
 .bin
 .include "RedBold.mof" 
+
+.res RES_RANKING /*108*/
+.ubin
+.image "Ranking.png"
+
+.res RES_RANKING_THUMB /*109*/
+.ubin
+.image "Ranking_thumb.png"
+
+.res RES_RANKING_THUMB_SEL /*110*/
+.ubin
+.image "Ranking_thumb_selected.png"
