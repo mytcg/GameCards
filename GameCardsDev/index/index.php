@@ -507,7 +507,7 @@ if ($iUserCardID = $_GET['createauction']) {
 }
 
 if ($_GET['leaders']) {
-	leaders();
+	leaders($leaderboards);
 	exit;
 }
 

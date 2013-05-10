@@ -10,4 +10,5 @@ $url = "www.mytcg.net";
 $appkey = "Nascar";
 $transactionlogtypes = "1,2,3";
 $notificationtypes = "1,2,3";
+$leaderboards = "1";
 ?>
