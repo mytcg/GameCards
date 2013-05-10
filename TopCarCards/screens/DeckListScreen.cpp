@@ -9,8 +9,8 @@
 #include "../utils/Util.h"
 #include "../UI/Button.h"
 
-DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType, String categoryId)
-		:mHttp(this), screenType(screenType), categoryId(categoryId) {
+DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType, int screenSubType, String categoryId)
+		:mHttp(this), screenType(screenType), screenSubType(screenSubType), categoryId(categoryId) {
 	lprintfln("DeckListScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
 	this->feed = feed;
@@ -41,12 +41,24 @@ DeckListScreen::DeckListScreen(MainScreen *previous, Feed *feed, int screenType,
 
 	switch (screenType) {
 		case ST_EDIT:
-			//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
-			urlLength = strlen("?getalldecks=1") + URLSIZE;
-			url = new char[urlLength+1];
-			memset(url,'\0',urlLength+1);
-			sprintf(url, "%s?getalldecks=1", URL);
-			lprintfln("%s", url);
+			switch (screenSubType) {
+				case SST_NORMAL:
+					//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
+					urlLength = strlen("?getallnormaldecks=1") + URLSIZE;
+					url = new char[urlLength+1];
+					memset(url,'\0',urlLength+1);
+					sprintf(url, "%s?getallnormaldecks=1", URL);
+					lprintfln("%s", url);
+					break;
+				case SST_COMPETITION:
+					//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
+					urlLength = strlen("?getallcompdecks=1") + URLSIZE;
+					url = new char[urlLength+1];
+					memset(url,'\0',urlLength+1);
+					sprintf(url, "%s?getallcompdecks=1", URL);
+					lprintfln("%s", url);
+					break;
+			}
 			break;
 		case ST_SELECT:
 			//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
@@ -118,11 +130,36 @@ void DeckListScreen::refresh() {
 
 	notice->setCaption("Loading decks...");
 
-	//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
-	int urlLength = strlen("?getalldecks=1") + URLSIZE;
-	char *url = new char[urlLength+1];
-	memset(url,'\0',urlLength+1);
-	sprintf(url, "%s?getalldecks=1", URL);
+	int urlLength = 0;
+	char *url = NULL;
+
+	switch (screenType) {
+		case ST_EDIT:
+			switch (screenSubType) {
+				case SST_NORMAL:
+					//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
+					urlLength = strlen("?getallnormaldecks=1") + URLSIZE;
+					url = new char[urlLength+1];
+					memset(url,'\0',urlLength+1);
+					sprintf(url, "%s?getallnormaldecks=1", URL);
+					break;
+				case SST_COMPETITION:
+					//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
+					urlLength = strlen("?getallcompdecks=1") + URLSIZE;
+					url = new char[urlLength+1];
+					memset(url,'\0',urlLength+1);
+					sprintf(url, "%s?getallcompdecks=1", URL);
+					break;
+			}
+			break;
+		case ST_SELECT:
+			//work out how long the url will be, the 2 is for the & and = symbals, as well as hard coded vars
+			urlLength = strlen("?getcategorydecks=1&category_id=") + categoryId.length() + URLSIZE;
+			url = new char[urlLength+1];
+			memset(url,'\0',urlLength+1);
+			sprintf(url, "%s?getcategorydecks=1&category_id=%s", URL, categoryId.c_str());
+			break;
+	}
 	lprintfln("%s", url);
 
 	if(mHttp.isOpen()){
@@ -175,7 +212,7 @@ void DeckListScreen::clearListBox() {
 }
 
 void DeckListScreen::drawList() {
-	if (screenType == ST_EDIT) {
+	if (screenType == ST_EDIT && screenSubType == SST_NORMAL) {
 		label = Util::createSubLabel("New Deck");
 		label->addWidgetListener(this);
 		kinListBox->add(label);
@@ -209,7 +246,7 @@ void DeckListScreen::pointerMoveEvent(MAPoint2d point)
 
 void DeckListScreen::pointerReleaseEvent(MAPoint2d point)
 {
-	if (moved <= 8) {
+	if (moved <= 4) {
 		if (right) {
 			keyPressEvent(MAK_SOFTRIGHT);
 		} else if (left) {
@@ -271,7 +308,7 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 			if (!selecting) {
 				switch (screenType) {
 					case ST_EDIT:
-						if (kinListBox->getSelectedIndex() == 0) {
+						if (screenSubType == SST_NORMAL && kinListBox->getSelectedIndex() == 0) {
 							if (next != NULL) {
 								delete next;
 								feed->remHttp();
@@ -281,13 +318,21 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 							next->show();
 						}
 						else {
+							int index = kinListBox->getSelectedIndex();
+							if (screenSubType == SST_NORMAL) {
+								index--;
+							}
+
 							if (next != NULL) {
 								delete next;
 								feed->remHttp();
 								 next = NULL;
 							}
-							next = new EditDeckScreen(this, feed, albums[kinListBox->getSelectedIndex()-1]->getId(),decks[kinListBox->getSelectedIndex()-1]->getType(),decks[kinListBox->getSelectedIndex()-1]->getActive());
+							next = new EditDeckScreen(this, feed, albums[index]->getId(),
+									decks[index]->getType(),decks[index]->getActive());
 							next->show();
+
+							index = 0;
 						}
 						break;
 					case ST_SELECT:

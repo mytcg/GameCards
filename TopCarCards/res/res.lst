@@ -418,3 +418,12 @@
 .res RES_TUTORIALS_THUMB  /*105*/
 .ubin
 .image "Tutorials_thumb.png"
+
+.res RES_COMPETITIONS /*106*/
+.ubin
+.image "Competition.png"
+
+.res RES_COMPETITIONS_THUMB /*107*/
+.ubin
+.image "Competition_thumb.png"
+

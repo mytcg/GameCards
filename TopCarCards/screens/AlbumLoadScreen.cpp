@@ -727,7 +727,7 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 						}
 						break;
 					case ST_PLAY:
-						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, val->getId());
+						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, DeckListScreen::SST_NORMAL, val->getId());
 						next->show();
 						break;
 					case ST_GAMES:
@@ -1064,7 +1064,7 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 						}
 						break;
 					case ST_PLAY:
-						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, val->getId());
+						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, DeckListScreen::SST_NORMAL, val->getId());
 						next->show();
 						break;
 					case ST_GAMES:

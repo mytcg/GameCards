@@ -19,7 +19,7 @@ using namespace MAUtil;
 
 class DeckListScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener {
 public:
-	DeckListScreen(MainScreen *previous, Feed *feed, int screenType = 0, String categoryId = 0);
+	DeckListScreen(MainScreen *previous, Feed *feed, int screenType = 0, int screenSubType = 0, String categoryId = 0);
 	~DeckListScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
@@ -29,7 +29,9 @@ public:
 	void pointerReleaseEvent(MAPoint2d point);
 	void locateItem(MAPoint2d point);
 
-	enum screenTypes {ST_EDIT=0, ST_SELECT};
+	enum screenTypes {ST_EDIT=0, ST_SELECT}; //used to either get all decks or just a category of decks
+
+	enum screenSubTypes {SST_NORMAL=0, SST_COMPETITION}; //used when screenType is edit, to get either normal decks or competition decks
 	void refresh();
 private:
 	Vector<Album*> albums;
@@ -44,7 +46,7 @@ private:
 
 	String parentTag, categoryId;
 	String deckId, description, type,active;
-	int moved, screenType, currentKeyPosition;
+	int moved, screenType, screenSubType, currentKeyPosition;
 
 	void clearListBox();
 	void clearAlbums();
