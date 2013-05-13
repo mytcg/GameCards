@@ -1,0 +1,70 @@
+body {
+	font-size: medium;
+	width: 643px;
+}
+
+#form-container {
+	width: 100%;
+}
+
+.icon-350 {
+	width:94px;
+	height:91px;
+	background: url("../images/credits350.png") no-repeat;
+	margin-left:10px;
+}
+
+.icon-700 {
+	width:94px;
+	height:91px;
+	background: url("../images/credits700.png") no-repeat;
+	margin-left:10px;
+}
+
+.icon-1050 {
+	width:94px;
+	height:91px;
+	background: url("../images/credits1050.png") no-repeat;
+	margin-left:10px;
+}
+	
+.payment-logo {
+	left:130px;
+	background-image:url("../images/all.png");
+	display: block;
+}
+
+#sms-payment-logo {
+	height:16px;	
+	}
+
+#paypal-payment-logo {
+	height:16px;
+}
+
+#creditcard-payment-logo {
+	background-position: -298px -160px;
+	background-repeat:no-repeat;
+	width:114px;
+	margin-top: 3px;
+	height:41px;
+	margin-left:0; 
+}
+
+#select-package input{
+	margin-left: 15px;
+	width:15%;
+}
+
+#select-payment-method input{
+	margin-left: 16px;
+}
+
+
+#header-image {
+	display:block;
+}
+
+#select-package label {
+	width: 34%;
+}

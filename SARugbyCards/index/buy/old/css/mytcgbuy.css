@@ -1,0 +1,152 @@
+html  {
+   font-family:Arial, Helvetica, sans-serif;
+   font-size: small;  }
+	
+body {
+   background-color: #dadbdc;
+   margin:0 auto;
+   width: 100%;
+   height: 100%;	
+}
+
+#header-image {
+	display:none;
+}
+
+#form-container {
+	position: relative;
+	background-image: url("../images/line.gif");
+	width: 100%;
+}
+
+a:link, a:visited, a:hover, a:active {
+   text-decoration: none; 
+   color: #ffa802;
+	}
+
+a:hover { 
+   text-decoration: underline;
+   }
+
+#payment-methods {
+	background-color: white;
+	padding-top:5px;
+	position:static;
+	height:96%;
+	margin: 1%;
+	}
+	
+fieldset {
+	padding:0;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin:0;
+	border: 0;
+}
+	
+#payment-methods input{
+	margin:0;
+	}
+
+#payment-methods label {
+	position: absolute;
+	bottom: 0;
+}
+
+
+#select-package label {
+	padding-left: 10px;
+	font-weight:bold;
+	font-size:140%;
+	width:54%;
+	}
+	
+#select-package label span {
+	font-size:80%;
+	font-weight: normal;
+	}
+
+#select-payment-method label{
+	margin-left: 10px;
+	min-width:10%;
+	width:38%;
+}
+
+legend {
+	width:100%;
+	background-color: #999999;
+	color: white;
+	line-height: 30px;
+	height: 30px;
+	font-weight:bold;
+	padding-left:5px;
+	position: relative;
+}
+	
+.option {
+	float: left;
+	width:100%;
+	min-height:30px;	
+}
+
+.option-container {
+	height: 30%;
+	border-bottom: 3px solid #CCCCCC;
+	min-height: 45px;
+} 
+
+.option-container-package {
+	height: 30%;
+	border-bottom: 3px solid #CCCCCC;
+	min-height: 98px;
+	padding-top: 5px;
+} 
+
+.option-container:last-child option{
+	border-bottom: none;
+}
+
+legend span {
+	position: absolute;
+	bottom:0;
+}
+
+.option label span {
+	color: #58B1FD;
+}
+
+.option > * {
+	position: static !important;
+	float: left !important;
+	line-height: 40px;
+	height: 40px;
+}
+
+.payment-logo {
+	display: none;
+}
+
+#sms-payment-logo {
+	background-position: -370px -205px;
+	width:65px;
+	margin-top:13px;
+}
+
+#paypal-payment-logo {
+	background-position: -300px -205px;
+	width:65px;
+	margin-top:13px;
+}
+
+#check-out-container {
+	height: 30px;
+	text-align: center;
+	padding-top: 6px;
+}
+	
+#usernameInput {
+}
+
+#usernameInput input{
+	margin: 1%;
+}

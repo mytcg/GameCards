@@ -1,0 +1,152 @@
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: small;
+	background-image: url("../images/line.gif");
+}
+
+a:visited {
+	color: white;
+}
+	
+.cmdButton {
+   background: none repeat scroll 0 0 #444444;
+   border: 0 none;
+   border-radius: 4px 4px 4px 4px;
+   color: #FFFFFF;
+   cursor: pointer;
+   font-size: 11px;
+   font-weight: bold;
+   padding: 5px 10px;
+   text-decoration: none;
+   vertical-align: middle;
+   display: inline;
+}
+
+#confirm-container {
+	background-color: #efefef;
+	border: 1px solid rgb(153, 153, 153);
+	width: 170px; 
+	height: 235px; 
+	text-align: center; 
+}
+
+#sms-container {
+/*	//background: url('../images/all.png') no-repeat scroll -660px -380px transparent; */
+/*	width: 150px; */	
+/*	height: 245px; */
+	text-align: center;
+	}
+
+#sms-text-overlay {
+	width: 150px; 
+	height: 245px; 
+	position:absolute;
+	width: 100%;
+	top:0;
+}
+
+#sms-text {
+	width: 100%;
+	text-align: center;
+}
+
+#frmPaypal > *{
+	margin-bottom: 6px;
+	
+}
+
+#frmPaypal input{ 
+	width: 100%;
+	
+}
+
+#frmPaypal > select{
+	margin-bottom: 6px;
+	margin-top: 3px;
+}
+
+#paypal-logo {
+	height:40px;
+	width:140px;
+	background: url("../images/all.png") no-repeat scroll -450px -120px transparent;	
+	margin:40px auto;
+}
+	
+#frmCreditCard {
+	margin: 10px auto; 
+}
+
+#creditcard-logo {
+	background: url('../images/all.png') no-repeat scroll -270px -230px transparent; 
+	width: 125px; 
+	height: 83px; 
+	margin: 20px auto;
+	}
+
+.credit-amount {
+	width: 100%; 
+	font-size: 16px; 
+	font-weight: bold;
+}
+	
+.credit-amount span {
+	color: #58B1FD;
+}
+
+#sms-container .credit-amount {
+	padding-top: 15px;
+	padding-bottom: 5px;
+	line-height: 90%;
+}
+
+#creditcard-price {
+	top: 150px; 
+	width: 100%; 
+	margin: 5px 0;
+	}
+	
+#credit-cards-image {
+	background:url('../images/all.png') -440px -180px no-repeat;
+	height:15px;
+	width: 156px;
+	margin: 0 auto;
+}
+
+#sms-instructions {
+	width: 100%; 
+	font-weight: bold;
+	padding-top: 10px;
+	padding-bottom: 5px;
+}
+	
+#shortcode {
+	font-size: 28px; 
+	width: 100%; 
+	font-weight: bold;
+	padding-top: 10px;
+	color:#97CC29;
+}
+
+#credit-amount {
+	color: rgb(68, 68, 68); 
+	top: 160px; 
+	width: 100%;
+	padding-top: 30px;
+	}
+	
+#credit-amount span {
+	color: #58B1FD;
+	}
+	
+#sms-price {
+	color: rgb(68, 68, 68); 
+	top: 218px; 
+	width: 100%;
+	padding-top: 10px;
+	}
+	
+#sms-container .cmdButton {
+	bottom: 10px; 
+	right: 10px; 
+	width: 40px;
+	}
