@@ -187,7 +187,7 @@ void TradeFriendDetailScreen::drawConfirmScreen() {
 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
-	Util::updateSoftKeyLayout("Confirm", "Terug", "", mainLayout);
+	Util::updateSoftKeyLayout("Bevestig", "Terug", "", mainLayout);
 
 	String confirmLabel = "Send " + card->getText() + " to " + friendDetail + "?";
 
@@ -247,7 +247,7 @@ void TradeFriendDetailScreen::drawCompleteScreen() {
 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
-	Util::updateSoftKeyLayout("Confirm", "", "", mainLayout);
+	Util::updateSoftKeyLayout("Bevestig", "", "", mainLayout);
 
 	String confirmLabel = result;
 

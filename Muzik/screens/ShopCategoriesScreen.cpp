@@ -24,13 +24,13 @@ void ShopCategoriesScreen::refresh() {
 	memset(url,'\0',urlLength+1);
 	switch(screenType) {
 		case ST_FREEBIE:
-			notice->setCaption("Opsoek na kategoriee");
+			notice->setCaption("Opsoek na kategoriee...");
 			sprintf(url, "%s?productcategories=1", URL);
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_SHOP:
-			notice->setCaption("Opsoek na kategoriee");
+			notice->setCaption("Opsoek na kategoriee...");
 			sprintf(url, "%s?productcategories=2", URL);
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
@@ -86,13 +86,13 @@ ShopCategoriesScreen::ShopCategoriesScreen(MainScreen *previous, Feed *feed, int
 	memset(url,'\0',urlLength+1);
 	switch(screenType) {
 		case ST_FREEBIE:
-			notice->setCaption("Opsoek na kategoriee");
+			notice->setCaption("Opsoek na kategoriee...");
 			sprintf(url, "%s?productcategories=1", URL);
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_SHOP:
-			notice->setCaption("Opsoek na kategoriee");
+			notice->setCaption("Opsoek na kategoriee...");
 			sprintf(url, "%s?productcategories=2", URL);
 			lprintfln("%s", url);
 			res = mHttp.create(url, HTTP_GET);
@@ -257,8 +257,13 @@ void ShopCategoriesScreen::drawList() {
 		//kinListBox->setSelectedIndex(0);
 	}
 
-	if (screenType == ST_FREEBIE)
+	if (screenType == ST_FREEBIE) {
 		notice->setCaption("Received: 150 credits and a free starter pack.");
+
+		if (categories.size() == 0) {
+			origMenu->show();
+		}
+	}
 }
 
 void ShopCategoriesScreen::selectionChanged(Widget *widget, bool selected) {
@@ -517,7 +522,7 @@ void ShopCategoriesScreen::mtxTagEnd(const char* name, int len) {
 		temp2 = "";
 		temp3 = "";
 	} else if (!strcmp(name, "cardcategories")) {
-		notice->setCaption("Kies 'n kategorie.");
+		notice->setCaption("Kies n kategorie.");
 		drawList();
 	} else if(!strcmp(name, "error")) {
 		notice->setCaption(error_msg.c_str());

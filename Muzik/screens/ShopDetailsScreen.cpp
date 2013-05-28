@@ -418,7 +418,7 @@ void ShopDetailsScreen::purchase() {
 
 	if (((credits+premium >= creditprice)&&(creditprice>0))||(premium>=premiumprice&&premiumprice>0)) {
 
-		purchaseMenu = new MenuScreen(RES_BLANK, "Koop with:");
+		purchaseMenu = new MenuScreen(RES_BLANK, "Purchase with:");
 		purchaseMenu->setMenuWidth(140);
 		purchaseMenu->setMarginX(5);
 		purchaseMenu->setMarginY(5);
@@ -649,11 +649,11 @@ void ShopDetailsScreen::mtxTagEnd(const char* name, int len) {
 			busy = false;
 
 			if (!strcmp(result.c_str(), "1")) {
-				//drawPostSubmitPhase("Koop success!");
+				//drawPostSubmitPhase("Purchase success!");
 				drawBuyNow(true);
 			}
 			else {
-				//drawPostSubmitPhase("Koop failed.");
+				//drawPostSubmitPhase("Purchase failed.");
 				drawBuyNow(false);
 			}
 
@@ -732,7 +732,7 @@ void ShopDetailsScreen::buyNow()
 
 		if (canPurchase)
 		{
-			notice->setCaption("Transaksie in proses");
+			notice->setCaption("Purchasing");
 			bidOrBuy = true;
 			result = "";
 			busy = true;

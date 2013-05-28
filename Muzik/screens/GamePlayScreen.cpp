@@ -79,7 +79,7 @@ GamePlayScreen::GamePlayScreen(MainScreen *previous, Feed *feed, bool newGame, S
 	imageCacheUser = new ImageCache();
 	imageCacheOpp = new ImageCache();
 
-	mainLayout = Util::createMainLayout("", "Back", "", true);
+	mainLayout = Util::createMainLayout("", "Terug", "", true);
 	kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
 	notice = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
 	notice->setDrawBackground(false);
@@ -260,7 +260,7 @@ void GamePlayScreen::drawClosedScreen() {
 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
-	Util::updateSoftKeyLayout("", "Back", "", mainLayout);
+	Util::updateSoftKeyLayout("", "Terug", "", mainLayout);
 
 	notice->setCaption("");
 	Label *lbl = new Label(0, 0, scrWidth-(PADDING*2), 0, NULL);
@@ -279,7 +279,7 @@ void GamePlayScreen::drawDeclinedScreen() {
 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
-	Util::updateSoftKeyLayout("", "Back", "", mainLayout);
+	Util::updateSoftKeyLayout("", "Terug", "", mainLayout);
 
 	notice->setCaption("");
 	Label *lbl = new Label(0, 0, scrWidth-(PADDING*2), 0, NULL);
@@ -297,7 +297,7 @@ void GamePlayScreen::drawFriendNameScreen() {
 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
-	Util::updateSoftKeyLayout("Play", "Back", "", mainLayout);
+	Util::updateSoftKeyLayout("Play", "Terug", "", mainLayout);
 
 	notice->setCaption("");
 	Label *lbl = new Label(0, 0, scrWidth-(PADDING*2), 0, NULL);
@@ -430,7 +430,7 @@ void GamePlayScreen::drawLFMScreen() {
 		Util::retrieveBack(userImage, gcCard, kinListBox->getHeight()-PADDING*2, imageCacheUser);
 		currentSelectedKey = NULL;
 		currentKeyPosition = -1;
-		Util::updateSoftKeyLayout("", "Back", "", mainLayout);
+		Util::updateSoftKeyLayout("", "Terug", "", mainLayout);
 	}
 
 	String caption = "Looking for opponent";

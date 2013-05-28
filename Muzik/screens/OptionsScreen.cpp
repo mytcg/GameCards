@@ -96,6 +96,12 @@ card(card), screenType(screenType), number(number), deckId(deckId) {
 			label = Util::createSubLabel("Auction");
 			label->addWidgetListener(this);
 			kinListBox->add(label);
+			label = Util::createSubLabel("Compare");
+			label->addWidgetListener(this);
+			kinListBox->add(label);
+			label = Util::createSubLabel("Details");
+			label->addWidgetListener(this);
+			kinListBox->add(label);
 			break;
 		case ST_DECK_OPTIONS:
 			label = Util::createSubLabel("Remove");
@@ -438,6 +444,24 @@ void OptionsScreen::keyPressEvent(int keyCode) {
 							next = NULL;
 						}
 						next = new AuctionCreateScreen(this, feed, card);
+						next->show();
+					}
+					else if (index == 2/*3*/) {
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_COMPARE, NULL, false, card);
+						next->show();
+					}
+					else if (index == 3/*4*/) {
+						if (next != NULL) {
+							delete next;
+							feed->remHttp();
+							next = NULL;
+						}
+						next = new DetailScreen(this, feed, DetailScreen::CARD, card);
 						next->show();
 					}
 					break;

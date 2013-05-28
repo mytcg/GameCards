@@ -248,7 +248,7 @@ void NoteScreen::keyPressEvent(int keyCode) {
 							delete [] url;
 							url = NULL;
 						} else {
-							notice->setCaption("Niks om te stoor.");
+							notice->setCaption("Nothing to save.");
 						}
 					}
 					break;

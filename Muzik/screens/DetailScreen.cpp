@@ -14,7 +14,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 	lprintfln("DetailScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
 	this->feed = feed;
-	mainLayout = Util::createMainLayout(screenType==CARD?"":screenType==BALANCE?"Koop":screenType==PROFILE?"Stoor":"", "Terug", screenType==PROFILE?"Wagwoord":screenType==BALANCE?"":"", true);
+	mainLayout = Util::createMainLayout(screenType==CARD?"":screenType==BALANCE?"Buy":screenType==PROFILE?"Stoor":"", "Terug", screenType==PROFILE?"Password":screenType==BALANCE?"":"", true);
 	kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
 	next=NULL;
 	answers=NULL;
@@ -37,7 +37,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 			label->setMultiLine(true);
 			kinListBox->add(label);
 			/*Screen Header*/
-			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Profiel", 0, Util::getDefaultFont());
+			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Profile", 0, Util::getDefaultFont());
 			label->setHorizontalAlignment(Label::HA_CENTER);
 			label->setVerticalAlignment(Label::VA_CENTER);
 			label->setSkin(Util::getSkinListNoArrows());
@@ -45,13 +45,13 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 			kinListBox->add(label);
 			break;
 		case BALANCE:
-			/*label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_DETAIL_HEADER_HEIGHT, NULL, "Go to www.mytcg.net to find out how to get more credits.", 0, Util::getDefaultSelected());
+			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_DETAIL_HEADER_HEIGHT, NULL, "Go to www.mytcg.net to find out how to get more credits.", 0, Util::getDefaultSelected());
 			label->setAutoSizeY();
 			label->setMultiLine(true);
 			label->setDrawBackground(false);
-			kinListBox->add(label);*/
+			kinListBox->add(label);
 			/*Screen Header*/
-			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Krediete", 0, Util::getDefaultFont());
+			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Credits", 0, Util::getDefaultFont());
 			label->setHorizontalAlignment(Label::HA_CENTER);
 			label->setVerticalAlignment(Label::VA_CENTER);
 			label->setSkin(Util::getSkinListNoArrows());
@@ -73,7 +73,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 			premiumLabel->setVerticalAlignment(Label::VA_CENTER);
 			kinListBox->add(premiumLabel);
 
-			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Laaste/vorige transaksie:", 0, Util::getDefaultFont());
+			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Vorige transaksies:", 0, Util::getDefaultFont());
 			label->setHorizontalAlignment(Label::HA_CENTER);
 			label->setVerticalAlignment(Label::VA_CENTER);
 			label->setSkin(Util::getSkinListNoArrows());
@@ -104,7 +104,7 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 			kinListBox->add(label);
 			break;
 		case NOTIFICATIONS:
-			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Kennisgewing", 0, Util::getDefaultFont());
+			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Notifications", 0, Util::getDefaultFont());
 			label->setHorizontalAlignment(Label::HA_CENTER);
 			label->setVerticalAlignment(Label::VA_CENTER);
 			label->setSkin(Util::getSkinListNoArrows());

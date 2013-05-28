@@ -74,7 +74,7 @@ void Login::drawLoginScreen() {
 	clearListBox();
 
 	if ((strcmp(feed->getRegistered().c_str(), "1") == 0)) {
-		Util::updateSoftKeyLayout("Teken in", "Teken Uit", "", mainLayout);
+		Util::updateSoftKeyLayout("Teken in", "Teken uit", "", mainLayout);
 	} else {
 		Util::updateSoftKeyLayout("Teken in", "Terug", "", mainLayout);
 	}
@@ -105,7 +105,7 @@ void Login::drawLoginScreen() {
 	label->setDrawBackground(false);
 	kinListBox->add(label);
 
-	forgotPasswordLabel = new Label(0,0, scrWidth-(PADDING*2), DEFAULT_LABEL_HEIGHT, NULL, "Wagwoord Vergeet?", 0, Util::getDefaultFont());
+	forgotPasswordLabel = new Label(0,0, scrWidth-(PADDING*2), DEFAULT_LABEL_HEIGHT, NULL, "Wagwoord Vergeet?", 0, Util::getFontGreen());
 	forgotPasswordLabel->setDrawBackground(false);
 	forgotPasswordLabel->setPaddingLeft(PADDING);
 	forgotPasswordLabel->addWidgetListener(this);
@@ -154,12 +154,12 @@ void Login::drawRegisterScreen() {
 	label->addWidgetListener(this);
 	kinListBox->add(label);
 
-	label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, NULL, "Referrer", 0, Util::getDefaultFont());
+	label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, NULL, "Verwys deur", 0, Util::getDefaultFont());
 	label->setDrawBackground(false);
 	kinListBox->add(label);
 
 	label = Util::createEditLabel("");
-	editBoxRefer = new NativeEditBox(0, 0, label->getWidth()-PADDING*2, label->getHeight()-PADDING*2, 64, MA_TB_TYPE_EMAILADDR, label, "", L"Referrer");
+	editBoxRefer = new NativeEditBox(0, 0, label->getWidth()-PADDING*2, label->getHeight()-PADDING*2, 64, MA_TB_TYPE_EMAILADDR, label, "", L"Verwys deur");
 	editBoxRefer->setDrawBackground(false);
 	label->addWidgetListener(this);
 	kinListBox->add(label);
@@ -191,7 +191,7 @@ void Login::selectionChanged(Widget *widget, bool selected) {
 	}
 
 	if (forgotPasswordLabel != NULL && widget == forgotPasswordLabel) {
-		forgotPasswordLabel->setFont(selected?Util::getFontWhite():Util::getDefaultFont());
+		forgotPasswordLabel->setFont(selected?Util::getFontWhite():Util::getFontGreen());
 	}
 }
 
@@ -303,7 +303,7 @@ void Login::keyPressEvent(int keyCode) {
 					case S_LOGIN:
 						if (editBoxLogin->getText()!="" & editBoxPass->getText()!="") {
 							isBusy = true;
-							notice->setCaption("Wag asseblief, besig om in te teken");
+							notice->setCaption("Wag asseblief, besig om in te teken...");
 							conCatenation = editBoxPass->getText().c_str();
 							value = Util::base64_encode(reinterpret_cast<const unsigned char*>(conCatenation.c_str()),conCatenation.length());
 							feed->setEncrypt(value.c_str());

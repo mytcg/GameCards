@@ -53,7 +53,7 @@ TutorialScreen::TutorialScreen(MainScreen *previous, Vector<String> tutUrls) {
 	int capLength = 6 + Util::intlen(index+1) + Util::intlen(itemCount);
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", index+1, itemCount);
+	sprintf(cap, "Page %d/%d", index+1, itemCount);
 	((Button*)(softKeys->getChildren()[1]))->setCaption(cap);
 	delete cap;
 
@@ -218,7 +218,7 @@ void TutorialScreen::scrollImage(int move) {
 		int capLength = 6 + Util::intlen(index+1) + Util::intlen(itemCount);
 		char *cap = new char[capLength+1];
 		memset(cap,'\0',capLength+1);
-		sprintf(cap, "Bladsy %d/%d", index+1, itemCount);
+		sprintf(cap, "Page %d/%d", index+1, itemCount);
 		((Button*)(softKeys->getChildren()[1]))->setCaption(cap);
 		delete cap;
 	}

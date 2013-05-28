@@ -287,7 +287,7 @@ void ViewAchisScreen::drawList() {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(achiLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), achiLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), achiLists.size());
 
 	if (shown) {
 		((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
@@ -348,7 +348,7 @@ void ViewAchisScreen::show() {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(achiLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), achiLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), achiLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 	delete cap;
 }
@@ -508,7 +508,7 @@ void ViewAchisScreen::switchList(int nextOrPrev) {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(achiLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), achiLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), achiLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 	delete cap;
 

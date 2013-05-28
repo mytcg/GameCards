@@ -62,7 +62,7 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 
 	listBox = (ListBox*) mainLayout->getChildren()[0]->getChildren()[2];
 	notice = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
-	notice->setCaption("Opsoek na nuwe kaarte");
+	notice->setCaption("Opsoek na nuwe kaarte...");
 
 	this->setMain(mainLayout);
 
@@ -267,7 +267,7 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 
 void AlbumViewScreen::refresh() {
 	if ((albumType == AT_NORMAL)||(albumType == AT_AUCTION)||(albumType == AT_NEW_CARDS)) {
-		notice->setCaption("Opsoek na nuwe kaarte");
+		notice->setCaption("Opsoek na nuwe kaarte...");
 		busy = true;
 		//loadFile();
 		//work out how long the url will be, the 15 is for the & and = symbals, as well as hard coded parameters
@@ -558,7 +558,7 @@ void AlbumViewScreen::drawList() {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), cardLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 }
 
@@ -647,7 +647,7 @@ void AlbumViewScreen::show() {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), cardLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 }
 
@@ -893,7 +893,7 @@ void AlbumViewScreen::switchList(int nextOrPrev) {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), cardLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 
 	currentIndex = 0;

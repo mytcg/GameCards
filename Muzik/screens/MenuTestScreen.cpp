@@ -26,12 +26,12 @@ MenuTestScreen::MenuTestScreen(MainScreen *previous) {
 	dropDownGender->addWidgetListener(this);
 	kinListBox->add(dropDownGender);
 
-	label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, NULL, "Username", 0, Util::getDefaultFont());
+	label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, NULL, "Gebruikersnaam", 0, Util::getDefaultFont());
 	label->setDrawBackground(false);
 	kinListBox->add(label);
 
 	label = Util::createEditLabel("");
-	editBoxLogin = new NativeEditBox(0, 0, label->getWidth()-PADDING*2, label->getHeight()-PADDING*2,64,MA_TB_TYPE_ANY, label, "", L"Username");
+	editBoxLogin = new NativeEditBox(0, 0, label->getWidth()-PADDING*2, label->getHeight()-PADDING*2,64,MA_TB_TYPE_ANY, label, "", L"Gebruikersnaam");
 	editBoxLogin->setDrawBackground(false);
 	label->addWidgetListener(this);
 	kinListBox->add(label);

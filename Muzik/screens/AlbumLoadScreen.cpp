@@ -44,7 +44,7 @@ void AlbumLoadScreen::refresh() {
 		lprintfln("%s", url);
 		res = mHttp.create(url, HTTP_GET);
 	}else{
-		notice->setCaption("Opsoek na nuwe albums");
+		notice->setCaption("Opsoek na nuwe albums...");
 		urlLength = 52+URLSIZE + feed->getSeconds().length();
 		url = new char[urlLength+1];
 		memset(url,'\0',urlLength+1);
@@ -111,7 +111,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 		case ST_ALBUMS:
 		case ST_COMPARE:
 		case ST_AUCTION:
-			notice->setCaption("Opsoek na nuwe albums");
+			notice->setCaption("Opsoek na nuwe albums...");
 			album->setAll(this->feed->getAlbum()->getAll().c_str());
 			urlLength = 60 + URLSIZE + feed->getSeconds().length();
 			url = new char[urlLength+1];
@@ -133,7 +133,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 			res = mHttp.create(url, HTTP_GET);
 			break;
 		case ST_PLAY:
-			notice->setCaption("Opsoek na nuwe albums");
+			notice->setCaption("Opsoek na nuwe albums...");
 
 			//work out how long the url will be, the 2 is for the & and = symbols
 			urlLength = 60 + URLSIZE + feed->getUsername().length();
@@ -179,7 +179,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 		case ST_DECK:
 			path.add(categoryId);
 
-			notice->setCaption("Opsoek na nuwe albums");
+			notice->setCaption("Opsoek na nuwe albums...");
 			//work out how long the url will be, the 4 is for the & and = symbols
 			urlLength = 81 + URLSIZE + path[path.size()-1].length() + feed->getSeconds().length();
 			url = new char[urlLength+1];
@@ -444,7 +444,7 @@ void AlbumLoadScreen::drawList() {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), cardLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 
 	if (shown) {
 		((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
@@ -505,7 +505,7 @@ void AlbumLoadScreen::show() {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), cardLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 	delete cap;
 }
@@ -784,7 +784,7 @@ void AlbumLoadScreen::switchList(int nextOrPrev) {
 	int capLength = 6 + Util::intlen((selectedList + 1)) + Util::intlen(cardLists.size());
 	char *cap = new char[capLength+1];
 	memset(cap,'\0',capLength+1);
-	sprintf(cap, "Bladsy %d/%d", (selectedList + 1), cardLists.size());
+	sprintf(cap, "Page %d/%d", (selectedList + 1), cardLists.size());
 	((Label*)this->getMain()->getChildren()[1]->getChildren()[1])->setCaption(cap);
 	delete cap;
 
@@ -797,7 +797,7 @@ void AlbumLoadScreen::loadCategory() {
 	album->clearAll();
 	listBox->clear();
 	//then if the category has been loaded before, we need to load from the file
-	notice->setCaption("Opsoek na nuwe albums");
+	notice->setCaption("Opsoek na nuwe albums...");
 	if (path.size() == 0) {
 		album->setAll(this->feed->getAlbum()->getAll().c_str());
 	}

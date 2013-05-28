@@ -60,7 +60,7 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 		port = 2;
 	}
 
-	mainLayout = Util::createMainLayout("", "Back" , "");
+	mainLayout = Util::createMainLayout("", "Terug" , "");
 
 	listBox = (ListBox*) mainLayout->getChildren()[0]->getChildren()[2];
 	listBox->setWrapping(true);
@@ -551,7 +551,7 @@ void EditDeckScreen::drawConfirm() {
 
 	currentSelectedKey = NULL;
 	currentKeyPosition = -1;
-	Util::updateSoftKeyLayout("Confirm", "Back", "", mainLayout);
+	Util::updateSoftKeyLayout("Bevestig", "Terug", "", mainLayout);
 }
 
 EditDeckScreen::~EditDeckScreen() {
@@ -614,10 +614,10 @@ void EditDeckScreen::selectionChanged(Widget *widget, bool selected) {
 
 			//if ((kinListBox->getSelectedIndex() == 1 && cards.size() < 10) ||
 			//		(kinListBox->getSelectedIndex() == 0)) {
-			//	Util::updateSoftKeyLayout("", "Back", "", mainLayout);
+			//	Util::updateSoftKeyLayout("", "Terug", "", mainLayout);
 			//}
 			//else {
-			//	Util::updateSoftKeyLayout("Remove", "Back", "", mainLayout);
+			//	Util::updateSoftKeyLayout("Remove", "Terug", "", mainLayout);
 			//}
 			break;
 	}
@@ -866,7 +866,7 @@ void EditDeckScreen::keyPressEvent(int keyCode) {
 					if (!busy) {
 						//busy = true;
 						clearListBox();
-						Util::updateSoftKeyLayout("", "Back", "", mainLayout);
+						Util::updateSoftKeyLayout("", "Terug", "", mainLayout);
 						drawList();
 					}
 					break;

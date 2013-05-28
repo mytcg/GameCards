@@ -297,7 +297,7 @@ void AuctionCreateScreen::keyPressEvent(int keyCode) {
 									//editBoxDays->setSelected(false);
 
 									busy = true;
-									notice->setCaption("Skep veiling");
+									notice->setCaption("Skep veiling...");
 
 									//work out how long the url will be, the 8 is for the & and = symbols
 									int urlLength = 71 + URLSIZE + card->getId().length() + openingText.length() + buyNowText.length() + daysText.length();
@@ -512,7 +512,7 @@ void AuctionCreateScreen::drawConfirmScreen() {
 	cardText += "\n";
 	cardText += card->getRarity();
 
-	cardText += "\nAanvangsbod: ";
+	cardText += "\nOpening Bid: ";
 	cardText += openingText;
 	if((!strcmp(buyNowText.c_str(), ""))||(!strcmp(buyNowText.c_str(), "0"))) {
 
@@ -569,7 +569,7 @@ void AuctionCreateScreen::drawCreatedScreen() {
 	cardText += "\n";
 	cardText += card->getRarity();
 
-	cardText += "\nAanvangsbod: ";
+	cardText += "\nOpening Bid: ";
 	cardText += openingText;
 	if((!strcmp(buyNowText.c_str(), ""))||(!strcmp(buyNowText.c_str(), "0"))) {
 
@@ -589,7 +589,7 @@ void AuctionCreateScreen::drawCreatedScreen() {
 
 	String result = "";
 	if (!strcmp(createResult.c_str(), "1")) {
-		result = "Veiling geskep";
+		result = "Veiling geskep!";
 	}
 	else {
 		result = "Error creating auction.";

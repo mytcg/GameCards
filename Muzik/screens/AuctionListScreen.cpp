@@ -178,7 +178,7 @@ void AuctionListScreen::drawList() {
 		cardText = auctions[i]->getCard()->getText();
 
 		if ((strcmp(auctions[i]->getPrice().c_str(), ""))&&(strcmp(auctions[i]->getPrice().c_str(), "0"))) {
-			cardText += "\nCurrent Bid: ";
+			cardText += "\nHuidige bod: ";
 			cardText += auctions[i]->getPrice();
 
 			if (strcmp(auctions[i]->getLastBidUser().c_str(), feed->getUsername().c_str()) == 0) {
@@ -186,7 +186,7 @@ void AuctionListScreen::drawList() {
 			}
 		}
 		else {
-			cardText += "\nAanvangsbod: ";
+			cardText += "\nOpening Bid: ";
 			cardText += auctions[i]->getOpeningBid();
 		}
 		cardText += "\n";
