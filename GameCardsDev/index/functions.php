@@ -2880,10 +2880,10 @@ function getProducts($categoryId, $products, $iFreebie) {
 }
 
 function leaders($leaderboards) {
-	$aLeaders=myqu('SELECT leaderboard_id, description 
-					FROM mytcg_leaderboards
-					WHERE active = 1
-					AND apps_id IN ('.$leaderboards.')');
+	$aLeaders=myqu('SELECT lb.leaderboard_id, lb.description 
+					FROM mytcg_leaderboards lb
+					WHERE lb.active = 1
+					AND lb.apps_id IN ('.$leaderboards.') order by lb.index asc');
 		
 	$sOP='<cardcategories>'.$sCRLF;
 	$count = 0;

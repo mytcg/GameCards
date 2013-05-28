@@ -2266,6 +2266,33 @@ if ($_GET['usercategories']){
 			exit;
 		}
 	}
+	
+	$inClause = "";
+	if ($topcar != "-1") {
+		$inClause = " AND cx.category_parent_id IN (".$topcar;
+		
+		$currentChildren = $topcar;
+		do {
+			$qu = 'SELECT category_child_id 
+				FROM mytcg_category_x 
+				WHERE category_parent_id IN ('.$currentChildren.')';
+			$childrenQuery=myqu($qu);
+			
+			$currentChildren = '';
+			$iCount=0;
+			
+			while ($child = $childrenQuery[$iCount]) {
+				$iCount++;
+				
+				$inClause.= ','.$child['category_child_id'];
+				
+				$currentChildren.=(strlen($currentChildren)>0?(','.$child['category_child_id']):$child['category_child_id']);
+			}
+		} while ($currentChildren != '');
+		
+		$inClause.=')';
+	}
+	
 	//this gets the categories that the user has cards in, and their parents
 	$query = 'SELECT DISTINCT ca.category_id, ca.description, "true" hasCards, 
 		CASE WHEN cx.category_parent_id IS NULL THEN "top" ELSE cx.category_parent_id END category_parent_id,
@@ -2281,7 +2308,7 @@ if ($_GET['usercategories']){
 		LEFT OUTER JOIN mytcg_category_x cx
 		ON cx.category_child_id = ca.category_id
 		WHERE LOWER(ucs.description) = LOWER("album")
-		AND uc.user_id = '.$userId.$usercategories.' 
+		AND uc.user_id = '.$userId.$inClause.' 
 		GROUP BY ca.category_id
 		ORDER BY ca.description';
 	/*echo $query;*/
