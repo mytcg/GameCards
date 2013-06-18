@@ -1,0 +1,365 @@
+/* STANDARD IMAGES FOR ALL */
+
+.res RES_IMAGE  /*1*/
+.ubin
+.image "crosslogo.png"
+
+.res RES_SELECTED_EDITBOX  /*2*/
+.ubin 
+.image "background_editbox_sel.png"
+
+.res RES_UNSELECTED_EDITBOX  /*3*/
+.ubin 
+.image "background_editbox_unsel.png"
+
+.res RES_UNSELECTED_BUTTON  /*4*/
+.ubin
+.image "background_button_unsel.png"
+
+.res RES_SELECTED_BUTTON  /*5*/
+.ubin
+.image "background_button_sel.png"
+
+.res RES_TEXT_BOX  /*6*/
+.ubin 
+.image "background_text_sel.png"
+
+.res RES_BACKGROUND  /*7*/
+.ubin
+.image "background.png"
+
+.res RES_SELECTED_LIST  /*8*/
+.ubin
+.image "background_list_sel.png"  
+
+.res RES_UNSELECTED_LIST  /*9*/
+.ubin
+.image "background_list_unsel.png"
+
+.res RES_SELECTED_ALBUM  /*10*/
+.ubin
+.image "background_album_sel.png"
+
+.res RES_UNSELECTED_ALBUM  /*11*/
+.ubin
+.image "background_album_unsel.png"  
+
+.res RESP_DATA  /*12*/
+.placeholder
+
+.res RESP_IMAGE  /*13*/
+.placeholder
+
+.res RES_TEMPTHUMB  /*14*/
+.ubin
+.include "emptythumb.png"
+
+.res RES_TEMP  /*15*/
+.ubin
+.include "empty.png"
+
+.res RES_LOADINGTHUMB  /*16*/
+.ubin
+.include "loadingthumb.png"
+
+.res RES_MISSINGTHUMB  /*17*/
+.ubin
+.include "missingcardthumb.png"
+
+.res RES_CHANGE_STAR  /*18*/
+.ubin
+.image "change_star.png"
+
+.res RES_EMPTY_FLIP  /*19*/
+.ubin
+.include "empty_flip.png"
+
+.res RES_BOX_SELECTED  /*20*/
+.ubin
+.image "box_selected.png"
+
+.res RES_BOX_UNSELECTED  /*21*/
+.ubin
+.image "box_unselected.png"
+
+.res RES_LOADING1  /*22*/
+.ubin
+.include "loading1.png"
+
+.res RES_LOADING2  /*23*/
+.ubin
+.include "loading2.png"
+
+.res RES_LOADING3  /*24*/
+.ubin
+.include "loading3.png"
+
+.res RES_LOADING4  /*25*/
+.ubin
+.include "loading4.png"
+
+.res RES_LOADING5  /*26*/
+.ubin
+.include "loading5.png"
+
+.res RES_LOADING6  /*27*/
+.ubin
+.include "loading6.png"
+
+.res RES_LOADING7  /*28*/
+.ubin
+.include "loading7.png"
+
+.res RES_LOADING8  /*29*/
+.ubin
+.include "loading8.png"
+
+.res RES_LOADING9  /*30*/
+.ubin
+.include "loading9.png"
+
+.res RES_LOADING10  /*31*/
+.ubin
+.include "loading10.png"
+
+.res RES_LOADING11  /*32*/
+.ubin
+.include "loading11.png"
+
+.res RES_LOADING12  /*33*/
+.ubin
+.include "loading12.png"
+
+.res RES_LOADING13  /*34*/
+.ubin
+.include "loading13.png"
+
+.res RES_LOADING14  /*35*/
+.ubin
+.include "loading14.png"
+
+.res RES_LOADING15  /*36*/
+.ubin
+.include "loading15.png"
+
+.res RES_LOADING16  /*37*/
+.ubin
+.include "loading16.png"
+
+.res RES_LOADING17  /*38*/
+.ubin
+.include "loading17.png"
+
+.res RES_LOADING18  /*39*/
+.ubin
+.include "loading18.png"
+
+.res RES_LOADING_FLIP1  /*40*/
+.ubin
+.include "loading_flip1.png"
+
+.res RES_LOADING_FLIP2  /*41*/
+.ubin
+.include "loading_flip2.png"
+
+.res RES_LOADING_FLIP3  /*42*/
+.ubin
+.include "loading_flip3.png"
+
+.res RES_LOADING_FLIP4  /*43*/
+.ubin
+.include "loading_flip4.png"
+
+.res RES_LOADING_FLIP5  /*44*/
+.ubin
+.include "loading_flip5.png"
+
+.res RES_LOADING_FLIP6  /*45*/
+.ubin
+.include "loading_flip6.png"
+
+.res RES_LOADING_FLIP7  /*46*/
+.ubin
+.include "loading_flip7.png"
+
+.res RES_LOADING_FLIP8  /*47*/
+.ubin
+.include "loading_flip8.png"
+
+.res RES_LOADING_FLIP9  /*48*/
+.ubin
+.include "loading_flip9.png"
+
+.res RES_LOADING_FLIP10  /*49*/
+.ubin
+.include "loading_flip10.png"
+
+.res RES_LOADING_FLIP11  /*50*/
+.ubin
+.include "loading_flip11.png"
+
+.res RES_LOADING_FLIP12  /*51*/
+.ubin
+.include "loading_flip12.png"
+
+.res RES_LOADING_FLIP13  /*52*/
+.ubin
+.include "loading_flip13.png"
+
+.res RES_LOADING_FLIP14  /*53*/
+.ubin
+.include "loading_flip14.png"
+
+.res RES_LOADING_FLIP15  /*54*/
+.ubin
+.include "loading_flip15.png"
+
+.res RES_LOADING_FLIP16  /*55*/
+.ubin
+.include "loading_flip16.png"
+
+.res RES_LOADING_FLIP17  /*56*/
+.ubin
+.include "loading_flip17.png"
+
+.res RES_LOADING_FLIP18  /*57*/
+.ubin
+.include "loading_flip18.png"
+
+.res RES_LEFT_ARROW  /*58*/
+.ubin
+.image "leftarrow.png"
+
+.res RES_RIGHT_ARROW  /*59*/
+.ubin
+.image "rightarrow.png"
+
+.res RES_ALBUM  /*60*/
+.ubin
+.image "Album.png"
+
+.res RES_ALBUM_THUMB  /*61*/
+.ubin
+.image "Album_thumb.png"
+
+.res RES_LOGOUT  /*62*/
+.ubin
+.image "Logout.png"
+
+.res RES_LOGOUT_THUMB  /*63*/
+.ubin
+.image "Logout_thumb.png"
+
+.res RES_NOTIFICATIONS  /*64*/
+.ubin
+.image "Notifications.png"
+
+.res RES_NOTIFICATIONS_THUMB  /*65*/
+.ubin
+.image "Notifications_thumb.png"
+
+.res RES_PROFILE  /*66*/
+.ubin
+.image "Profile.png"
+
+.res RES_PROFILE_THUMB  /*67*/
+.ubin
+.image "Profile_thumb.png"
+
+.res RES_RANKINGS  /*68*/
+.ubin
+.image "Rankings.png"
+
+.res RES_RANKINGS_THUMB  /*69*/
+.ubin
+.image "Rankings_thumb.png"
+
+.res RES_DESELECTED_LIST_DOT  /*70*/
+.ubin
+.image "inactive_dot.png"
+
+.res RES_SELECTED_LIST_DOT  /*71*/
+.ubin
+.image "active_dot.png"
+
+.res RES_ICONS_BACK  /*72*/
+.ubin
+.image "icon_bar.png"
+
+.res RES_SELECT_ICON  /*73*/
+.ubin
+.image "select.png"
+
+.res RES_UNSELECT_ICON  /*74*/
+.ubin
+.image "unselect.png"
+
+.res RES_HEAD  /*75*/
+.ubin
+.image "head.png"
+
+.res BLANK /*76*/
+.image "blank.png"
+
+/* Custom variables per app */
+
+.res RES_FONT_RED  /*77*/
+.bin
+.include "calibrired.mof" 
+
+.res RES_FONT_WHITE /*78*/
+.bin
+.include "calibrigray.mof"  
+
+.res RES_DROPDOWNITEM_SEL /*79*/
+.ubin 
+.image "dropdownitem_sel.png" 
+
+.res RES_DROPDOWNITEM_UNSEL /*80*/
+.ubin 
+.image "dropdownitem_unsel.png"  
+
+.res RES_DROPDOWN_SEL /*81*/
+.ubin 
+.image "dropdownbox_sel.png"  
+
+.res RES_DROPDOWN_UNSEL /*82*/
+.ubin 
+.image "dropdownbox_unsel.png"
+
+.res RES_POPUP_HEADER /*83*/
+.ubin 
+.image "popup_header.png"
+
+.res RES_COMPETITIONS /*84*/
+.ubin
+.image "Competition.png"
+
+.res RES_COMPETITIONS_THUMB /*85*/
+.ubin
+.image "Competition_thumb.png"
+
+.res RES_ALBUM_THUMB_SEL /*86*/
+.ubin
+.image "Album_thumb_sel.png"
+
+.res RES_COMPETITIONS_THUMB_SEL /*87*/
+.ubin
+.image "Competition_thumb_sel.png"
+
+.res RES_LOGOUT_THUMB_SEL /*88*/
+.ubin
+.image "Logout_thumb_sel.png"
+
+.res RES_NOTIFICATIONS_THUMB_SEL /*89*/
+.ubin
+.image "Notifications_thumb_sel.png"
+
+.res RES_PROFILE_THUMB_SEL /*90*/
+.ubin
+.image "Profile_thumb_sel.png"
+
+.res RES_RANKINGS_THUMB_SEL /*91*/
+.ubin
+.image "Rankings_thumb_sel.png"
+
