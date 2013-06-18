@@ -2900,12 +2900,12 @@ function leaders($leaderboards) {
 	exit;
 }
 
-function leaderboard($id, $iUserID) {
-	$aLeaders=myqu('SELECT leaderboard_id, description, lquery, fquery 
+function leaderboard($id, $iUserID, $iUserID2 = '') {
+	$aLeaders=myqu('SELECT leaderboard_id, description, lquery, fquery, rquery 
 					FROM mytcg_leaderboards 
 					WHERE active = 1 
 					AND leaderboard_id= '.$id);
-					
+	
 	$sOP='<leaderboard>'.$sCRLF;
 	
 	if (sizeof($aLeaders) > 0) {
@@ -2914,6 +2914,16 @@ function leaderboard($id, $iUserID) {
 			$q = $aLeaders[0]['fquery'];
 			$query = str_replace("__REPLACE__", $iUserID, $q);
 		}
+		
+		if ($iUserID == '' && $aLeaders[0]['rquery'] != '') {
+			$rquery = $aLeaders[0]['rquery'];
+			$rquery = str_replace("__REPLACE__", $iUserID2, $rquery);
+			
+			$rank = myqu($rquery);
+			
+			$sOP='<leaderboard userposition="'.$rank[0][0].'">'.$sCRLF;
+		}
+		
 		$aQuery=myqu($query);
 	
 		$count = 0;

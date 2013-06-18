@@ -516,7 +516,7 @@ if ($id=$_GET['leaderboard']) {
 	if ($_GET['friends']) {
 		$userid = $iUserID;
 	}
-	leaderboard($id, $userid);
+	leaderboard($id, $userid, $iUserID);
 	exit;
 }
 

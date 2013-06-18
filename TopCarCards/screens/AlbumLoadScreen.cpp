@@ -84,6 +84,7 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	int urlLength = 0;
 	selectedList = 0;
 
+	tagEnd = "";
 	hasCards = "";
 	temp = "";
 	empt = true;
@@ -101,7 +102,6 @@ AlbumLoadScreen::AlbumLoadScreen(MainScreen *previous, Feed *feed, int screenTyp
 	notice = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
 
 	if (album == NULL) {
-		lprintfln("album = new Albums()");
 		album = new Albums();
 	} else {
 		album->clearAll();
@@ -626,7 +626,7 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 				case ST_DECK:
 					if (path.size() > 1) {
 						path.remove(path.size()-1);
-						loadCategory();
+						loadCategory(true);
 					}
 					else {
 						previous->show();
@@ -635,7 +635,7 @@ void AlbumLoadScreen::keyPressEvent(int keyCode) {
 				default:
 					if (path.size() > 0) {
 						path.remove(path.size()-1);
-						loadCategory();
+						loadCategory(true);
 					}
 					else {
 						previous->show();
@@ -791,13 +791,12 @@ void AlbumLoadScreen::switchList(int nextOrPrev) {
 	currentIndex = 0;
 }
 
-void AlbumLoadScreen::loadCategory() {
+void AlbumLoadScreen::loadCategory(bool back) {
 	Util::updateSoftKeyLayout("", "Back", "", mainLayout);
 	//the list needs to be cleared
 	album->clearAll();
 	listBox->clear();
 	//then if the category has been loaded before, we need to load from the file
-	notice->setCaption("Checking for new albums...");
 	if (path.size() == 0) {
 		album->setAll(this->feed->getAlbum()->getAll().c_str());
 	}
@@ -814,7 +813,8 @@ void AlbumLoadScreen::loadCategory() {
 	}
 	drawList();
 	//then request up to date info, if there is a connection available
-	if (hasConnection) {
+	if (hasConnection && !back) {
+		notice->setCaption("Checking for new albums...");
 		int res;
 		int urlLength;
 		char *url = NULL;
@@ -870,15 +870,134 @@ void AlbumLoadScreen::httpFinished(MAUtil::HttpConnection* http, int result) {
 	}
 }
 
-void AlbumLoadScreen::connReadFinished(Connection* conn, int result) {}
+void AlbumLoadScreen::connReadFinished(Connection* conn, int result) {
+}
 
 void AlbumLoadScreen::xcConnError(int code) {
 	feed->remHttp();
-	if (code == -6) {
+	/*if (code == -6) {
+		tagEnd = "";
 		return;
-	} else {
-
-	}
+	} else {*/
+		if (!strcmp(tagEnd.c_str(), "usercategories") || !strcmp(tagEnd.c_str(), "categories") || !strcmp(tagEnd.c_str(), "games") || !strcmp(tagEnd.c_str(), "tuts")) {
+			if ((album->size() == 1)/*&&(screenType != ST_ALBUMS)*/) {
+				Vector<String> display = album->getNames();
+				Album* val = album->getAlbum(display.begin()->c_str());
+				if (val != NULL) {
+					if (next != NULL) {
+						delete next;
+						feed->remHttp();
+						next = NULL;
+					}
+					switch (screenType) {
+						case ST_ALBUMS:
+							if (val->getHasCards()) {
+								if (strcmp(val->getId().c_str(), "-3") == 0) {
+									next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NEW_CARDS, isAuction);
+									next->show();
+								}
+								else {
+									next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NORMAL, isAuction);
+									next->show();
+								}
+							}
+							else {
+								//if a category has no cards, it means it has sub categories.
+								//it is added to the path so we can back track
+								path.add(val->getId());
+								//then it must be loaded
+								loadCategory();
+							}
+							break;
+						case ST_COMPARE:
+							if (val->getHasCards()) {
+								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_COMPARE, isAuction, card);
+								next->show();
+							}
+							else {
+								//if a category has no cards, it means it has sub categories.
+								//it is added to the path so we can back track
+								path.add(val->getId());
+								//then it must be loaded
+								loadCategory();
+							}
+							break;
+						case ST_DECK:
+							if (val->getHasCards()) {
+								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
+								next->show();
+							}
+							else {
+								//if a category has no cards, it means it has sub categories.
+								//it is added to the path so we can back track
+								path.add(val->getId());
+								//then it must be loaded
+								loadCategory();
+							}
+							break;
+						case ST_PLAY:
+							next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, DeckListScreen::SST_NORMAL, val->getId());
+							next->show();
+							break;
+						case ST_GAMES:
+							next = new GamePlayScreen(this, feed, false, val->getId());
+							next->show();
+							break;
+					}
+				}
+				display.clear();
+			}
+		}
+		else if(!strcmp(tagEnd.c_str(), "result")) {
+			if ((album->size() == 1)/*&&(screenType != ST_ALBUMS)*/) {
+				Vector<String> display = album->getNames();
+				Album* val = album->getAlbum(display.begin()->c_str());
+				if (val != NULL) {
+					if (next != NULL) {
+						delete next;
+						feed->remHttp();
+						next = NULL;
+					}
+					switch (screenType) {
+						case ST_ALBUMS:
+							if (val->getHasCards()) {
+								if (strcmp(val->getId().c_str(), "-3") == 0) {
+									next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NEW_CARDS, isAuction);
+									next->show();
+								}
+								else {
+									next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NORMAL, isAuction);
+									next->show();
+								}
+							}
+							else {
+								//if a category has no cards, it means it has sub categories.
+								//it is added to the path so we can back track
+								path.add(val->getId());
+								//then it must be loaded
+								loadCategory();
+							}
+							break;
+						case ST_COMPARE:
+							if (val->getHasCards()) {
+								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_COMPARE, isAuction, card);
+								next->show();
+							}
+							else {
+								//if a category has no cards, it means it has sub categories.
+								//it is added to the path so we can back track
+								path.add(val->getId());
+								//then it must be loaded
+								loadCategory();
+							}
+							break;
+					}
+				}
+				display.clear();
+			}
+		}
+	//}
+	tagEnd = "";
 }
 
 void AlbumLoadScreen::mtxEncoding(const char* ) {
@@ -930,6 +1049,7 @@ void AlbumLoadScreen::menuOptionSelected(int index) {
 }
 
 void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
+	tagEnd = name;
 	if(!strcmp(name, "album") || !strcmp(name, "categoryname") || !strcmp(name, "gamedescription")) {
 		notice->setCaption("");
 		album->addAlbum(temp.c_str(), temp1.c_str(), (hasCards=="true"), (updated=="1"));
@@ -980,7 +1100,6 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		}
 		drawList();
 		if (album->size() == 0) {
-			lprintfln("album->size() %d", album->size());
 			if (screenType == ST_TUT) {
 				MenuScreen *confirmation = new MenuScreen(RES_BLANK, "We have not added any tutorials yet. They will be coming soon!");
 				confirmation->setMenuWidth(180);
@@ -1008,73 +1127,6 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 				confirmation->show();
 			}
 		}
-		if ((album->size() == 1)/*&&(screenType != ST_ALBUMS)*/) {
-			Vector<String> display = album->getNames();
-			Album* val = album->getAlbum(display.begin()->c_str());
-			if (val != NULL) {
-				if (next != NULL) {
-					delete next;
-					feed->remHttp();
-					next = NULL;
-				}
-				switch (screenType) {
-					case ST_ALBUMS:
-						if (val->getHasCards()) {
-							if (strcmp(val->getId().c_str(), "-3") == 0) {
-								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NEW_CARDS, isAuction);
-								next->show();
-							}
-							else {
-								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NORMAL, isAuction);
-								next->show();
-							}
-						}
-						else {
-							//if a category has no cards, it means it has sub categories.
-							//it is added to the path so we can back track
-							path.add(val->getId());
-							//then it must be loaded
-							loadCategory();
-						}
-						break;
-					case ST_COMPARE:
-						if (val->getHasCards()) {
-							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_COMPARE, isAuction, card);
-							next->show();
-						}
-						else {
-							//if a category has no cards, it means it has sub categories.
-							//it is added to the path so we can back track
-							path.add(val->getId());
-							//then it must be loaded
-							loadCategory();
-						}
-						break;
-					case ST_DECK:
-						if (val->getHasCards()) {
-							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_DECK, isAuction, card, deckId,"",positionId);
-							next->show();
-						}
-						else {
-							//if a category has no cards, it means it has sub categories.
-							//it is added to the path so we can back track
-							path.add(val->getId());
-							//then it must be loaded
-							loadCategory();
-						}
-						break;
-					case ST_PLAY:
-						next = new DeckListScreen(this, feed, DeckListScreen::ST_SELECT, DeckListScreen::SST_NORMAL, val->getId());
-						next->show();
-						break;
-					case ST_GAMES:
-						next = new GamePlayScreen(this, feed, false, val->getId());
-						next->show();
-						break;
-					}
-				}
-				display.clear();
-			}
 		temp = "";
 		hasCards = "";
 		updated = "";
@@ -1097,7 +1149,6 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 		temp1 = "";
 		error_msg = "";
 		if (album->size() == 0) {
-			lprintfln("album->size() %d", album->size());
 			if (album->size()==0) {
 				MenuScreen *confirmation = new MenuScreen(RES_BLANK, "We noticed you have not purchased cards yet. You can go to the Shop to purchase more.");
 				confirmation->setMenuWidth(180);
@@ -1112,52 +1163,6 @@ void AlbumLoadScreen::mtxTagEnd(const char* name, int len) {
 				confirmation->show();
 			}
 		}
-		if ((album->size() == 1)/*&&(screenType != ST_ALBUMS)*/) {
-			Vector<String> display = album->getNames();
-			Album* val = album->getAlbum(display.begin()->c_str());
-			if (val != NULL) {
-				if (next != NULL) {
-					delete next;
-					feed->remHttp();
-					next = NULL;
-				}
-				switch (screenType) {
-					case ST_ALBUMS:
-						if (val->getHasCards()) {
-							if (strcmp(val->getId().c_str(), "-3") == 0) {
-								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NEW_CARDS, isAuction);
-								next->show();
-							}
-							else {
-								next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_NORMAL, isAuction);
-								next->show();
-							}
-						}
-						else {
-							//if a category has no cards, it means it has sub categories.
-							//it is added to the path so we can back track
-							path.add(val->getId());
-							//then it must be loaded
-							loadCategory();
-						}
-						break;
-					case ST_COMPARE:
-						if (val->getHasCards()) {
-							next = new AlbumViewScreen(this, feed, val->getId(), AlbumViewScreen::AT_COMPARE, isAuction, card);
-							next->show();
-						}
-						else {
-							//if a category has no cards, it means it has sub categories.
-							//it is added to the path so we can back track
-							path.add(val->getId());
-							//then it must be loaded
-							loadCategory();
-						}
-						break;
-					}
-				}
-				display.clear();
-			}
 		temp = "";
 		hasCards = "";
 		updated = "";

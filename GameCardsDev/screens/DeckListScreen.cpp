@@ -228,7 +228,10 @@ void DeckListScreen::drawList() {
 		currentSelectedKey = NULL;
 		currentKeyPosition = -1;
 	}
-	kinListBox->setSelectedIndex(0);
+
+	if ((albums.size() > 0 && screenSubType == SST_COMPETITION) || screenSubType == SST_NORMAL) {
+		kinListBox->setSelectedIndex(0);
+	}
 
 	selecting = false;
 }
@@ -347,7 +350,7 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 			if (ind+1 < max && !selecting) {
 				kinListBox->setSelectedIndex(ind+1);
 			} else {
-				if (!selecting) {
+				if (!selecting && max > 0) {
 					kinListBox->getChildren()[ind]->setSelected(false);
 				}
 				for(int i = 0; i < currentSoftKeys->getChildren().size();i++){
@@ -365,11 +368,11 @@ void DeckListScreen::keyPressEvent(int keyCode) {
 				currentSelectedKey->setSelected(false);
 				currentSelectedKey = NULL;
 				currentKeyPosition = -1;
-				if (!selecting) {
+				if (!selecting && max > 0) {
 					kinListBox->getChildren()[kinListBox->getChildren().size()-1]->setSelected(true);
 				}
 			}
-			else if (!selecting) {
+			else if (!selecting && max > 0) {
 				if (ind == 0) {
 					kinListBox->setSelectedIndex(max-1);
 				} else {

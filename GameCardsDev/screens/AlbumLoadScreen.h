@@ -47,7 +47,7 @@ private:
 	Vector<String> path;
 	Vector<String> tutimages;
 	HashMap<String,Vector<String> > tuts;
-	String parentTag;
+	String parentTag, tagEnd;
 	String temp,temp1,error_msg,hasCards,updated,categoryId,deckId,positionId,friendId,id,desc,image;
 	int size, i, moved, screenType, xStart, currentKeyPosition;
 	bool list, left, right, mid,listLeft, listRight, empt, hasConnection, isAuction, shown;
@@ -75,7 +75,7 @@ private:
 	void mtxTagStartEnd();
 
 	void clearListBox();
-	void loadCategory();
+	void loadCategory(bool back = false);
 };
 
 #endif	//_ALBUMLOADSCREEN_H_*/

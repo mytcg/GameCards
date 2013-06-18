@@ -179,6 +179,7 @@ filename(category+"-lst.sav"), category(category), cardExists(cards.end()), albu
 		delete url;
 		url = NULL;
 	} else if (albumType == AT_DECK) {
+		drawList();
 		//work out how long the url will be, the 15 is for the & and = symbals, as well as hard coded parameters
 		int urlLength = 92 + URLSIZE + category.length() + Util::intlen(Util::getMaxImageHeight()) +
 				Util::intlen(scrWidth) + feed->getSeconds().length() + deckId.length();
