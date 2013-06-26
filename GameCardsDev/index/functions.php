@@ -2922,6 +2922,7 @@ function leaderboard($id, $iUserID, $iUserID2 = '') {
 			$rank = myqu($rquery);
 			
 			$sOP='<leaderboard userposition="'.$rank[0][0].'">'.$sCRLF;
+			$sOP.=$sTab.'<userposition>'.$rank[0][0].'</userposition>'.$sCRLF;
 		}
 		
 		$aQuery=myqu($query);
@@ -3193,7 +3194,6 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 			exit;
 		}
 	}
-	$qu = "SELECT user_id, username FROM mytcg_user WHERE username = '{$referer}' or email_address = '{$referer}' or msisdn = '{$referer}'";
 	//echo $qu;
 	
 	if ($iUserID==0) {
@@ -3231,6 +3231,7 @@ function registerUser ($username, $password, $email, $referer,$iHeight,$iWidth,$
 			return $sOP;
 		}
 		
+		$qu = "SELECT user_id, username FROM mytcg_user WHERE username = '{$referer}' or email_address = '{$referer}' or msisdn = '{$referer}'";
 		
 		$aReferer=myqu($qu);
 		
@@ -4181,7 +4182,7 @@ function createDeck($iUserID,$iCategoryID,$iDescription) {
 	return $sOP;
 }
 
-function getTuts($iHeight, $iWidth, $topcar, $root) {
+function getTuts($iHeight, $iWidth, $appkey, $root) {
 	$aServers=myqu('SELECT b.imageserver_id, b.description as URL '
 		.'FROM mytcg_imageserver b '
 		.'ORDER BY b.description DESC '
@@ -4190,7 +4191,7 @@ function getTuts($iHeight, $iWidth, $topcar, $root) {
 	$tutQu = ('select t.id, t.description, ti.index, ti.imageserver, ti.image
 		from mytcg_tutorial t, mytcg_tutorialimage ti
 		where ti.tutorial_id = t.id
-		and t.app_id = '.$topcar.'
+		and t.app_id in (select apps_id from mytcg_apps where apps_key = \''.$appkey.'\')
 		order by t.description, ti.index');
 	
 	$tutQuery = myqu($tutQu);

@@ -224,8 +224,10 @@ if ($_GET['registeruser']) {
 	$username = $_REQUEST['username'];
 	$password = $_REQUEST['password'];
 	$email = $_REQUEST['email'];
-	$referer = $_REQUEST['referer'];
 	
+	if (!($referer=$_REQUEST['referer'])) {
+		$referer = '';
+	}
 	if (!($iHeight=$_GET['height'])) {
 		$iHeight = '350';
 	}
@@ -262,7 +264,34 @@ if ($_GET['registeruser']) {
 				checkAchis($iUserID, 1);
 			}
 		}
-		
+	}
+	else if ($appkey == "Cycling") {
+		//if the user is registering from the cycling app, we need to gove them all the Tour de France 2013 cards
+		$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
+		if (sizeof($aUserDetails) > 0) {
+			$userId = $aUserDetails[0]['user_id'];
+			$aValidUser=myqu(
+									"SELECT user_id, username, password, date_last_visit, credits "
+									."FROM mytcg_user "
+									."WHERE username='".$username."' "
+									."AND is_active='1'"
+			);
+			$iUserID=$aValidUser[0]["user_id"];
+			$iMod=(intval($iUserID) % 10)+1;
+			$sPassword=substr(md5($iUserID),$iMod,10).md5($password);
+			if ($sPassword==$aValidUser[0]['password']){
+			
+				myqui('insert into mytcg_usercard (user_id, card_id, usercardstatus_id, is_new, loaded)
+					select '.$iUserID.', card_id, 1, 0, 1
+					from mytcg_card 
+					where category_id in (select category_child_id from mytcg_category_x where category_parent_id = 85)');
+				
+				myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
+					VALUES ('.$iUserID.', "The 2013 Tour de France cards have been added to your collection!", now(), 1)');
+				
+				checkAchis($iUserID, 1);
+			}
+		}
 	}
 	
 	header('xml_length: '.strlen($sOP));
@@ -3047,18 +3076,33 @@ if ($_GET['getallcompdecks']){
 		$inClause.=')';
 	}
 	
-	$aDeckDetails=myqu('SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type
+	$qu = 'SELECT md.deck_id, md.description, IFNULL(cd.active,"1") as active, md.type, cd.extradata, cd.type deckType 
 		FROM mytcg_deck md
 		LEFT OUTER JOIN mytcg_competitiondeck cd ON cd.competitiondeck_id = md.competitiondeck_id 
 		WHERE md.user_id='.$iUserID.' '.$inClause.' 
-		AND ((cd.active="1" AND md.type="4") OR (cd.active="2" AND md.type="4"))
-		ORDER BY active, cd.end_date, md.description');
+		AND ((cd.active="1" AND md.type="4") OR (cd.active="2" AND md.type="4")) ';
+		
+		
+	if ($appkey == "Cycling") {
+		$qu.='ORDER BY active, cd.type desc, cd.end_date, md.description';
+	}
+	else {
+		$qu.='ORDER BY active, cd.end_date, md.description';
+	}
+	
+	$aDeckDetails=myqu($qu);
 	$sOP='<decks>'.$sCRLF;
 	$iCount=0;
 	while ($aDeckDetail=$aDeckDetails[$iCount]){
 		$sOP.='<deck>'.$sCRLF;
 		$sOP.=$sTab.'<deck_id>'.trim($aDeckDetail['deck_id']).'</deck_id>'.$sCRLF;
-		$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		if ($appkey == "Cycling" && $aDeckDetail['deckType'] == '4') {
+			$dataPieces = explode('|',$aDeckDetail['extradata']);
+			$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).': '.$dataPieces[0].' | '.$dataPieces[1].' | '.$dataPieces[2].'</desc>'.$sCRLF;
+		}
+		else {
+			$sOP.=$sTab.'<desc>'.trim($aDeckDetail['description']).'</desc>'.$sCRLF;
+		}
 		$sOP.=$sTab.'<active>'.trim($aDeckDetail['active']).'</active>'.$sCRLF;
 		$sOP.=$sTab.'<type>'.trim($aDeckDetail['type']).'</type>'.$sCRLF;		
 		$sOP.='</deck>'.$sCRLF;
@@ -3229,13 +3273,21 @@ if ($_GET['getcardsindeck']){
 		$lastCheckSeconds = "0";
 	}
 	
-	$aDeckCategory=myqu('SELECT d.category_id, CASE WHEN COUNT(c.card_id) > 0 THEN "true" ELSE "false" END hascards 
+	$aDeckCategory=myqu('SELECT d.category_id, CASE WHEN COUNT(c.card_id) > 0 THEN "true" ELSE "false" END hascards, DATE_FORMAT(cd.end_date, \'%Y-%m-%d %k:%i\') end_date 
 		FROM mytcg_deck d
 		INNER JOIN mytcg_card c 
 		ON c.category_id = d.category_id
+		LEFT JOIN mytcg_competitiondeck cd
+		ON d.competitiondeck_id = cd.competitiondeck_id
 		WHERE d.deck_id='.$iDeckID);
 	
-	$sOP = "<deck>";
+	if ($aDeckCategory[0]["end_date"] != '') {
+		$sOP = "<deck closingDate=\"".$aDeckCategory[0]["end_date"]."\">";
+		$sOP .= "<closingDate>".$aDeckCategory[0]["end_date"]."</closingDate>";
+	}
+	else {
+		$sOP = "<deck>";
+	}
 	$sOP .= cardsincategory(0,$iHeight,$iWidth,1,$lastCheckSeconds,$iUserID,$iDeckID,$root,$iBBHeight,$jpg,0,$iPortrait,$DeckType);
 	$sOP .= "<category_id>".$aDeckCategory[0]["category_id"]."</category_id>";
 	$sOP .= "<hascards>".trim($aDeckCategory[0]['hascards'])."</hascards>";
@@ -3294,7 +3346,7 @@ if ($_GET['gettuts']) {
 		$iWidth = '250';
 	}
 
-	$sOP = getTuts($iHeight, $iWidth, $topcar, $root);
+	$sOP = getTuts($iHeight, $iWidth, $appkey, $root);
 	header('xml_length: '.strlen($sOP));
 	echo $sOP;
 	exit;

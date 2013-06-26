@@ -9,6 +9,6 @@ $productcategories = " AND c.category_id = 84 ";
 $url = "www.mytcg.net";
 $appkey = "Cycling";
 $transactionlogtypes = "1,2,3";
-$notificationtypes = "1,2,3";
+$notificationtypes = "1";
 $leaderboards = "7";
 ?>
