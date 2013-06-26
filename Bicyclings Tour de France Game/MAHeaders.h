@@ -102,7 +102,7 @@
 #define THUMB_HEIGHT 74
 #define ITEM_HEIGHT 48
 
-#define URL "http://www.mytcg.net/_phone/topcar/"
+#define URL "http://www.mytcg.net/_phone/cycling/"
 #define URLSIZE 56
 
 //we also need to define the x and y coordinates at which to split the images up
@@ -122,7 +122,7 @@
 #define BACKGROUND_Y_BOTTOM 399
 
 #define HEAD_X_LEFT 1
-#define HEAD_X_RIGHT 211
+#define HEAD_X_RIGHT 259
 #define HEAD_Y_TOP 1
 #define HEAD_Y_BOTTOM 43
 

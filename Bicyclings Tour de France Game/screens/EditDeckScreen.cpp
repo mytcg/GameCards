@@ -55,6 +55,7 @@ EditDeckScreen::EditDeckScreen(MainScreen *previous, Feed *feed, String deckId, 
 	statIVal = "";
 	deckCategory = "";
 	hasCards = "";
+	closingDate = "";
 	int port = 1;
 	if(portrait == false){
 		port = 2;
@@ -104,6 +105,7 @@ void EditDeckScreen::refresh() {
 	clearListBox();
 	clearCards();
 	hasCards = "";
+	closingDate = "";
 	notice->setCaption("Refreshing card list...");
 	
 	int port = 1;
@@ -920,7 +922,7 @@ void EditDeckScreen::httpFinished(MAUtil::HttpConnection* http, int result) {
 		xmlConn.parse(http, this, this);
 	} else {
 		mHttp.close();
-		notice->setCaption("");
+		//notice->setCaption("");
 		busy = false;
 		feed->remHttp();
 	}
@@ -968,6 +970,11 @@ void EditDeckScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
 			statGreen = atoi(attrValue);
 		}else if(!strcmp(attrName, "blue")) {
 			statBlue = atoi(attrValue);
+		}
+	}
+	else if (!strcmp(parentTag.c_str(), "deck")) {
+		if(!strcmp(attrName, "closingDate")) {
+			closingDate = attrValue;
 		}
 	}
 }
@@ -1113,10 +1120,16 @@ void EditDeckScreen::mtxTagEnd(const char* name, int len) {
 			previous->show();
 		}
 	} else if (!strcmp(name, "deck")) {
-		notice->setCaption("");
 		drawList();
 		busy = false;
-		notice->setCaption("");
+		lprintfln("closingDate: %s", closingDate.c_str());
+		if (closingDate.length() > 0) {
+			notice->setCaption("Competition closes: " + closingDate);
+		}
+		else {
+			notice->setCaption("");
+		}
+		//notice->setCaption("");
 		statDesc="";
 		statIVal="";
 		statDisplay="";

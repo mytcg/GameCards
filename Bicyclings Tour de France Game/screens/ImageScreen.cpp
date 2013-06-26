@@ -43,7 +43,7 @@ ImageScreen::ImageScreen(MainScreen *previous, MAHandle img, Feed *feed, bool fl
 			mainLayout =  Util::createImageLayout("Equip", "Back" , "Flip");
 		}
 		else {
-			mainLayout =  Util::createImageLayout((hasConnection&&canAuction)?"Options":"", "Back" , "Flip");
+			mainLayout =  Util::createImageLayout("", "Back" , "Flip");
 		}
 		kinListBox = (KineticListBox*) mainLayout->getChildren()[0];
 		height = kinListBox->getHeight();
@@ -325,7 +325,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					//mainLayout =  Util::createImageLayout("Equip", "Back" , "Flip");
 				}
 				else {
-					Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
+					Util::updateSoftKeyLayout("", "Back", "Flip", mainLayout);
 				}
 				imge->refreshWidget();
 				imge->statAdded = false;
@@ -497,7 +497,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 				acceptCard();
 			}
 			else if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS && screenType != ST_DECK_ADDON && screenType != ST_DECK_ADDON_EQUIP) {
-				if (card != NULL && hasConnection && canAuction) {
+				/*if (card != NULL && hasConnection && canAuction) {
 					if (next != NULL) {
 						delete next;
 						feed->remHttp();
@@ -506,7 +506,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					next = new OptionsScreen(feed, OptionsScreen::ST_CARD_OPTIONS, this, card);
 					refresh = true;
 					next->show();
-				}
+				}*/
 			}else if(screenType == ST_DECK_REMOVE){
 					((EditDeckScreen *)previous)->removeCard();
 					previous->show();
@@ -558,7 +558,7 @@ void ImageScreen::keyPressEvent(int keyCode) {
 					if (screenType != ST_DECK && screenType != ST_DECK_REMOVE && screenType != ST_DECK_OPTIONS && screenType != ST_DECK_ADDON && screenType != ST_DECK_ADDON_EQUIP) {
 						currentSelectedKey = NULL;
 						currentKeyPosition = -1;
-						Util::updateSoftKeyLayout((hasConnection&&canAuction)?"Options":"", "Back", "Flip", mainLayout);
+						Util::updateSoftKeyLayout("", "Back", "Flip", mainLayout);
 						currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 						currentSelectedKey= currentSoftKeys->getChildren()[1];
 						currentKeyPosition= 1;

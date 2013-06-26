@@ -507,12 +507,6 @@ void AlbumViewScreen::drawList() {
 		index.add(itr->second->getId());
 		String cardText = "";
 		cardText += itr->second->getText();
-		cardText += " (";
-		cardText += itr->second->getQuantity();
-		cardText += ")\n";
-		cardText += itr->second->getRarity();
-		cardText += "\nRating: ";
-		cardText += itr->second->getRanking();
 
 		feedlayout = new Layout(0, 0, tempList->getWidth()-(PADDING*2), ALBUM_ITEM_HEIGHT + ((midListBox->getHeight() % THUMB_HEIGHT) / cardsPerList), tempList, 2, 1);
 		feedlayout->setSkin(Util::getSkinAlbum());

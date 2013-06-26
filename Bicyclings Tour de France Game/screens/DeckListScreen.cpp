@@ -219,7 +219,10 @@ void DeckListScreen::drawList() {
 	}
 	for(int i = 0; i < albums.size(); i++) {
 		label = Util::createSubLabel(albums[i]->getDescription());
+		label->setMultiLine(true);
 		label->addWidgetListener(this);
+		label->setHorizontalAlignment(Label::HA_LEFT);
+		label->setVerticalAlignment(Label::VA_TOP);
 		kinListBox->add(label);
 	}
 

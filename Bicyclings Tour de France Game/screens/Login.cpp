@@ -15,6 +15,7 @@ Login::Login(MainScreen *previous, Feed *feed, int screen) : mHttp(this), screen
 	isBusy = false;
 	result = "";
 	currentSelectedKey = NULL;
+	forgotPasswordScreen = NULL;
 	currentKeyPosition = -1;
 	mainLayout = Util::createMainLayout("", "", "", true);
 
@@ -59,6 +60,11 @@ Login::~Login() {
 	result="";
 	freebie="";
 	notedate="";
+
+	if (forgotPasswordScreen != NULL) {
+		delete forgotPasswordScreen;
+		forgotPasswordScreen = NULL;
+	}
 }
 
 void Login::drawLoginScreen() {
@@ -94,6 +100,16 @@ void Login::drawLoginScreen() {
 	editBoxPass->setDrawBackground(false);
 	label->addWidgetListener(this);
 	kinListBox->add(label);
+
+	label = new Label(0,0, scrWidth-PADDING*2, 5, NULL, "", 0, Util::getDefaultFont());
+	label->setDrawBackground(false);
+	kinListBox->add(label);
+
+	forgotPasswordLabel = new Label(0,0, scrWidth-(PADDING*2), DEFAULT_LABEL_HEIGHT, NULL, "Forgot password", 0, Util::getDefaultSelected());
+	forgotPasswordLabel->setDrawBackground(false);
+	forgotPasswordLabel->setPaddingLeft(PADDING);
+	forgotPasswordLabel->addWidgetListener(this);
+	kinListBox->add(forgotPasswordLabel);
 
 	kinListBox->setSelectedIndex(1);
 }
@@ -138,16 +154,6 @@ void Login::drawRegisterScreen() {
 	label->addWidgetListener(this);
 	kinListBox->add(label);
 
-	label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_SMALL_LABEL_HEIGHT, NULL, "Referrer", 0, Util::getDefaultFont());
-	label->setDrawBackground(false);
-	kinListBox->add(label);
-
-	label = Util::createEditLabel("");
-	editBoxRefer = new NativeEditBox(0, 0, label->getWidth()-PADDING*2, label->getHeight()-PADDING*2, 64, MA_TB_TYPE_EMAILADDR, label, "", L"Referrer");
-	editBoxRefer->setDrawBackground(false);
-	label->addWidgetListener(this);
-	kinListBox->add(label);
-
 	kinListBox->setSelectedIndex(1);
 }
 
@@ -166,10 +172,16 @@ void Login::clearListBox() {
 	tempWidgets.clear();
 }
 void Login::selectionChanged(Widget *widget, bool selected) {
-	if(selected) {
-		widget->getChildren()[0]->setSelected(true);
-	} else {
-		widget->getChildren()[0]->setSelected(false);
+	if (widget->getChildren().size() > 0) {
+		if(selected) {
+			widget->getChildren()[0]->setSelected(true);
+		} else {
+			widget->getChildren()[0]->setSelected(false);
+		}
+	}
+
+	if (forgotPasswordLabel != NULL && widget == forgotPasswordLabel) {
+		forgotPasswordLabel->setFont(selected?Util::getDefaultFont():Util::getDefaultSelected());
 	}
 }
 
@@ -191,7 +203,9 @@ void Login::pointerReleaseEvent(MAPoint2d point)
 			keyPressEvent(MAK_SOFTRIGHT);
 		} else if (left) {
 			keyPressEvent(MAK_SOFTLEFT);
-		} else if (mid) {
+		} /*else if (mid) {
+			keyPressEvent(MAK_FIRE);
+		} */else if (list) {
 			keyPressEvent(MAK_FIRE);
 		}
 
@@ -259,6 +273,16 @@ void Login::keyPressEvent(int keyCode) {
 
 	switch(keyCode) {
 		case MAK_FIRE:
+			if (forgotPasswordLabel != NULL && forgotPasswordLabel->isSelected()) {
+				if (forgotPasswordScreen != NULL) {
+					delete forgotPasswordScreen;
+					forgotPasswordScreen = NULL;
+				}
+				forgotPasswordScreen = new ForgotPasswordScreen(feed, this);
+				forgotPasswordScreen->show();
+				break;
+			}
+
 			if(currentSoftKeys->getChildren()[0]->isSelected()){
 				keyPressEvent(MAK_SOFTLEFT);
 			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
@@ -335,10 +359,6 @@ void Login::keyPressEvent(int keyCode) {
 							notice->setCaption("Please enter a email address without spaces.");
 							maVibrate(1000);
 						}
-						else if (!Util::validateNoWhiteSpaces(editBoxRefer->getText())) {
-							notice->setCaption("Please enter a referer name.");
-							maVibrate(1000);
-						}
 						else {
 							result = "";
 							isBusy = true;
@@ -352,11 +372,11 @@ void Login::keyPressEvent(int keyCode) {
 							feed->setUnsuccessful("true");
 							char *url = NULL;
 							//work out how long the url will be, the 2 is for the & and = symbols
-							int urlLength = 89 + URLSIZE + editBoxLogin->getText().length() + editBoxPass->getText().length() + editBoxEmail->getText().length() + editBoxRefer->getText().length();
+							int urlLength = 89 + URLSIZE + editBoxLogin->getText().length() + editBoxPass->getText().length() + editBoxEmail->getText().length();
 							url = new char[urlLength+1];
 							memset(url,'\0',urlLength+1);
-							sprintf(url, "%s?registeruser=1&username=%s&password=%s&email=%s&referer=%s", URL, editBoxLogin->getText().c_str(),
-									editBoxPass->getText().c_str(), editBoxEmail->getText().c_str(), editBoxRefer->getText().c_str());
+							sprintf(url, "%s?registeruser=1&username=%s&password=%s&email=%s", URL, editBoxLogin->getText().c_str(),
+									editBoxPass->getText().c_str(), editBoxEmail->getText().c_str());
 							lprintfln("%s", url);
 							mHttp = HttpConnection(this);
 							int res = mHttp.create(url, HTTP_GET);

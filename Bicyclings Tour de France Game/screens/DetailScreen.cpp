@@ -1,7 +1,7 @@
 #include "DetailScreen.h"
 #include "OptionsScreen.h"
 #include "AlbumLoadScreen.h"
-#include "ShopProductsScreen.h"
+#include "ChangePasswordScreen.h"
 #include "NewMenuScreen.h"
 #include <mastdlib.h>
 #include "../utils/Util.h"
@@ -14,17 +14,21 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 	lprintfln("DetailScreen::Memory Heap %d, Free Heap %d", heapTotalMemory(), heapFreeMemory());
 	this->previous = previous;
 	this->feed = feed;
-	mainLayout = Util::createMainLayout(screenType==CARD?"":screenType==BALANCE?"Buy":screenType==PROFILE?"Save":"", "Back", screenType==BALANCE?"""":"", true);
+	mainLayout = Util::createMainLayout(screenType==CARD?"":screenType==BALANCE?"Buy":screenType==PROFILE?"Save":"", "Back", screenType==PROFILE?"Password":screenType==BALANCE?"":"", true);
 	kinListBox = (KineticListBox*) mainLayout->getChildren()[0]->getChildren()[2];
 	next=NULL;
 	answers=NULL;
+	changePasswordScreen = NULL;
 	currentSelectedKey = NULL;
+	yourRankLabel = NULL;
 	currentKeyPosition = -1;
 	count = 0;
 	isBusy=true;
+	mid = false;
 	desc = "";
 	date = "";
 	id = "";
+	userposition = "";
 	cred = "0";
 	prem = "0";
 	switch (screenType) {
@@ -92,6 +96,12 @@ DetailScreen::DetailScreen(MainScreen *previous, Feed *feed, int screenType, Car
 			}
 			break;
 		case RANKING:
+			yourRankLabel = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, "Your Rank: ", 0, Util::getDefaultFont());
+			yourRankLabel->setHorizontalAlignment(Label::HA_LEFT);
+			yourRankLabel->setVerticalAlignment(Label::VA_CENTER);
+			yourRankLabel->setSkin(Util::getSkinListNoArrows());
+			yourRankLabel->setMultiLine(true);
+			kinListBox->add(yourRankLabel);
 		case FRIEND:
 			/*Screen Header*/
 			label = new Label(0,0, scrWidth-PADDING*2, DEFAULT_LABEL_HEIGHT, NULL, categoryname.c_str(), 0, Util::getDefaultFont());
@@ -345,6 +355,10 @@ DetailScreen::~DetailScreen() {
 	}
 	friends.clear();
 
+	if (changePasswordScreen != NULL) {
+		delete changePasswordScreen;
+		changePasswordScreen = NULL;
+	}
 }
 
 void DetailScreen::pointerPressEvent(MAPoint2d point)
@@ -365,7 +379,7 @@ void DetailScreen::pointerReleaseEvent(MAPoint2d point)
 			keyPressEvent(MAK_SOFTRIGHT);
 		} else if (left) {
 			keyPressEvent(MAK_SOFTLEFT);
-		} else if (list) {
+		} else if (list || mid) {
 			keyPressEvent(MAK_FIRE);
 		}
 	}
@@ -377,6 +391,7 @@ void DetailScreen::locateItem(MAPoint2d point)
 	list = false;
 	left = false;
 	right = false;
+	mid = false;
 
     Point p;
     p.set(point.x, point.y);
@@ -393,6 +408,8 @@ void DetailScreen::locateItem(MAPoint2d point)
 		{
 			if (i == 0) {
 				left = true;
+			} else if (i == 1) {
+				mid = true;
 			} else if (i == 2) {
 				right = true;
 			}
@@ -440,8 +457,16 @@ void DetailScreen::keyPressEvent(int keyCode) {
 	Widget *currentSoftKeys = mainLayout->getChildren()[mainLayout->getChildren().size() - 1];
 	switch(keyCode) {
 		case MAK_FIRE:
+
 			if(currentSoftKeys->getChildren()[0]->isSelected()){
 				keyPressEvent(MAK_SOFTLEFT);
+			}else if(screenType==PROFILE && (currentSoftKeys->getChildren()[1]->isSelected() || mid)){
+				if (changePasswordScreen != NULL) {
+					delete changePasswordScreen;
+					changePasswordScreen = NULL;
+				}
+				changePasswordScreen = new ChangePasswordScreen(feed, this);
+				changePasswordScreen->show();
 			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
 				keyPressEvent(MAK_SOFTRIGHT);
 			}else if(screenType == FRIENDS){
@@ -690,6 +715,11 @@ void DetailScreen::mtxTagStart(const char* name, int len) {
 }
 
 void DetailScreen::mtxTagAttr(const char* attrName, const char* attrValue) {
+	if(!strcmp(attrName, "userposition")) {
+		userposition = attrValue;
+
+		yourRankLabel->setCaption("Your Rank: " + userposition);
+	}
 }
 
 void DetailScreen::mtxTagData(const char* data, int len) {

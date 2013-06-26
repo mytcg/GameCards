@@ -4,7 +4,7 @@ Provider="Built with MoSync SDK"
 CESignature="$Windows CE$"
 
 [CEStrings]
-AppName="TopCarCards"
+AppName="Bicyclings Tour de France Game"
 InstallDir=%CE1%\%AppName%
 
 [Strings]
@@ -21,8 +21,8 @@ CopyFiles=Files.Common1
 
 [SourceDisksNames]
 1=,"MoRE",,"C:\Apps\MoSync3.1\MoSync\profiles\runtimes\sp2003\1\"
-2=,"program",,"C:\GameCards Core\GameCards\TopCarCards\Output\Windows Mobile\SP 2003\"
-3=,"resources",,"C:\GameCards Core\GameCards\TopCarCards\Output\Windows Mobile\SP 2003"
+2=,"program",,"C:\GameCards Core\GameCards\Bicyclings Tour de France Game\Output\Release\Windows Mobile\SP 2003\"
+3=,"resources",,"C:\GameCards Core\GameCards\Bicyclings Tour de France Game\Output\Release\Windows Mobile\SP 2003"
 
 [SourceDisksFiles]
 "MoRE-winmobile.exe"=1
@@ -39,4 +39,4 @@ Files.Common1=0,"%InstallDir%"
 "resources","resources",,0
 
 [Shortcuts]
-TopCarCards,0,%AppName%.exe
+Bicyclings Tour de France Game,0,%AppName%.exe

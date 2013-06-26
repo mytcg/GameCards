@@ -36,15 +36,17 @@ public:
 	enum screenType {PROFILE, BALANCE, CARD, RANKING, FRIEND, NOTIFICATIONS, CONTACTS, FRIENDS};
 private:
 	NativeEditBox *editBox, *editBoxUsername, *editBoxEmail, *editBoxHandle, *editBoxID;
-	Label *balanceLabel,*premiumLabel;
+	Label *balanceLabel,*premiumLabel, *yourRankLabel;
 	Widget* currentSelectedKey;
-	bool list, left, right, busy;
+	bool list, left, right, mid, busy;
 
 	Vector<Contact *> contacts;
 
 	HttpConnection mHttp;
 
-	String encrypt,error_msg,parentTag,desc,answer,answerid,creditvalue,id,date,value,cred,prem,usr,val,friendid;
+	MainScreen *changePasswordScreen;
+
+	String encrypt,error_msg,parentTag,desc,answer,answerid,creditvalue,id,date,value,cred,prem,usr,val,friendid,userposition;
 	Answer *ans;
 	Friend *frien;
 	Vector<Answer*> answers;
