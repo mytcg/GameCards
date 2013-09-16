@@ -102,7 +102,7 @@
 #define ITEM_HEIGHT 48
 #define CROSSLOGO_BACKGROUND_HEIGHT 44
 
-#define URL "http://www.mytcg.net/_phone/"
+#define URL "http://www.mytcg.net/_phone/muzik/"
 #define URLSIZE 42
 
 //we also need to define the x and y coordinates at which to split the images up
