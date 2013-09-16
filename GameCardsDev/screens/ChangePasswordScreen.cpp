@@ -351,8 +351,9 @@ void ChangePasswordScreen::mtxTagEnd(const char* name, int len) {
 		notice->setCaption(result);
 
 		if (!strcmp(setEncrypt.c_str(), "true")) {
-
 			feed->setEncrypt(encrypt.c_str());
+
+			Util::saveData("fd.sav", feed->getAll().c_str());
 		}
 
 		isBusy = false;

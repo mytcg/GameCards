@@ -83,7 +83,7 @@ require_once("functions.php");
   	 		<td><?php echo getAveActionsPerUserPerDay(); ?></td>
   	 	</tr>
   	 	<tr>
-  	 		<td>Average Time Spent Gaming</td>
+  	 		<td>Average Game Length</td>
   	 		<td><?php echo getAveTimeSpentGaming(); ?></td>
   	 	</tr>
   	 	<tr>

@@ -76,7 +76,7 @@ if ($_GET['competition'] && $scoresFile = $_GET['scores']) {
 			$result['position'] = trim($scorePieces[1]);
 			$result['points'] = trim($scorePieces[2]);
 			$result['bonus'] = trim($scorePieces[3]);
-			$result['card'] = trim($scorePieces[4]);
+			$result['card'] = explode('|', trim($scorePieces[4])); //allowing for multiple possible correct answers seperated by |
 			
 			$results[$scorePieces[1]] = $result;
 			$groupResults[$scorePieces[0]] = $results;
@@ -85,6 +85,9 @@ if ($_GET['competition'] && $scoresFile = $_GET['scores']) {
 		$compQu = ('select deck_id
 			from mytcg_deck d
 			where d.competitiondeck_id = '.$competition);
+		/*$compQu = ('select deck_id
+			from mytcg_deck d
+			where d.deck_id = 26102');*/
 		
 		$compDecks = myqu($compQu);
 		
@@ -110,9 +113,16 @@ if ($_GET['competition'] && $scoresFile = $_GET['scores']) {
 			foreach($groupResults as $groupResult) {
 				$wholeGroup = true;
 				foreach($groupResult as $result) {
-					if ($userResults[$result['position']] != null && 
-						$userResults[$result['position']]['card_id'] == $result['card']) {
-						$userResults[$result['position']]['points'] = $result['points'];
+					if ($userResults[$result['position']] != null) {
+						//we must compensate for multiple possible answers. $result['card'] is now a list of card ids
+						foreach($result['card'] as $cardId) {
+							if ($userResults[$result['position']]['card_id'] == $cardId) {
+								$userResults[$result['position']]['points'] = $result['points'];
+								break;
+							}
+						}
+						
+						$wholeGroup = false;
 					}
 					else {
 						$wholeGroup = false;
@@ -288,6 +298,34 @@ if ($_GET['registeruser']) {
 				
 				myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
 					VALUES ('.$iUserID.', "The 2013 Tour de France cards have been added to your collection!", now(), 1)');
+				
+				checkAchis($iUserID, 1);
+			}
+		}
+	}
+	else if ($appkey == "Bicycling") {
+		//if the user is registering from the cycling app, we need to gove them all the Tour de France 2013 cards
+		$aUserDetails=myqu("SELECT user_id, username FROM mytcg_user WHERE username = '{$username}'");
+		if (sizeof($aUserDetails) > 0) {
+			$userId = $aUserDetails[0]['user_id'];
+			$aValidUser=myqu(
+									"SELECT user_id, username, password, date_last_visit, credits "
+									."FROM mytcg_user "
+									."WHERE username='".$username."' "
+									."AND is_active='1'"
+			);
+			$iUserID=$aValidUser[0]["user_id"];
+			$iMod=(intval($iUserID) % 10)+1;
+			$sPassword=substr(md5($iUserID),$iMod,10).md5($password);
+			if ($sPassword==$aValidUser[0]['password']){
+			
+				myqui('insert into mytcg_usercard (user_id, card_id, usercardstatus_id, is_new, loaded)
+					select '.$iUserID.', card_id, 1, 0, 1
+					from mytcg_card 
+					where category_id in (select category_child_id from mytcg_category_x where category_parent_id = 114)');
+				
+				myqui('INSERT INTO mytcg_notifications (user_id, notification, notedate, notificationtype_id)
+					VALUES ('.$iUserID.', "The Bicycling cards have been added to your collection!", now(), 1)');
 				
 				checkAchis($iUserID, 1);
 			}
