@@ -69,6 +69,8 @@
 #define RES_RANKINGS_THUMB 69
 #define RES_COMPETITIONS 84
 #define RES_COMPETITIONS_THUMB 85
+#define RES_HOW_TO 92
+#define RES_HOW_TO_THUMB 93
 
 #define RES_ALBUM_THUMB_SEL 86
 #define RES_COMPETITIONS_THUMB_SEL 87
@@ -76,6 +78,7 @@
 #define RES_NOTIFICATIONS_THUMB_SEL 89
 #define RES_PROFILE_THUMB_SEL 90
 #define RES_RANKINGS_THUMB_SEL 91
+#define RES_HOW_TO_THUMB_SEL 94
 
 #define RES_DESELECTED_LIST_DOT 70
 #define RES_SELECTED_LIST_DOT 71
@@ -186,12 +189,13 @@
 
 //renumber the menu options if one is removed
 //numbers must always run sequential for index
-#define OP_ALBUMS 0
-#define OP_COMPETITIONS 1
+#define OP_COMPETITIONS 0
+#define OP_ALBUMS 1
 #define OP_NOTIFICATIONS 2
-#define OP_PROFILE 3
-#define OP_RANKINGS 4
-#define OP_LOGOUT 5
+#define OP_RANKINGS 3
+#define OP_HOW_TO 4
+#define OP_PROFILE 5
+#define OP_LOGOUT 6
 
 #include <MAUtil/String.h>
 

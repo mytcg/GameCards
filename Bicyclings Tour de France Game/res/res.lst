@@ -363,3 +363,15 @@
 .ubin
 .image "Rankings_thumb_sel.png"
 
+.res RES_HOW_TO /*92*/
+.ubin
+.image "how_to.png"
+
+.res RES_HOW_TO_THUMB /*93*/
+.ubin
+.image "how_to_thumb.png"
+
+.res RES_HOW_TO_THUMB_SEL /*94*/
+.ubin
+.image "how_to_thumb_sel.png"
+

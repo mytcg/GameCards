@@ -18,11 +18,12 @@
 
 static item menuItems[] =
 {
-	{ RES_ALBUM_THUMB, RES_ALBUM_THUMB_SEL, RES_ALBUM, OP_ALBUMS },
 	{ RES_COMPETITIONS_THUMB, RES_COMPETITIONS_THUMB_SEL, RES_COMPETITIONS, OP_COMPETITIONS },
+	{ RES_ALBUM_THUMB, RES_ALBUM_THUMB_SEL, RES_ALBUM, OP_ALBUMS },
 	{ RES_NOTIFICATIONS_THUMB, RES_NOTIFICATIONS_THUMB_SEL, RES_NOTIFICATIONS, OP_NOTIFICATIONS },
-	{ RES_PROFILE_THUMB, RES_PROFILE_THUMB_SEL, RES_PROFILE, OP_PROFILE },
 	{ RES_RANKINGS_THUMB, RES_RANKINGS_THUMB_SEL, RES_RANKINGS, OP_RANKINGS },
+	{ RES_HOW_TO_THUMB, RES_HOW_TO_THUMB_SEL, RES_HOW_TO, OP_HOW_TO },
+	{ RES_PROFILE_THUMB, RES_PROFILE_THUMB_SEL, RES_PROFILE, OP_PROFILE },
 	{ RES_LOGOUT_THUMB, RES_LOGOUT_THUMB_SEL, RES_LOGOUT, OP_LOGOUT }
 };
 
@@ -176,6 +177,14 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				}
 				next = new DetailScreen(this, feed, DetailScreen::PROFILE, NULL);
 				next->show();
+			} else if(index == OP_HOW_TO) {
+				if(next!=NULL){
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new AlbumLoadScreen(this, feed, AlbumLoadScreen::ST_TUT);
+				next->show();
 			} else if(index == OP_NOTIFICATIONS) {
 				if(next!=NULL){
 					delete next;
@@ -186,16 +195,23 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 				next = new DetailScreen(this, feed, DetailScreen::NOTIFICATIONS, NULL);
 				next->show();
 			} else if(index == OP_RANKINGS) {
-				if(next!=NULL){
+				/*if(next!=NULL){
 					delete next;
 					feed->remHttp();
 					next = NULL;
 				}
 				next = new ShopCategoriesScreen(this, feed, ShopCategoriesScreen::ST_RANKING);
+				next->show();*/
+				if (next != NULL) {
+					delete next;
+					feed->remHttp();
+					next = NULL;
+				}
+				next = new DetailScreen(this, feed, DetailScreen::RANKING, NULL, "32", "Tour de France Competition");
 				next->show();
 			} else if (index == OP_LOGOUT) {
 #if not defined(MA_PROF_STRING_PLATFORM_IPHONEOS)
-				Albums *albums = feed->getAlbum();
+				/*Albums *albums = feed->getAlbum();
 				Vector<String> tmp = albums->getIDs();
 				for (Vector<String>::iterator itr = tmp.begin(); itr != tmp.end(); itr++) {
 					String s = itr->c_str();
@@ -215,7 +231,21 @@ void NewMenuScreen::keyPressEvent(int keyCode) {
 						//delete next;
 					}
 					maExit(0);
-				}
+				}*/
+				int seconds = maLocalTime();
+				int secondsLength = Util::intlen(seconds);
+				char *secString = new char[secondsLength+1];
+				memset(secString,'\0',secondsLength+1);
+				sprintf(secString, "%d", seconds);
+				feed->setSeconds(secString);
+				Util::saveData("fd.sav", feed->getAll().c_str());
+
+				/*if (feed->getHttps() > 0) {
+					label = (Label*) mainLayout->getChildren()[0]->getChildren()[1];
+					label->setCaption("Please wait for all connections to finish before exiting. Try again in a few seconds.");
+				} else {*/
+					maExit(0);
+				//}
 #endif
 			}
 			break;
