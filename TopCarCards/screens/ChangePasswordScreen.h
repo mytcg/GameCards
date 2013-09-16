@@ -1,54 +1,47 @@
-#ifndef _LOGIN_H_
-#define _LOGIN_H_
+#ifndef _CHANGEPASSWORDSCREEN_H_
+#define _CHANGEPASSWORDSCREEN_H_
 
 #include <MAUI/Screen.h>
-#include <MAUI/EditBox.h>
 #include <MAUI/ListBox.h>
 #include <MAUI/Layout.h>
 
 #include "../utils/Feed.h"
 #include "../utils/XmlConnection.h"
+#include "../utils/Card.h"
 #include "../UI/Native/NativeEditBox.h"
 #include "../UI/KineticListBox.h"
 #include "MainScreen.h"
 
-#include "ForgotPasswordScreen.h"
-
 using namespace MAUI;
 using namespace MAUtil;
 
-class Login : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener {
+class ChangePasswordScreen : public MainScreen, WidgetListener, private XCListener, Mtx::XmlListener, private HttpConnectionListener {
 public:
-	Login(MainScreen *previous, Feed *feed, int screen);
-	~Login();
+	ChangePasswordScreen(Feed *feed, MainScreen *previous);
+	~ChangePasswordScreen();
 	void keyPressEvent(int keyCode);
 	void selectionChanged(Widget *widget, bool selected);
 	void show();
+	void clearListBox();
 	void hide();
+
 	void pointerPressEvent(MAPoint2d point);
 	void pointerMoveEvent(MAPoint2d point);
 	void pointerReleaseEvent(MAPoint2d point);
 	void locateItem(MAPoint2d point);
 
-	enum screens {S_LOGIN, S_REGISTER};
 private:
-	Label *forgotPasswordLabel;
-
+	NativeEditBox *editBoxOldPass, *editBoxNewPass, *editBoxConfirm;
 	Widget* currentSelectedKey;
-
-	NativeEditBox *editBoxLogin, *editBoxPass, *editBoxEmail, *editBoxRefer;
-
 	HttpConnection mHttp;
 
-	MainScreen *forgotPasswordScreen;
+	String error_msg, result, setEncrypt, parentTag, encrypt;
+	bool left, right, mid, error;
+	int moved, currentKeyPosition;
 
-	String parentTag,conCatenation,value,value1,value2,convertAsterisk,underscore;
+	bool isBusy;
 
-	String username,credits,encrypt,error_msg,email,handle,touch,result,freebie,notedate,premium;
-	bool list, left, right, mid, error;
-	int screen, moved, currentKeyPosition;
-
-	bool isBusy, changed;
+	void changePassword();
 
 	void httpFinished(MAUtil::HttpConnection*, int);
 	void connReadFinished(Connection*, int);
@@ -62,11 +55,6 @@ private:
 	void mtxParseError(int);
 	void mtxEmptyTagEnd();
 	void mtxTagStartEnd();
-
-	void clearListBox();
-
-	void drawLoginScreen();
-	void drawRegisterScreen();
 };
 
-#endif	//_LOGIN_H_
+#endif	//_CHANGEPASSWORDSCREEN_H_

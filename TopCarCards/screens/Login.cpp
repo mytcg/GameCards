@@ -15,6 +15,7 @@ Login::Login(MainScreen *previous, Feed *feed, int screen) : mHttp(this), screen
 	isBusy = false;
 	result = "";
 	currentSelectedKey = NULL;
+	forgotPasswordScreen = NULL;
 	currentKeyPosition = -1;
 	mainLayout = Util::createMainLayout("", "", "", true);
 
@@ -59,6 +60,11 @@ Login::~Login() {
 	result="";
 	freebie="";
 	notedate="";
+
+	if (forgotPasswordScreen != NULL) {
+		delete forgotPasswordScreen;
+		forgotPasswordScreen = NULL;
+	}
 }
 
 void Login::drawLoginScreen() {
@@ -94,6 +100,16 @@ void Login::drawLoginScreen() {
 	editBoxPass->setDrawBackground(false);
 	label->addWidgetListener(this);
 	kinListBox->add(label);
+
+	label = new Label(0,0, scrWidth-PADDING*2, 5, NULL, "", 0, Util::getDefaultFont());
+	label->setDrawBackground(false);
+	kinListBox->add(label);
+
+	forgotPasswordLabel = new Label(0,0, scrWidth-(PADDING*2), DEFAULT_LABEL_HEIGHT, NULL, "Forgot password", 0, Util::getFontRed());
+	forgotPasswordLabel->setDrawBackground(false);
+	forgotPasswordLabel->setPaddingLeft(PADDING);
+	forgotPasswordLabel->addWidgetListener(this);
+	kinListBox->add(forgotPasswordLabel);
 
 	kinListBox->setSelectedIndex(1);
 }
@@ -166,10 +182,16 @@ void Login::clearListBox() {
 	tempWidgets.clear();
 }
 void Login::selectionChanged(Widget *widget, bool selected) {
-	if(selected) {
-		widget->getChildren()[0]->setSelected(true);
-	} else {
-		widget->getChildren()[0]->setSelected(false);
+	if (widget->getChildren().size() > 0) {
+		if(selected) {
+			widget->getChildren()[0]->setSelected(true);
+		} else {
+			widget->getChildren()[0]->setSelected(false);
+		}
+	}
+
+	if (forgotPasswordLabel != NULL && widget == forgotPasswordLabel) {
+		forgotPasswordLabel->setFont(selected?Util::getFontWhite():Util::getFontGreen());
 	}
 }
 
@@ -191,7 +213,9 @@ void Login::pointerReleaseEvent(MAPoint2d point)
 			keyPressEvent(MAK_SOFTRIGHT);
 		} else if (left) {
 			keyPressEvent(MAK_SOFTLEFT);
-		} else if (mid) {
+		} /*else if (mid) {
+			keyPressEvent(MAK_FIRE);
+		} */else if (list) {
 			keyPressEvent(MAK_FIRE);
 		}
 
@@ -259,6 +283,14 @@ void Login::keyPressEvent(int keyCode) {
 
 	switch(keyCode) {
 		case MAK_FIRE:
+			if (forgotPasswordLabel != NULL && forgotPasswordLabel->isSelected()) {
+				if (forgotPasswordScreen == NULL) {
+					forgotPasswordScreen = new ForgotPasswordScreen(feed, this);
+				}
+				forgotPasswordScreen->show();
+				break;
+			}
+
 			if(currentSoftKeys->getChildren()[0]->isSelected()){
 				keyPressEvent(MAK_SOFTLEFT);
 			}else if(currentSoftKeys->getChildren()[2]->isSelected()){
